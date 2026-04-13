@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@keyframes authRoam {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(-4deg) scale(0.98);
+  }
+
+  25% {
+    transform: translate3d(var(--dx), calc(var(--dy) * -1), 0) rotate(1deg) scale(1.04);
+  }
+
+  50% {
+    transform: translate3d(calc(var(--dx) * -0.5), var(--dy), 0) rotate(4deg) scale(0.96);
+  }
+
+  75% {
+    transform: translate3d(calc(var(--dx) * 0.6), calc(var(--dy) * 0.7), 0) rotate(-2deg) scale(1.03);
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0) rotate(-4deg) scale(0.98);
+  }
+}
+
+@keyframes authBreath {
+
+  0%,
+  100% {
+    filter: saturate(1) brightness(0.92);
+  }
+
+  50% {
+    filter: saturate(1.08) brightness(1.03);
+  }
+}
+
+.auth-floating-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.auth-floating-card {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--size);
+  aspect-ratio: 3 / 4;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  animation:
+    authRoam var(--duration) ease-in-out infinite,
+    authBreath 5.6s ease-in-out infinite;
+  animation-delay: var(--delay), calc(var(--delay) * 0.5);
+}
+
+.auth-floating-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.82;
+}
