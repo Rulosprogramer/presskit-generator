@@ -13,7 +13,10 @@ function BiographyAIModal({ isOpen, onClose, onUseBio, section, artistData, curr
     twitterBio: 'Bio para Twitter (140 caracteres)',
     shortBio: 'Bio corta (1 párrafo)',
     longBio: 'Bio completa (3-4 párrafos)',
+    releaseCta: 'Frase final para la pagina de releases',
   };
+
+  const isReleaseCta = section === 'releaseCta';
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -34,7 +37,9 @@ function BiographyAIModal({ isOpen, onClose, onUseBio, section, artistData, curr
     const systemMessage = {
       id: 'system-1',
       role: 'assistant',
-      text: `Hola, voy a ayudarte a crear la ${sectionLabels[section].toLowerCase()} para tu EPK. 📝\n\nTengo esta información sobre ti:\n\n🎤 **${artistData.artistName || 'Artista'}**\n🎵 Género: ${artistData.genre || 'No especificado'}\n📍 Ciudad: ${artistData.city || 'No especificada'}\n🏆 Reconocimientos: ${artistData.recognitions || 'Sin reconocimientos cargados'}\n\n¿Hay algo que me gustaría destacar o cambiar en tu biografía?`,
+      text: isReleaseCta
+        ? `Hola, voy a ayudarte a crear la ${sectionLabels[section].toLowerCase()} para tu EPK. ✨\n\nTengo esta información:\n\n🎤 **${artistData.artistName || 'Artista'}**\n🎵 Género: ${artistData.genre || 'No especificado'}\n📍 Ciudad: ${artistData.city || 'No especificada'}\n🏆 Reconocimientos: ${artistData.recognitions || 'Sin reconocimientos cargados'}\n\n¿Quieres que te genere una frase corta (máximo 2 líneas) para cerrar la página de releases?`
+        : `Hola, voy a ayudarte a crear la ${sectionLabels[section].toLowerCase()} para tu EPK. 📝\n\nTengo esta información sobre ti:\n\n🎤 **${artistData.artistName || 'Artista'}**\n🎵 Género: ${artistData.genre || 'No especificado'}\n📍 Ciudad: ${artistData.city || 'No especificada'}\n🏆 Reconocimientos: ${artistData.recognitions || 'Sin reconocimientos cargados'}\n\n¿Hay algo que me gustaría destacar o cambiar en tu biografía?`,
     };
 
     setMessages([systemMessage]);
@@ -61,8 +66,12 @@ function BiographyAIModal({ isOpen, onClose, onUseBio, section, artistData, curr
         .join('\n\n');
 
       const fullPrompt = [
-        'Eres un copywriter musical experto en EPK para artistas independientes.',
-        'Estás en una conversación con un artista para crear su biografía.',
+        isReleaseCta
+          ? 'Eres un copywriter musical experto en CTAs cortos para páginas de releases en EPK.'
+          : 'Eres un copywriter musical experto en EPK para artistas independientes.',
+        isReleaseCta
+          ? 'Estás en una conversación con un artista para crear una frase final de cierre para su página de releases.'
+          : 'Estás en una conversación con un artista para crear su biografía.',
         '',
         'INFORMACIÓN DEL ARTISTA:',
         `- Nombre: ${artistData.artistName}`,
@@ -74,19 +83,26 @@ function BiographyAIModal({ isOpen, onClose, onUseBio, section, artistData, curr
         conversationContext,
         '',
         'INSTRUCCIONES:',
-        `- Tipo de bio: ${sectionLabels[section]}`,
+        `- Tipo de texto: ${sectionLabels[section]}`,
         section === 'twitterBio'
           ? '- Máximo 140 caracteres'
           : section === 'shortBio'
             ? '- Un párrafo'
-            : '- 3 a 4 párrafos',
-        '- Si el usuario pide generar la bio, proporciona SOLAMENTE el texto final de la biografía',
+            : section === 'releaseCta'
+              ? '- Máximo 2 líneas y máximo 120 caracteres en total'
+              : '- 3 a 4 párrafos',
+        isReleaseCta
+          ? '- Si el usuario pide generar, entrega SOLO la frase final del CTA (sin explicación)'
+          : '- Si el usuario pide generar la bio, proporciona SOLAMENTE el texto final de la biografía',
         '- Si es una pregunta o comentario, responde brevemente (máx 2 líneas)',
         '- Idioma: español neutro',
-        '- Tono: profesional y útil para EPK',
+        isReleaseCta ? '- Tono: invitacional, enérgico y claro' : '- Tono: profesional y útil para EPK',
+        isReleaseCta ? '- No escribas párrafos largos ni contexto adicional' : '- Mantén foco editorial',
         '',
         'En tu próximo mensaje:',
-        '1. Si debe ser una biografía completa, responde SOLO el texto (sin explicaciones)',
+        isReleaseCta
+          ? '1. Si debe ser el CTA final, responde SOLO el texto final (sin explicaciones)'
+          : '1. Si debe ser una biografía completa, responde SOLO el texto (sin explicaciones)',
         '2. Si es una pregunta, ayuda al usuario de forma breve',
       ].join('\n');
 
@@ -100,19 +116,21 @@ function BiographyAIModal({ isOpen, onClose, onUseBio, section, artistData, curr
         customPrompt: fullPrompt,
       });
 
-      // Detectar si es una biografía generada o una respuesta conversacional
-      const isRealBio = response.length > 30 && (response.includes('.') || response.includes(','));
+      // Detectar si es una propuesta final o una respuesta conversacional
+      const isRealBio = isReleaseCta
+        ? response.length > 0
+        : response.length > 30 && (response.includes('.') || response.includes(','));
 
       const aiMessage = {
         id: `ai-${Date.now()}`,
         role: 'assistant',
         text: response,
-        isBio: isRealBio && response.length > 50,
+        isBio: isReleaseCta ? isRealBio : isRealBio && response.length > 50,
       };
 
       setMessages((prev) => [...prev, aiMessage]);
 
-      // Si es una biografía, guardarla como candidato
+      // Si es texto final, guardarlo como candidato
       if (aiMessage.isBio) {
         setGeneratedBio(response);
         setEditMode(true);
@@ -143,7 +161,7 @@ function BiographyAIModal({ isOpen, onClose, onUseBio, section, artistData, curr
       <div className="relative w-full max-w-2xl rounded-3xl border border-white/10 bg-zinc-950 p-6 shadow-xl flex flex-col h-[80vh]">
         {/* Header */}
         <div className="mb-4 border-b border-white/10 pb-4">
-          <h2 className="text-2xl font-bold text-white">Crear biografía con IA</h2>
+          <h2 className="text-2xl font-bold text-white">{isReleaseCta ? 'Crear CTA con IA' : 'Crear biografía con IA'}</h2>
           <p className="mt-1 text-sm text-zinc-400">{sectionLabels[section]}</p>
         </div>
 
@@ -158,7 +176,7 @@ function BiographyAIModal({ isOpen, onClose, onUseBio, section, artistData, curr
                     : 'bg-cyan-500/10 border border-cyan-400/40 text-zinc-100'
                 } ${msg.isBio ? 'max-w-none bg-white/5 border-white/20' : ''}`}
               >
-                <p className="text-sm whitespace-pre-wrap break-words">{msg.text}</p>
+                <p className="text-sm whitespace-pre-wrap wrap-break-word">{msg.text}</p>
               </div>
             </div>
           ))}
@@ -168,7 +186,7 @@ function BiographyAIModal({ isOpen, onClose, onUseBio, section, artistData, curr
         {/* Edit Bio Section */}
         {generatedBio && editMode && (
           <div className="mb-4 rounded-2xl border border-white/10 bg-white/5 p-4">
-            <p className="text-xs uppercase tracking-[0.12em] text-cyan-300 font-semibold mb-2">Editar biografía</p>
+            <p className="text-xs uppercase tracking-[0.12em] text-cyan-300 font-semibold mb-2">{isReleaseCta ? 'Editar CTA' : 'Editar biografía'}</p>
             <textarea
               value={generatedBio}
               onChange={(e) => setGeneratedBio(e.target.value)}
@@ -190,7 +208,7 @@ function BiographyAIModal({ isOpen, onClose, onUseBio, section, artistData, curr
                 handleSendMessage();
               }
             }}
-            placeholder="Escribe tu mensaje o pide 'generar biografía'..."
+            placeholder={isReleaseCta ? "Escribe tu mensaje o pide 'generar CTA'..." : "Escribe tu mensaje o pide 'generar biografía'..."}
             disabled={loading}
             className="flex-1 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-100 outline-none transition focus:border-cyan-300 disabled:opacity-50"
           />
@@ -216,7 +234,7 @@ function BiographyAIModal({ isOpen, onClose, onUseBio, section, artistData, curr
             disabled={!generatedBio.trim()}
             className="flex-1 rounded-lg bg-fuchsia-400 px-4 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-fuchsia-300 disabled:opacity-50"
           >
-            ✓ Usar esta bio
+            {isReleaseCta ? '✓ Usar este CTA' : '✓ Usar esta bio'}
           </button>
         </div>
       </div>

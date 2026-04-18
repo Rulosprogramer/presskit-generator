@@ -15,7 +15,7 @@ function CTA() {
           <article className="rounded-2xl border border-white/10 bg-white/5 p-8">
             <h3 className="text-2xl font-bold text-white">The Starter Beat</h3>
             <p className="mt-3 text-6xl font-black text-cyan-300">$1</p>
-            <p className="mt-2 text-sm text-zinc-400">USD, pago único</p>
+            <p className="mt-2 text-sm text-zinc-400">USD por descarga, una vez por cada actualización</p>
 
             <p className="mt-6 text-lg font-semibold italic text-fuchsia-300">
               Lanza con impacto sin complicaciones.
@@ -36,12 +36,12 @@ function CTA() {
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-cyan-400">✓</span>
-                <span>Diseño Responsive: Se ve perfecto en el celular de cualquier promotor.</span>
+                <span>Descarga PDF Profesional: Diseño impecable, listo para compartir.</span>
               </li>
             </ul>
 
             <p className="mt-6 text-sm italic text-zinc-300">
-              "Más profesional que un PDF, más rápido que un sitio web. Por lo que cuesta un café, asegura tu imagen."
+              "Un PDF profesional en minutos, sin esperar una agencia. Por lo que cuesta un café, asegura tu imagen."
             </p>
 
             <a href="/auth" className="mt-8 inline-block w-full rounded-xl bg-cyan-300 px-6 py-3 text-center text-sm font-semibold text-zinc-950 transition hover:bg-cyan-200">
@@ -57,8 +57,8 @@ function CTA() {
             </div>
 
             <h3 className="text-2xl font-bold text-white">The Headliner Pro</h3>
-            <p className="mt-3 text-6xl font-black text-fuchsia-300">$5</p>
-            <p className="mt-2 text-sm text-zinc-400">USD, pago único</p>
+            <p className="mt-3 text-6xl font-black text-fuchsia-300">$15</p>
+            <p className="mt-2 text-sm text-zinc-400">USD, plan anual</p>
 
             <p className="mt-6 text-lg font-semibold italic text-cyan-300">
               Tu carrera merece el estándar de la industria.
@@ -67,23 +67,23 @@ function CTA() {
             <ul className="mt-6 space-y-3 text-zinc-200">
               <li className="flex items-start gap-2">
                 <span className="text-fuchsia-300">✓</span>
-                <span>Todo lo del Plan Sencillo.</span>
+                <span>Todo lo del Plan Básico.</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-fuchsia-300">✓</span>
-                <span>Galería High-Res: Espacio para fotos de prensa descargables (esencial para medios).</span>
+                <span>Enlace del EPK: Tu presskit online con Diseño Responsive en todos los dispositivos.</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-fuchsia-300">✓</span>
-                <span>Video Spotlight: Integración nativa de YouTube/Vimeo para mostrar tu show en vivo.</span>
+                <span>Descargas de PDF Ilimitadas: Descarga tu presskit en PDF las veces que necesites.</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-fuchsia-300">✓</span>
-                <span>Technical Rider & Stage Plan: Sube tus requerimientos técnicos para que los ingenieros te amen.</span>
+                <span>Galería High-Res: Fotos de prensa descargables (esencial para medios).</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-fuchsia-300">✓</span>
-                <span>Botón de Descarga EPK: Genera un resumen listo para enviar por correo.</span>
+                <span>Actualiza cuando quieras: Modifica tu contenido en cualquier momento, sin costo adicional.</span>
               </li>
             </ul>
 

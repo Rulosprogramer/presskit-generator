@@ -14,6 +14,7 @@ import Sidebar from './components/post-login/Sidebar.jsx'
 import Topbar from './components/post-login/Topbar.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import CreatePresskit from './pages/CreatePresskit.jsx'
+import PublicPresskit from './pages/PublicPresskit.jsx'
 import Checkout from './pages/Checkout.jsx'
 import { auth } from './lib/firebase'
 
@@ -32,6 +33,11 @@ function App() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser)
+      
+      // Si el usuario está autenticado y está en la página de inicio, redirigir al dashboard
+      if (firebaseUser && window.location.pathname === '/') {
+        window.location.assign('/dashboard')
+      }
     })
 
     return () => unsubscribe()
@@ -105,17 +111,9 @@ function App() {
           </main>
         )
       ) : isPublicPresskitPage ? (
-        user ? (
-          <main>
-            <Suspense fallback={<div className="px-6 py-8 text-sm text-zinc-300">Cargando modulo PDF...</div>}>
-              <PresskitPDF user={user} onSignOut={handleSignOut} presskitId={publicPresskitId} />
-            </Suspense>
-          </main>
-        ) : (
-          <main>
-            <AuthPage />
-          </main>
-        )
+        <main>
+          <PublicPresskit presskitId={publicPresskitId} />
+        </main>
       ) : (
         <>
           <Navbar user={user} />

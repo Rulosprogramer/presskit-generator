@@ -1,5 +1,6 @@
 import ThemeSlector from './ThemeSlector.jsx';
 import ReleaseStep from './ReleaseStep.jsx';
+import ArtistMilestonesStep from './ArtistMilestonesStep.jsx';
 import { getTypeface, getTypefaceOptions } from '../../lib/typefaces.js';
 
 const latamCountryCodes = [
@@ -28,14 +29,25 @@ function Stepform({
   data,
   onFieldChange,
   onLinkChange,
+  onLinkMetricChange,
   onCoverUpload,
   onGalleryUpload,
   onRecognitionImageUpload,
   onBioImageUpload,
   onContactLogoUpload,
+  onLinkScreenshotUpload,
   onGenerateTwitterBio,
   onGenerateShortBio,
   onGenerateLongBio,
+  onGenerateReleaseCta,
+  milestones,
+  onAddMilestone,
+  onUpdateMilestone,
+  onDeleteMilestone,
+  onGenerateMilestone,
+  isGeneratingMilestone,
+  generatingMilestoneKey,
+  milestoneGenerationError,
   onAddRelease,
   onDeleteRelease,
   onUpdateRelease,
@@ -62,7 +74,7 @@ function Stepform({
       </div>
 
       <div className="mt-6 space-y-6">
-        <div className="rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
+        <div id="presskit-step-1" className="scroll-mt-28 rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
           <p className="text-sm font-semibold text-fuchsia-300">1. Portada</p>
           <p className="mt-2 text-sm text-zinc-300">
             Sube tu mejor foto, de estudio o de un show en vivo, recuerda que es lo primero que veran en tu EPK.
@@ -92,7 +104,7 @@ function Stepform({
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
+        <div id="presskit-step-2" className="scroll-mt-28 rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
           <p className="text-sm font-semibold text-fuchsia-300">2. Datos del artista</p>
           <div className="mt-4 grid gap-4 sm:grid-cols-3">
             <label className="space-y-2">
@@ -122,10 +134,20 @@ function Stepform({
                 className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-zinc-100 outline-none transition focus:border-cyan-300"
               />
             </label>
+
+            <label className="space-y-2 sm:col-span-3">
+              <span className="text-xs uppercase tracking-[0.12em] text-zinc-400">Link Performance en vivo (YouTube)</span>
+              <input
+                value={data.performanceLiveLink || ''}
+                onChange={(event) => onFieldChange('performanceLiveLink', event.target.value)}
+                placeholder="https://youtube.com/watch?v=..."
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-zinc-100 outline-none transition focus:border-cyan-300"
+              />
+            </label>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
+        <div id="presskit-step-3" className="scroll-mt-28 rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
           <p className="text-sm font-semibold text-fuchsia-300">3. Reconocimientos y Streams</p>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <label className="space-y-2 sm:col-span-2">
@@ -195,7 +217,7 @@ function Stepform({
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
+        <div id="presskit-step-4" className="scroll-mt-28 rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
           <p className="text-sm font-semibold text-fuchsia-300">4. Biografía</p>
           <p className="mt-2 text-sm text-zinc-300">
             Ofrece una bio rápida para redes, una versión corta para festivales y una historia completa para prensa o entrevistas.
@@ -312,27 +334,48 @@ function Stepform({
           </div>
         </div>
 
-        <ReleaseStep
-          releases={data.releases || []}
-          onAddRelease={onAddRelease}
-          onDeleteRelease={onDeleteRelease}
-          onUpdateRelease={onUpdateRelease}
-        />
+        <div id="presskit-step-5" className="scroll-mt-28">
+          <ArtistMilestonesStep
+            milestones={milestones || {}}
+            onAddMilestone={onAddMilestone}
+            onUpdateMilestone={onUpdateMilestone}
+            onDeleteMilestone={onDeleteMilestone}
+            onGenerateMilestone={onGenerateMilestone}
+            isGeneratingMilestone={isGeneratingMilestone}
+            generatingMilestoneKey={generatingMilestoneKey}
+            milestoneGenerationError={milestoneGenerationError}
+          />
+        </div>
 
-        <div className="rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
-          <p className="text-sm font-semibold text-fuchsia-300">6. Links</p>
+        <div id="presskit-step-6" className="scroll-mt-28">
+          <ReleaseStep
+            releases={data.releases || []}
+            releaseCtaText={data.releasesCtaText || ''}
+            onReleaseCtaChange={(value) => onFieldChange('releasesCtaText', value)}
+            onGenerateReleaseCta={onGenerateReleaseCta}
+            isGeneratingBio={isGeneratingBio}
+            generatingBioSection={generatingBioSection}
+            generatedBios={generatedBios}
+            onAddRelease={onAddRelease}
+            onDeleteRelease={onDeleteRelease}
+            onUpdateRelease={onUpdateRelease}
+          />
+        </div>
+
+        <div id="presskit-step-7" className="scroll-mt-28 rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
+          <p className="text-sm font-semibold text-fuchsia-300">7. Links</p>
+          <p className="mt-2 text-sm text-zinc-300">Agrega una captura de pantalla de tus redes sociales.</p>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             {[
               ['spotify', 'Spotify'],
               ['instagram', 'Instagram'],
               ['youtube', 'YouTube'],
               ['tiktok', 'TikTok'],
-              ['youtubeVideo', 'YouTube Video'],
               ['facebook', 'Facebook'],
               ['appleMusic', 'Apple Music'],
               ['soundcloud', 'SoundCloud'],
             ].map(([key, label]) => (
-              <label key={key} className="space-y-2">
+              <div key={key} className="space-y-2 rounded-2xl border border-white/10 bg-white/5 p-3">
                 <span className="text-xs uppercase tracking-[0.12em] text-zinc-400">{label}</span>
                 <input
                   value={data.links[key] || ''}
@@ -340,13 +383,80 @@ function Stepform({
                   placeholder={`https://.../${label.toLowerCase().replace(' ', '')}`}
                   className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-zinc-100 outline-none transition focus:border-cyan-300"
                 />
-              </label>
+                <p className="text-[11px] text-zinc-400">Para ver esta red en el diseño debes agregar un link.</p>
+                <input
+                  value={data.linkMetrics?.[key] || ''}
+                  onChange={(event) => onLinkMetricChange?.(key, event.target.value)}
+                  placeholder={
+                    {
+                      spotify: '2M+',
+                      instagram: '20K+',
+                      youtube: '2M views',
+                      tiktok: '100K+',
+                      facebook: '127K+',
+                      appleMusic: '2M+',
+                      soundcloud: '300K+',
+                    }[key] || '100K+'
+                  }
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-zinc-100 outline-none transition focus:border-cyan-300"
+                />
+
+                {['youtube', 'instagram', 'tiktok', 'facebook'].includes(key) ? (
+                  <>
+                    <label className="block space-y-2 rounded-xl border border-dashed border-white/15 bg-white/5 p-3">
+                      <span className="text-[11px] uppercase tracking-[0.12em] text-zinc-400">Captura de pantalla</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(event) => onLinkScreenshotUpload?.(event, key)}
+                        className="w-full cursor-pointer text-xs text-zinc-300 file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-cyan-300 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-zinc-950"
+                      />
+                    </label>
+                    {selectedFileNames?.linkScreenshots?.[key] ? (
+                      <div className="rounded-lg bg-cyan-300/10 px-3 py-2 text-xs text-cyan-300">✓ {selectedFileNames.linkScreenshots[key]}</div>
+                    ) : null}
+                  </>
+                ) : null}
+              </div>
             ))}
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
-          <p className="text-sm font-semibold text-fuchsia-300">7. Galería</p>
+        <div id="presskit-step-8" className="scroll-mt-28 rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
+          <p className="text-sm font-semibold text-fuchsia-300">8. Galería</p>
+          <p className="mt-2 text-sm text-zinc-300">
+            Elige el estilo del collage para desktop. El sistema de layouts dinamicos se aplicara segun cantidad de fotos (3, 5, 6, 7, 8, 9, 10).
+          </p>
+
+          <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3">
+            <p className="text-xs uppercase tracking-[0.12em] text-zinc-400">Estilo de collage</p>
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+              {[
+                { id: 'clasico', label: 'Clasico' },
+                { id: 'urbano', label: 'Urbano' },
+                { id: 'norteno', label: 'Norteno' },
+                { id: 'futurista', label: 'Futurista' },
+                { id: 'elegante', label: 'Elegante' },
+              ].map((style) => {
+                const active = (data.galleryStyle || 'clasico') === style.id;
+                return (
+                  <button
+                    key={style.id}
+                    type="button"
+                    onClick={() => onFieldChange('galleryStyle', style.id)}
+                    className={`rounded-xl border px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] transition ${
+                      active
+                        ? 'border-cyan-300/45 bg-cyan-300/15 text-cyan-200'
+                        : 'border-white/10 bg-white/5 text-zinc-300 hover:border-white/25 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    {style.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {imageUploadError && (
             <div className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2 text-xs text-amber-300">
               {imageUploadError}
@@ -376,8 +486,8 @@ function Stepform({
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
-          <p className="text-sm font-semibold text-fuchsia-300">8. Contacto</p>
+        <div id="presskit-step-9" className="scroll-mt-28 rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
+          <p className="text-sm font-semibold text-fuchsia-300">9. Contacto</p>
           <p className="mt-2 text-sm text-zinc-300">
             Agrega la información de contacto profesional para cerrar tu EPK con canales directos de booking.
           </p>
@@ -465,8 +575,8 @@ function Stepform({
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
-          <p className="text-sm font-semibold text-fuchsia-300">9. Tema Visual</p>
+        <div id="presskit-step-10" className="scroll-mt-28 rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
+          <p className="text-sm font-semibold text-fuchsia-300">10. Tema Visual</p>
           <p className="mt-2 text-sm text-zinc-300">
             Selecciona la estética de tu presskit. Los cambios se aplicarán automáticamente al preview y PDF.
           </p>
@@ -489,7 +599,7 @@ function Stepform({
                       : 'border-white/10 bg-zinc-900/50 hover:border-white/20 hover:bg-white/10'
                   }`}
                 >
-                  <div className={`h-2 rounded-full bg-gradient-to-r ${theme.accent}`} />
+                  <div className={`h-2 rounded-full bg-linear-to-r ${theme.accent}`} />
                   <p className="mt-3 text-sm font-semibold text-white">{theme.label}</p>
                   <p className="mt-1 text-xs text-zinc-400">Ajusta la identidad visual.</p>
                 </button>
@@ -498,8 +608,8 @@ function Stepform({
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
-          <p className="text-sm font-semibold text-fuchsia-300">10. Tipografía</p>
+        <div id="presskit-step-11" className="scroll-mt-28 rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
+          <p className="text-sm font-semibold text-fuchsia-300">11. Tipografía</p>
           <p className="mt-2 text-sm text-zinc-300">
             Elige el estilo de fuente que mejor represente tu identidad artística. Se aplicará automáticamente a todo tu presskit.
           </p>
@@ -527,10 +637,10 @@ function Stepform({
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+        <div id="presskit-step-12" className="scroll-mt-28 rounded-2xl border border-white/10 bg-white/5 p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-cyan-300">11. Preview y Guardar</p>
+              <p className="text-sm font-semibold text-cyan-300">12. Preview y Guardar</p>
               <p className="mt-1 text-sm text-zinc-400">La información se autoguarda en Firestore en cada cambio.</p>
             </div>
             <button

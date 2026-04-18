@@ -10,11 +10,47 @@ import LivePreview from '../components/post-login/livePreview.jsx';
 import PublishModal from '../components/post-login/PublishModal.jsx';
 import ImageLibraryModal from '../components/post-login/ImageLibraryModal.jsx';
 import BiographyAIModal from '../components/BiographyAIModal.jsx';
+import MilestoneAIModal from '../components/MilestoneAIModal.jsx';
+
+function createEmptyArtistMilestones() {
+  return {
+    digital: [],
+    live: [],
+    press: [],
+    collaborations: [],
+  };
+}
+
+function normalizeArtistMilestones(value) {
+  const empty = createEmptyArtistMilestones();
+
+  return Object.keys(empty).reduce((accumulator, key) => {
+    accumulator[key] = Array.isArray(value?.[key])
+      ? value[key]
+          .map((item) => String(item || '').trim())
+          .filter(Boolean)
+          .slice(0, 3)
+      : [];
+    return accumulator;
+  }, empty);
+}
+
+function ensureArtistMilestonesShape(value) {
+  const empty = createEmptyArtistMilestones();
+
+  return Object.keys(empty).reduce((accumulator, key) => {
+    accumulator[key] = Array.isArray(value?.[key])
+      ? value[key].slice(0, 3).map((item) => String(item ?? ''))
+      : [];
+    return accumulator;
+  }, empty);
+}
 
 const initialPresskitData = {
   artistName: '',
   genre: '',
   city: '',
+  performanceLiveLink: '',
   totalStreams: '',
   totalVideoViews: '',
   recognitions: '',
@@ -28,17 +64,34 @@ const initialPresskitData = {
   longBio: '',
   longBioImage: '',
   interviewLink: '',
+  artistMilestones: createEmptyArtistMilestones(),
   releases: [],
+  releasesCtaText: 'Dale play y disfruta los videos que estan marcando el camino de Rulos.',
+  galleryStyle: 'clasico',
   images: [],
   links: {
     spotify: '',
     instagram: '',
     youtube: '',
     tiktok: '',
-    youtubeVideo: '',
     facebook: '',
     appleMusic: '',
     soundcloud: '',
+  },
+  linkMetrics: {
+    spotify: '',
+    instagram: '',
+    youtube: '',
+    tiktok: '',
+    facebook: '',
+    appleMusic: '',
+    soundcloud: '',
+  },
+  linkScreenshots: {
+    youtube: '',
+    instagram: '',
+    tiktok: '',
+    facebook: '',
   },
   contactArtistName: '',
   managerName: '',
@@ -57,6 +110,7 @@ const steps = [
   'Datos del artista',
   'Reconocimientos y Streams',
   'Biografía',
+  'Hitos del Artista',
   'Releases',
   'Links',
   'Galería',
@@ -83,6 +137,9 @@ function compactDraftForLocal(data) {
     bioImage: isRemoteUrl(data.bioImage) ? data.bioImage : '',
     longBioImage: isRemoteUrl(data.longBioImage) ? data.longBioImage : '',
     contactLogo: isRemoteUrl(data.contactLogo) ? data.contactLogo : '',
+    linkScreenshots: Object.fromEntries(
+      Object.entries(data.linkScreenshots || {}).map(([key, value]) => [key, isRemoteUrl(value) ? value : ''])
+    ),
   };
 }
 
@@ -121,14 +178,27 @@ function CreatePresskit({ user, onSignOut }) {
   const [bioGenerationError, setBioGenerationError] = useState('');
   const [libraryModalOpen, setLibraryModalOpen] = useState(false);
   const [currentImageType, setCurrentImageType] = useState('cover');
-  const [selectedFileNames, setSelectedFileNames] = useState({ cover: '', recognition: '', gallery: [] });
+  const [selectedFileNames, setSelectedFileNames] = useState({ cover: '', recognition: '', gallery: [], linkScreenshots: {} });
   const [imageUploadError, setImageUploadError] = useState('');
   const [aiModalOpen, setAiModalOpen] = useState(false);
   const [aiModalSection, setAiModalSection] = useState(null);
   const [generatedBios, setGeneratedBios] = useState({});
+  const [isGeneratingMilestone, setIsGeneratingMilestone] = useState(false);
+  const [generatingMilestoneKey, setGeneratingMilestoneKey] = useState('');
+  const [milestoneGenerationError, setMilestoneGenerationError] = useState('');
+  const [milestoneModalOpen, setMilestoneModalOpen] = useState(false);
+  const [milestoneModalCategory, setMilestoneModalCategory] = useState('digital');
+  const [milestoneModalIndex, setMilestoneModalIndex] = useState(-1);
   const createdAtRef = useRef(null);
   const lastSavedSignatureRef = useRef('');
   const isSavingRef = useRef(false);
+
+  const handleSidebarStepClick = (stepNumber) => {
+    setActiveStep(stepNumber);
+    const target = document.getElementById(`presskit-step-${stepNumber}`);
+    if (!target) return;
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   const draftRef = useMemo(() => {
     if (!user?.uid) return null;
@@ -148,6 +218,7 @@ function CreatePresskit({ user, onSignOut }) {
         artistName: localData.artistName || current.artistName,
         genre: localData.genre || current.genre,
         city: localData.city || current.city,
+        performanceLiveLink: localData.performanceLiveLink || current.performanceLiveLink,
         totalStreams: localData.totalStreams || current.totalStreams,
         totalVideoViews: localData.totalVideoViews || current.totalVideoViews,
         recognitions: localData.recognitions || current.recognitions,
@@ -161,11 +232,22 @@ function CreatePresskit({ user, onSignOut }) {
         longBio: localData.longBio || current.longBio,
         longBioImage: localData.longBioImage || current.longBioImage,
         interviewLink: localData.interviewLink || current.interviewLink,
+        artistMilestones: normalizeArtistMilestones(localData.artistMilestones || current.artistMilestones),
         releases: Array.isArray(localData.releases) ? localData.releases : current.releases,
+        releasesCtaText: localData.releasesCtaText ?? current.releasesCtaText,
+        galleryStyle: localData.galleryStyle || current.galleryStyle || 'clasico',
         images: Array.isArray(localData.images) && localData.images.length ? localData.images : current.images,
         links: {
           ...current.links,
           ...(localData.links || {}),
+        },
+        linkMetrics: {
+          ...current.linkMetrics,
+          ...(localData.linkMetrics || {}),
+        },
+        linkScreenshots: {
+          ...current.linkScreenshots,
+          ...(localData.linkScreenshots || {}),
         },
         contactArtistName: localData.contactArtistName || current.contactArtistName,
         managerName: localData.managerName || current.managerName,
@@ -206,6 +288,7 @@ function CreatePresskit({ user, onSignOut }) {
             artistName: data.artistName || current.artistName,
             genre: data.genre || current.genre,
             city: data.city || current.city,
+            performanceLiveLink: data.performanceLiveLink || current.performanceLiveLink,
             totalStreams: data.totalStreams || current.totalStreams,
             totalVideoViews: data.totalVideoViews || current.totalVideoViews,
             recognitions: data.recognitions || current.recognitions,
@@ -219,11 +302,22 @@ function CreatePresskit({ user, onSignOut }) {
             longBio: data.longBio || current.longBio,
             longBioImage: data.longBioImage || current.longBioImage,
             interviewLink: data.interviewLink || current.interviewLink,
+            artistMilestones: normalizeArtistMilestones(data.artistMilestones || current.artistMilestones),
             releases: Array.isArray(data.releases) ? data.releases : current.releases,
+            releasesCtaText: data.releasesCtaText ?? current.releasesCtaText,
+            galleryStyle: data.galleryStyle || current.galleryStyle || 'clasico',
             images: Array.isArray(data.images) && data.images.length ? data.images : current.images,
             links: {
               ...current.links,
               ...(data.links || {}),
+            },
+            linkMetrics: {
+              ...current.linkMetrics,
+              ...(data.linkMetrics || {}),
+            },
+            linkScreenshots: {
+              ...current.linkScreenshots,
+              ...(data.linkScreenshots || {}),
             },
             contactArtistName: data.contactArtistName || current.contactArtistName,
             managerName: data.managerName || current.managerName,
@@ -261,6 +355,7 @@ function CreatePresskit({ user, onSignOut }) {
       const savePayload = {
         userId: user.uid,
         artistName: presskitData.artistName,
+        performanceLiveLink: presskitData.performanceLiveLink,
         totalStreams: presskitData.totalStreams,
         totalVideoViews: presskitData.totalVideoViews,
         recognitions: presskitData.recognitions,
@@ -274,13 +369,18 @@ function CreatePresskit({ user, onSignOut }) {
         longBio: presskitData.longBio,
         longBioImage: presskitData.longBioImage,
         interviewLink: presskitData.interviewLink,
+        artistMilestones: presskitData.artistMilestones,
         releases: presskitData.releases,
+        releasesCtaText: presskitData.releasesCtaText,
+        galleryStyle: presskitData.galleryStyle,
         theme: presskitData.theme,
         typeface: presskitData.typeface,
         genre: presskitData.genre,
         city: presskitData.city,
         images: presskitData.images,
         links: presskitData.links,
+        linkMetrics: presskitData.linkMetrics,
+        linkScreenshots: presskitData.linkScreenshots,
         contactArtistName: presskitData.contactArtistName,
         managerName: presskitData.managerName,
         roadManagerName: presskitData.roadManagerName,
@@ -380,6 +480,16 @@ function CreatePresskit({ user, onSignOut }) {
     }));
   };
 
+  const updateLinkMetric = (field, value) => {
+    setPresskitData((current) => ({
+      ...current,
+      linkMetrics: {
+        ...current.linkMetrics,
+        [field]: value,
+      },
+    }));
+  };
+
   const handleAddRelease = (releaseData) => {
     setPresskitData((current) => ({
       ...current,
@@ -399,6 +509,54 @@ function CreatePresskit({ user, onSignOut }) {
       ...current,
       releases: (current.releases || []).map((r, i) => (i === index ? releaseData : r)),
     }));
+  };
+
+  const handleAddMilestone = (category) => {
+    setPresskitData((current) => {
+      const currentMilestones = ensureArtistMilestonesShape(current.artistMilestones);
+      const items = currentMilestones[category] || [];
+
+      if (items.length >= 3) {
+        return current;
+      }
+
+      return {
+        ...current,
+        artistMilestones: {
+          ...currentMilestones,
+          [category]: [...items, ''],
+        },
+      };
+    });
+    setActiveStep(5);
+  };
+
+  const handleUpdateMilestone = (category, index, value) => {
+    setPresskitData((current) => {
+      const currentMilestones = ensureArtistMilestonesShape(current.artistMilestones);
+
+      return {
+        ...current,
+        artistMilestones: {
+          ...currentMilestones,
+          [category]: (currentMilestones[category] || []).map((item, itemIndex) => (itemIndex === index ? value : item)),
+        },
+      };
+    });
+  };
+
+  const handleDeleteMilestone = (category, index) => {
+    setPresskitData((current) => {
+      const currentMilestones = ensureArtistMilestonesShape(current.artistMilestones);
+
+      return {
+        ...current,
+        artistMilestones: {
+          ...currentMilestones,
+          [category]: (currentMilestones[category] || []).filter((_, itemIndex) => itemIndex !== index),
+        },
+      };
+    });
   };
 
   const handleCoverUpload = async (event) => {
@@ -620,11 +778,56 @@ function CreatePresskit({ user, onSignOut }) {
     }
   };
 
+  const handleLinkScreenshotUpload = async (event, platform) => {
+    const file = event.target.files?.[0];
+    if (!file || !user?.uid) return;
+
+    setImageUploadError('');
+
+    try {
+      await auth.currentUser?.getIdToken(true);
+
+      const exists = await fileExistsInLibrary({ userId: user.uid, fileName: file.name });
+      if (exists) {
+        setImageUploadError(`El archivo "${file.name}" ya está subido.`);
+        event.target.value = '';
+        return;
+      }
+
+      const imageUrl = await uploadImageFile({ file, userId: user.uid, folder: 'links' });
+      await addImageToLibrary({ userId: user.uid, imageUrl, fileName: file.name, type: `link-${platform}` });
+
+      setPresskitData((current) => ({
+        ...current,
+        linkScreenshots: {
+          ...current.linkScreenshots,
+          [platform]: imageUrl,
+        },
+      }));
+
+      setSelectedFileNames((current) => ({
+        ...current,
+        linkScreenshots: {
+          ...(current.linkScreenshots || {}),
+          [platform]: file.name,
+        },
+      }));
+    } catch (error) {
+      if (error.message?.includes('archivo')) {
+        setImageUploadError(error.message);
+      } else {
+        setPermissionError(getStorageSetupErrorMessage(error));
+      }
+      console.warn(`No se pudo subir captura de red (${platform}):`, error);
+    }
+  };
+
   const generateBioField = async (section) => {
     const fieldBySection = {
       twitterBio: 'twitterBio',
       shortBio: 'bio',
       longBio: 'longBio',
+      releaseCta: 'releasesCtaText',
     };
 
     const targetField = fieldBySection[section];
@@ -661,7 +864,35 @@ function CreatePresskit({ user, onSignOut }) {
   const handleOpenBioModal = (section) => {
     setAiModalSection(section);
     setAiModalOpen(true);
-    setActiveStep(4);
+    setActiveStep(section === 'releaseCta' ? 6 : 4);
+  };
+
+  const handleGenerateMilestone = (category, index) => {
+    setMilestoneGenerationError('');
+    setMilestoneModalCategory(category);
+    setMilestoneModalIndex(index);
+    setMilestoneModalOpen(true);
+    setActiveStep(5);
+  };
+
+  const handleUseMilestone = (text) => {
+    if (milestoneModalIndex < 0) return;
+
+    setPresskitData((current) => {
+      const currentMilestones = ensureArtistMilestonesShape(current.artistMilestones);
+      const categoryItems = currentMilestones[milestoneModalCategory] || [];
+
+      return {
+        ...current,
+        artistMilestones: {
+          ...currentMilestones,
+          [milestoneModalCategory]: categoryItems.map((item, itemIndex) => (itemIndex === milestoneModalIndex ? text : item)),
+        },
+      };
+    });
+
+    setMilestoneModalOpen(false);
+    setMilestoneModalIndex(-1);
   };
 
   const handleUseBio = (generatedText) => {
@@ -669,6 +900,7 @@ function CreatePresskit({ user, onSignOut }) {
       twitterBio: 'twitterBio',
       shortBio: 'bio',
       longBio: 'longBio',
+      releaseCta: 'releasesCtaText',
     };
 
     const targetField = fieldBySection[aiModalSection];
@@ -748,6 +980,7 @@ function CreatePresskit({ user, onSignOut }) {
         {
           userId: user.uid,
           artistName: presskitData.artistName,
+          performanceLiveLink: presskitData.performanceLiveLink,
           totalStreams: presskitData.totalStreams,
           totalVideoViews: presskitData.totalVideoViews,
           recognitions: presskitData.recognitions,
@@ -758,12 +991,16 @@ function CreatePresskit({ user, onSignOut }) {
           bio: presskitData.bio,
           longBio: presskitData.longBio,
           interviewLink: presskitData.interviewLink,
+          artistMilestones: presskitData.artistMilestones,
           releases: presskitData.releases,
+          releasesCtaText: presskitData.releasesCtaText,
           theme: presskitData.theme,
           genre: presskitData.genre,
           city: presskitData.city,
           images: presskitData.images,
           links: presskitData.links,
+          linkMetrics: presskitData.linkMetrics,
+          linkScreenshots: presskitData.linkScreenshots,
           contactArtistName: presskitData.contactArtistName,
           managerName: presskitData.managerName,
           roadManagerName: presskitData.roadManagerName,
@@ -796,6 +1033,58 @@ function CreatePresskit({ user, onSignOut }) {
   const saveLabel =
     saveState === 'saving' ? 'Guardando...' : saveState === 'saved' ? 'Guardado' : saveState === 'error' ? 'Error al guardar' : 'Autoguardado activo';
 
+  const saveDraftForPreview = async () => {
+    setSaveState('saving');
+
+    if (!auth.currentUser) {
+      alert('Debes estar autenticado para ver el preview');
+      setSaveState('error');
+      return null;
+    }
+
+    const savePayload = {
+      userId: auth.currentUser.uid,
+      artistName: presskitData.artistName,
+      performanceLiveLink: presskitData.performanceLiveLink,
+      totalStreams: presskitData.totalStreams,
+      totalVideoViews: presskitData.totalVideoViews,
+      recognitions: presskitData.recognitions,
+      useRecognitionImage: presskitData.useRecognitionImage,
+      recognitionImage: presskitData.recognitionImage,
+      bioStyle: presskitData.bioStyle,
+      twitterBio: presskitData.twitterBio,
+      twitterBioImage: presskitData.twitterBioImage,
+      bio: presskitData.bio,
+      bioImage: presskitData.bioImage,
+      longBio: presskitData.longBio,
+      longBioImage: presskitData.longBioImage,
+      interviewLink: presskitData.interviewLink,
+      artistMilestones: presskitData.artistMilestones,
+      releases: presskitData.releases,
+      releasesCtaText: presskitData.releasesCtaText,
+      galleryStyle: presskitData.galleryStyle,
+      theme: presskitData.theme,
+      typeface: presskitData.typeface,
+      genre: presskitData.genre,
+      city: presskitData.city,
+      images: presskitData.images,
+      links: presskitData.links,
+      linkMetrics: presskitData.linkMetrics,
+      linkScreenshots: presskitData.linkScreenshots,
+      contactArtistName: presskitData.contactArtistName,
+      managerName: presskitData.managerName,
+      roadManagerName: presskitData.roadManagerName,
+      contactCountryCode: presskitData.contactCountryCode,
+      contactPhone: presskitData.contactPhone,
+      contactLogo: presskitData.contactLogo,
+      status: 'draft',
+    };
+
+    await setDoc(doc(db, 'presskits', auth.currentUser.uid), savePayload, { merge: true });
+    setSaveState('saved');
+    return auth.currentUser.uid;
+  };
+
   return (
     <section className="mx-auto min-h-screen w-full max-w-400 px-6 py-8 lg:px-12">
       <div className="mb-6 flex items-center justify-between gap-4">
@@ -812,7 +1101,7 @@ function CreatePresskit({ user, onSignOut }) {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[280px_minmax(0,1.25fr)_minmax(360px,0.9fr)]">
-        <aside className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur">
+        <aside className="sticky top-6 self-start max-h-[calc(100vh-3rem)] overflow-y-auto rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur">
           <p className="text-xs uppercase tracking-[0.16em] text-cyan-300">Pasos</p>
           <h2 className="mt-2 text-xl font-bold text-white">Constructor de presskit</h2>
           <div className="mt-6 space-y-2">
@@ -823,7 +1112,7 @@ function CreatePresskit({ user, onSignOut }) {
                 <button
                   key={step}
                   type="button"
-                  onClick={() => setActiveStep(stepNumber)}
+                  onClick={() => handleSidebarStepClick(stepNumber)}
                   className={`flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left transition ${
                     isActive
                       ? 'border-cyan-300/40 bg-cyan-300/10 text-white shadow-[0_0_30px_rgba(34,211,238,0.15)]'
@@ -845,14 +1134,25 @@ function CreatePresskit({ user, onSignOut }) {
             data={presskitData}
             onFieldChange={updateField}
             onLinkChange={updateLink}
+            onLinkMetricChange={updateLinkMetric}
             onCoverUpload={handleCoverUpload}
             onGalleryUpload={handleGalleryUpload}
             onRecognitionImageUpload={handleRecognitionImageUpload}
             onBioImageUpload={handleBioImageUpload}
             onContactLogoUpload={handleContactLogoUpload}
+            onLinkScreenshotUpload={handleLinkScreenshotUpload}
             onGenerateTwitterBio={() => handleOpenBioModal('twitterBio')}
             onGenerateShortBio={() => handleOpenBioModal('shortBio')}
             onGenerateLongBio={() => handleOpenBioModal('longBio')}
+            onGenerateReleaseCta={() => handleOpenBioModal('releaseCta')}
+            milestones={presskitData.artistMilestones || createEmptyArtistMilestones()}
+            onAddMilestone={handleAddMilestone}
+            onUpdateMilestone={handleUpdateMilestone}
+            onDeleteMilestone={handleDeleteMilestone}
+            onGenerateMilestone={handleGenerateMilestone}
+            isGeneratingMilestone={isGeneratingMilestone}
+            generatingMilestoneKey={generatingMilestoneKey}
+            milestoneGenerationError={milestoneGenerationError}
             onAddRelease={handleAddRelease}
             onDeleteRelease={handleDeleteRelease}
             onUpdateRelease={handleUpdateRelease}
@@ -875,67 +1175,45 @@ function CreatePresskit({ user, onSignOut }) {
         </div>
 
         <div className="sticky top-6 space-y-6 h-fit">
-          <button
-            type="button"
-            onClick={async () => {
-              // Esperar a que se guarden los datos en Firestore
-              setSaveState('saving');
-              try {
-                if (!auth.currentUser) {
-                  alert('Debes estar autenticado para ver el preview');
-                  return;
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  const uid = await saveDraftForPreview();
+                  if (!uid) return;
+                  setTimeout(() => {
+                    window.location.href = `/presskit/${uid}`;
+                  }, 200);
+                } catch (error) {
+                  console.error('Error al guardar para previsualizar EPK:', error);
+                  setSaveState('error');
                 }
+              }}
+              className="inline-flex items-center gap-2 rounded-xl border border-cyan-300/40 bg-cyan-300/10 px-4 py-2 text-sm font-semibold text-cyan-300 transition hover:bg-cyan-300/20"
+            >
+              Previsualizar EPK
+            </button>
 
-                // Crear payload con todos los datos
-                const savePayload = {
-                  userId: auth.currentUser.uid,
-                  artistName: presskitData.artistName,
-                  totalStreams: presskitData.totalStreams,
-                  totalVideoViews: presskitData.totalVideoViews,
-                  recognitions: presskitData.recognitions,
-                  useRecognitionImage: presskitData.useRecognitionImage,
-                  recognitionImage: presskitData.recognitionImage,
-                  bioStyle: presskitData.bioStyle,
-                  twitterBio: presskitData.twitterBio,
-                  twitterBioImage: presskitData.twitterBioImage,
-                  bio: presskitData.bio,
-                  bioImage: presskitData.bioImage,
-                  longBio: presskitData.longBio,
-                  longBioImage: presskitData.longBioImage,
-                  interviewLink: presskitData.interviewLink,
-                  releases: presskitData.releases,
-                  theme: presskitData.theme,
-                  typeface: presskitData.typeface,
-                  genre: presskitData.genre,
-                  city: presskitData.city,
-                  images: presskitData.images,
-                  links: presskitData.links,
-                  contactArtistName: presskitData.contactArtistName,
-                  managerName: presskitData.managerName,
-                  roadManagerName: presskitData.roadManagerName,
-                  contactCountryCode: presskitData.contactCountryCode,
-                  contactPhone: presskitData.contactPhone,
-                  contactLogo: presskitData.contactLogo,
-                  status: 'draft',
-                };
-
-                // Guardar en Firestore
-                await setDoc(doc(db, 'presskits', auth.currentUser.uid), savePayload, { merge: true });
-
-                setSaveState('saved');
-                // Navegar después de un pequeño delay para asegurar sincronización
-                setTimeout(() => {
-                  window.location.href = '/presskitPDF';
-                }, 300);
-              } catch (error) {
-                console.error('Error al guardar:', error);
-                setSaveState('error');
-              }
-            }}
-            className="inline-flex items-center gap-2 rounded-xl border border-cyan-300/40 bg-cyan-300/10 px-4 py-2 text-sm font-semibold text-cyan-300 transition hover:bg-cyan-300/20"
-          >
-            Previsualizar y descargar PDF
-          </button>
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  const uid = await saveDraftForPreview();
+                  if (!uid) return;
+                  setTimeout(() => {
+                    window.location.href = '/presskitPDF';
+                  }, 200);
+                } catch (error) {
+                  console.error('Error al guardar para previsualizar PDF:', error);
+                  setSaveState('error');
+                }
+              }}
+              className="inline-flex items-center gap-2 rounded-xl border border-fuchsia-300/40 bg-fuchsia-300/10 px-4 py-2 text-sm font-semibold text-fuchsia-300 transition hover:bg-fuchsia-300/20"
+            >
+              Previsualizar PDF
+            </button>
+          </div>
 
           <LivePreview data={presskitData} />
           <PublishModal
@@ -956,7 +1234,7 @@ function CreatePresskit({ user, onSignOut }) {
               isOpen={aiModalOpen}
               section={aiModalSection}
               artistData={presskitData}
-              currentValue={presskitData[aiModalSection === 'twitterBio' ? 'twitterBio' : aiModalSection === 'shortBio' ? 'bio' : 'longBio']}
+              currentValue={presskitData[aiModalSection === 'twitterBio' ? 'twitterBio' : aiModalSection === 'shortBio' ? 'bio' : aiModalSection === 'releaseCta' ? 'releasesCtaText' : 'longBio']}
               onUseBio={handleUseBio}
               onClose={() => {
                 setAiModalOpen(false);
@@ -964,6 +1242,19 @@ function CreatePresskit({ user, onSignOut }) {
               }}
             />
           )}
+          {milestoneModalOpen && milestoneModalIndex >= 0 ? (
+            <MilestoneAIModal
+              isOpen={milestoneModalOpen}
+              category={milestoneModalCategory}
+              artistData={presskitData}
+              currentValue={presskitData.artistMilestones?.[milestoneModalCategory]?.[milestoneModalIndex] || ''}
+              onUseMilestone={handleUseMilestone}
+              onClose={() => {
+                setMilestoneModalOpen(false);
+                setMilestoneModalIndex(-1);
+              }}
+            />
+          ) : null}
         </div>
       </div>
     </section>

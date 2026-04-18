@@ -53,6 +53,17 @@ function Dashboard({ user }) {
     setPurchaseModalOpen(true);
   };
 
+  const handleCopyLink = async (presskit) => {
+    const url = presskit?.publishedUrl || `${window.location.origin}/presskit/${presskit?.id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      alert('✓ Enlace copiado al portapapeles');
+    } catch (err) {
+      console.error('Error al copiar:', err);
+      alert('No se pudo copiar el enlace');
+    }
+  };
+
   const closePurchaseModal = () => {
     setPurchaseModalOpen(false);
     setPurchaseAction('');
@@ -170,7 +181,7 @@ function Dashboard({ user }) {
                     </button>
                     <button
                       type="button"
-                      onClick={() => openPurchaseModal(item, 'share')}
+                      onClick={() => handleCopyLink(item)}
                       className="rounded-lg border border-fuchsia-300/40 px-3 py-2 text-xs font-semibold text-fuchsia-300 transition hover:bg-fuchsia-300/10"
                     >
                       📋 Copiar enlace

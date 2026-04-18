@@ -1,6 +1,17 @@
 import { useState } from 'react';
 
-function ReleaseStep({ releases = [], onAddRelease, onUpdateRelease, onDeleteRelease }) {
+function ReleaseStep({
+  releases = [],
+  releaseCtaText = '',
+  onReleaseCtaChange,
+  onGenerateReleaseCta,
+  isGeneratingBio = false,
+  generatingBioSection = '',
+  generatedBios = {},
+  onAddRelease,
+  onUpdateRelease,
+  onDeleteRelease,
+}) {
   const [editingIndex, setEditingIndex] = useState(null);
 
   const handleAddOrUpdate = () => {
@@ -63,7 +74,7 @@ function ReleaseStep({ releases = [], onAddRelease, onUpdateRelease, onDeleteRel
     <div className="rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
       <div className="flex items-center justify-between gap-3 mb-4">
         <div>
-          <p className="text-sm font-semibold text-fuchsia-300">5. Releases</p>
+          <p className="text-sm font-semibold text-fuchsia-300">6. Video Releases</p>
           <p className="text-xs text-zinc-400 mt-1">Añade los videos de tus últimas canciones o álbumes (máximo 8)</p>
         </div>
         <span className="text-xs bg-white/10 px-2 py-1 rounded-full text-zinc-300">{releases.length}/8</span>
@@ -71,7 +82,7 @@ function ReleaseStep({ releases = [], onAddRelease, onUpdateRelease, onDeleteRel
 
       {/* Formulario para agregar/editar release */}
       <div className="mb-6 rounded-2xl border border-white/10 bg-white/5 p-4">
-        <p className="text-xs uppercase tracking-[0.12em] text-zinc-400 mb-3">{editingIndex !== null ? 'Editar release' : 'Agregar nuevo release'}</p>
+        <p className="text-xs uppercase tracking-[0.12em] text-zinc-400 mb-3">{editingIndex !== null ? 'Editar video release' : 'Agregar nuevo video release'}</p>
         <div className="space-y-3">
           <input
             type="text"
@@ -122,10 +133,29 @@ function ReleaseStep({ releases = [], onAddRelease, onUpdateRelease, onDeleteRel
         </div>
       </div>
 
+      <div className="mb-6 rounded-2xl border border-white/10 bg-white/5 p-4">
+        <p className="text-xs uppercase tracking-[0.12em] text-zinc-400 mb-3">Texto final de la pagina release</p>
+        <textarea
+          value={releaseCtaText}
+          onChange={(event) => onReleaseCtaChange?.(event.target.value)}
+          rows={3}
+          placeholder="Dale play y disfruta los videos que estan marcando el camino de Rulos."
+          className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-100 outline-none transition focus:border-cyan-300 placeholder:text-zinc-500 resize-none"
+        />
+        <button
+          type="button"
+          onClick={onGenerateReleaseCta}
+          disabled={isGeneratingBio}
+          className="mt-3 cursor-pointer rounded-xl border border-cyan-300/40 bg-cyan-300/10 px-4 py-2 text-sm font-semibold text-cyan-300 transition hover:bg-cyan-300/20 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isGeneratingBio && generatingBioSection === 'releaseCta' ? 'Generando...' : generatedBios.releaseCta || releaseCtaText ? '🔄 Regenerar' : '✨ Generar con IA'}
+        </button>
+      </div>
+
       {/* Lista de releases */}
       {releases.length > 0 ? (
         <div className="space-y-3">
-          <p className="text-xs uppercase tracking-[0.12em] text-zinc-400">Releases agregados</p>
+          <p className="text-xs uppercase tracking-[0.12em] text-zinc-400">Video Releases agregados</p>
           {releases.map((release, index) => {
             const thumbnail = getYouTubeThumbnail(release.url);
             return (
@@ -148,7 +178,7 @@ function ReleaseStep({ releases = [], onAddRelease, onUpdateRelease, onDeleteRel
                     <p className="text-xs text-zinc-400 mt-1 line-clamp-2">{release.description}</p>
                   )}
                 </div>
-                <div className="flex gap-1 flex-shrink-0">
+                <div className="flex gap-1 shrink-0">
                   <button
                     type="button"
                     onClick={() => handleEditRelease(index)}

@@ -17,6 +17,7 @@ export const themeColors = {
     textSecondary: 'text-zinc-300',
     textBg: '#ffffff',
     textBgSecondary: '#d4d4d8',
+    colorBackground: 'rgba(9, 9, 11, 0.66)',
     rgb: {
       primary: '236, 72, 153',
       secondary: '6, 182, 212',
@@ -41,6 +42,7 @@ export const themeColors = {
     textSecondary: 'text-zinc-700',
     textBg: '#f4f4f5',
     textBgSecondary: '#71717a',
+    colorBackground: 'rgba(255, 255, 255, 0.72)',
     rgb: {
       primary: '255, 255, 255',
       secondary: '161, 161, 161',
@@ -65,6 +67,7 @@ export const themeColors = {
     textSecondary: 'text-zinc-500',
     textBg: '#18181b',
     textBgSecondary: '#71717a',
+    colorBackground: 'rgba(0, 0, 0, 0.72)',
     rgb: {
       primary: '63, 63, 70',
       secondary: '82, 82, 91',
@@ -89,6 +92,7 @@ export const themeColors = {
     textSecondary: 'text-emerald-600',
     textBg: '#ecfdf5',
     textBgSecondary: '#6b7280',
+    colorBackground: 'rgba(6, 95, 70, 0.48)',
     rgb: {
       primary: '16, 185, 129',
       secondary: '6, 182, 212',

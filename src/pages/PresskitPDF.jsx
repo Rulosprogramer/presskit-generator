@@ -41,7 +41,6 @@ const initialPresskitData = {
     instagram: '',
     youtube: '',
     tiktok: '',
-    youtubeVideo: '',
     facebook: '',
     appleMusic: '',
     soundcloud: '',
@@ -138,14 +137,13 @@ function PresskitPDF({ user, onSignOut, presskitId = '' }) {
   const contactPhone = presskitData.contactPhone || 'No especificado';
   const contactLogo = presskitData.contactLogo || '';
   const filledLinks = Object.entries(presskitData.links || {})
-    .filter(([, value]) => value)
+    .filter(([key, value]) => key !== 'youtubeVideo' && value)
     .slice(0, 6);
   const socialNameMap = {
     spotify: 'Spotify',
     instagram: 'Instagram',
     youtube: 'YouTube',
     tiktok: 'TikTok',
-    youtubeVideo: 'YouTube',
     facebook: 'Facebook',
     appleMusic: 'Apple Music',
     soundcloud: 'SoundCloud',
@@ -155,7 +153,6 @@ function PresskitPDF({ user, onSignOut, presskitId = '' }) {
     instagram: SiInstagram,
     youtube: SiYoutube,
     tiktok: SiTiktok,
-    youtubeVideo: SiYoutube,
     facebook: SiFacebook,
     appleMusic: SiApplemusic,
     soundcloud: SiSoundcloud,
@@ -193,7 +190,6 @@ function PresskitPDF({ user, onSignOut, presskitId = '' }) {
       instagram: 'instagram',
       youtube: 'youtube',
       tiktok: 'tiktok',
-      youtubeVideo: 'youtube',
       facebook: 'facebook',
       appleMusic: 'music.apple',
       soundcloud: 'soundcloud',
@@ -447,67 +443,92 @@ function PresskitPDF({ user, onSignOut, presskitId = '' }) {
               </article>
             )}
 
-            {/* Página: Releases */}
-            {Array.isArray(presskitData.releases) && presskitData.releases.length > 0 && (
-              <article className="relative mt-6 grid aspect-8.5/11 w-full max-h-[82vh] grid-rows-[auto_1fr] overflow-hidden rounded-[20px]" style={{ backgroundColor: theme.bgHex, borderColor: theme.primaryText + '20', color: theme.textBg, fontFamily: typeface.fontFamily }}>
-                <header className="px-5 py-4" style={{ borderColor: theme.primaryText + '20', borderBottomWidth: '1px' }}>
-                  <div className="text-center">
-                    <p className="text-xs uppercase tracking-[0.16em]" style={{ color: theme.primaryText }}>Releases</p>
-                  </div>
-                </header>
+{/* Página: Releases - Múltiples páginas si es necesario */}
+            {Array.isArray(presskitData.releases) && presskitData.releases.length > 0 && 
+              Array.from({ length: Math.ceil(presskitData.releases.length / 4) }).map((_, pageIndex) => {
+                const pageReleases = presskitData.releases.slice(pageIndex * 4, (pageIndex + 1) * 4);
+                const releasesCount = pageReleases.length;
+                // Calcular escala dinámicamente basado en cantidad de releases
+                let releaseScale = 1;
+                if (releasesCount === 4) releaseScale = 0.95;
+                else if (releasesCount === 5) releaseScale = 0.85;
+                else if (releasesCount > 5) releaseScale = 0.75;
 
-                <div className="grid min-h-0 overflow-hidden grid-cols-1">
-                  {presskitData.releases.map((release, index) => {
-                    const videoId = release.url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)?.[1];
-                    const thumbnail = videoId ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` : null;
-
-                    return (
-                      <div key={index} className="grid grid-cols-3 h-full gap-0 border-b" style={{ borderColor: index < presskitData.releases.length - 1 ? theme.primaryText + '20' : 'transparent' }}>
-                        {/* Izquierda: Thumbnail con play */}
-                        <div className="relative flex items-center justify-center p-3 col-span-1" style={{ borderColor: theme.primaryText + '20', borderRightWidth: '1px' }}>
-                          {thumbnail ? (
-                            <>
-                              <img
-                                src={thumbnail}
-                                alt={release.title}
-                                className="w-full h-full object-cover rounded-lg"
-                              />
-                              <a
-                                href={release.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="absolute inset-0 flex items-center justify-center rounded-lg transition hover:bg-black/30"
-                              >
-                                <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center hover:bg-white">
-                                  <span className="text-lg ml-1">▶</span>
-                                </div>
-                              </a>
-                            </>
-                          ) : (
-                            <div className="w-full h-full rounded-lg flex items-center justify-center" style={{ backgroundColor: theme.primaryText + '15' }}>
-                              <span className="text-xs text-zinc-400">Sin video</span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Derecha: Info */}
-                        <div className="flex flex-col justify-between p-4 col-span-2">
-                          <div>
-                            <p className="text-base font-bold line-clamp-2" style={{ color: theme.textBg }}>{release.title}</p>
-                            {release.description && (
-                              <p className="text-xs mt-2 leading-4 line-clamp-3" style={{ color: theme.textBgSecondary }}>{release.description}</p>
-                            )}
-                          </div>
-                          {release.author && (
-                            <p className="text-sm font-semibold" style={{ color: theme.primaryText }}>{release.author}</p>
-                          )}
-                        </div>
+                return (
+                  <article 
+                    key={`releases-page-${pageIndex}`}
+                    className="relative mt-6 grid aspect-8.5/11 w-full max-h-[82vh] grid-rows-[auto_1fr] overflow-hidden rounded-[20px]" 
+                    style={{ backgroundColor: theme.bgHex, borderColor: theme.primaryText + '20', color: theme.textBg, fontFamily: typeface.fontFamily }}
+                  >
+                    <header className="px-5 py-4" style={{ borderColor: theme.primaryText + '20', borderBottomWidth: '1px' }}>
+                      <div className="text-center">
+                        <p className="text-xs uppercase tracking-[0.16em]" style={{ color: theme.primaryText }}>
+                          Releases {Math.ceil(presskitData.releases.length / 4) > 1 ? `(${pageIndex + 1}/${Math.ceil(presskitData.releases.length / 4)})` : ''}
+                        </p>
                       </div>
-                    );
-                  })}
-                </div>
-              </article>
-            )}
+                    </header>
+
+                    <div className="grid min-h-0 overflow-hidden grid-cols-1" style={{ transform: `scale(${releaseScale})`, transformOrigin: 'top center' }}>
+                      {pageReleases.map((release, relIndex) => {
+                        const videoId = release.url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)?.[1];
+                        const thumbnail = videoId ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` : null;
+
+                        return (
+                          <div 
+                            key={`${pageIndex}-${relIndex}-${release.title}`} 
+                            className="grid grid-cols-3 h-full gap-0 border-b" 
+                            style={{ 
+                              borderColor: relIndex < pageReleases.length - 1 ? theme.primaryText + '20' : 'transparent',
+                              minHeight: '120px'
+                            }}
+                          >
+                            {/* Izquierda: Thumbnail con play */}
+                            <div className="relative flex items-center justify-center p-3 col-span-1" style={{ borderColor: theme.primaryText + '20', borderRightWidth: '1px' }}>
+                              {thumbnail ? (
+                                <>
+                                  <img
+                                    src={thumbnail}
+                                    alt={release.title}
+                                    className="w-full h-full object-cover rounded-lg"
+                                  />
+                                  <a
+                                    href={release.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="absolute inset-0 flex items-center justify-center rounded-lg transition hover:bg-black/30"
+                                  >
+                                    <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center hover:bg-white">
+                                      <span className="text-lg ml-1">▶</span>
+                                    </div>
+                                  </a>
+                                </>
+                              ) : (
+                                <div className="w-full h-full rounded-lg flex items-center justify-center" style={{ backgroundColor: theme.primaryText + '15' }}>
+                                  <span className="text-xs text-zinc-400">Sin video</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Derecha: Info */}
+                            <div className="flex flex-col justify-between p-4 col-span-2">
+                              <div>
+                                <p className="text-base font-bold line-clamp-2" style={{ color: theme.textBg }}>{release.title}</p>
+                                {release.description && (
+                                  <p className="text-xs mt-2 leading-4 line-clamp-3" style={{ color: theme.textBgSecondary }}>{release.description}</p>
+                                )}
+                              </div>
+                              {release.author && (
+                                <p className="text-sm font-semibold" style={{ color: theme.primaryText }}>{release.author}</p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </article>
+                );
+              })
+            }
 
             {filledLinks.length > 0 && (
               <article className="relative mt-6 grid aspect-8.5/11 w-full max-h-[82vh] grid-rows-[auto_1fr] overflow-hidden rounded-[20px]" style={{ backgroundColor: theme.bgHex, borderColor: theme.primaryText + '20', color: theme.textBg, fontFamily: typeface.fontFamily }}>
