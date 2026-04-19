@@ -25,6 +25,33 @@ const latamCountryCodes = [
   { code: '+58', label: 'Venezuela (+58)' },
 ];
 
+const galleryPhotoSlots = [
+  {
+    id: 'hero',
+    index: 1,
+    title: 'La Foto "Hero" (Vertical - Retrato)',
+    hint: 'Tu mejor cara. Esta es la foto que te define hoy.',
+  },
+  {
+    id: 'flyer',
+    index: 2,
+    title: 'La Foto "Flyer" (Con Espacio Negativo)',
+    hint: 'Foto con un fondo unicolor para eliminar background.',
+  },
+  {
+    id: 'liveAct',
+    index: 3,
+    title: 'La Foto "Live Act" (En Acción)',
+    hint: 'Energía pura en el escenario. Demuestra que sabes dar un show.',
+  },
+  {
+    id: 'concept',
+    index: 4,
+    title: 'La Foto "Concepto/Estilo de Vida" (Atmósfera)',
+    hint: 'Tu vibra fuera del escenario. Muestra tu estilo de vida y estética.',
+  },
+];
+
 function Stepform({
   data,
   onFieldChange,
@@ -53,6 +80,8 @@ function Stepform({
   onUpdateRelease,
   onOpenPublish,
   onOpenImageLibrary,
+  onPressArticleUpload,
+  onDeletePressArticle,
   saveLabel,
   isGeneratingBio,
   generatingBioSection,
@@ -77,7 +106,7 @@ function Stepform({
         <div id="presskit-step-1" className="scroll-mt-28 rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
           <p className="text-sm font-semibold text-fuchsia-300">1. Portada</p>
           <p className="mt-2 text-sm text-zinc-300">
-            Sube tu mejor foto, de estudio o de un show en vivo, recuerda que es lo primero que veran en tu EPK.
+            Sube tu mejor foto, de estudio o de un show en vivo, recuerda que es lo primero que verán en tu EPK.
           </p>
           {imageUploadError && (
             <div className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2 text-xs text-amber-300">
@@ -150,70 +179,70 @@ function Stepform({
         <div id="presskit-step-3" className="scroll-mt-28 rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
           <p className="text-sm font-semibold text-fuchsia-300">3. Reconocimientos y Streams</p>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <label className="space-y-2 sm:col-span-2">
-                  <span className="text-xs uppercase tracking-[0.12em] text-zinc-400">Total de streams</span>
-                  <input
-                    value={data.totalStreams || ''}
-                    onChange={(event) => onFieldChange('totalStreams', event.target.value)}
-                    placeholder="Escribe el total de streams en todas tus DSPs"
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-zinc-100 outline-none transition focus:border-cyan-300"
-                  />
-                </label>
+            <label className="space-y-2 sm:col-span-2">
+              <span className="text-xs uppercase tracking-[0.12em] text-zinc-400">Total de streams</span>
+              <input
+                value={data.totalStreams || ''}
+                onChange={(event) => onFieldChange('totalStreams', event.target.value)}
+                placeholder="Escribe el total de streams en todas tus DSPs"
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-zinc-100 outline-none transition focus:border-cyan-300"
+              />
+            </label>
 
-                <label className="space-y-2 sm:col-span-2">
-                  <span className="text-xs uppercase tracking-[0.12em] text-zinc-400">Total video views</span>
-                  <input
-                    value={data.totalVideoViews || ''}
-                    onChange={(event) => onFieldChange('totalVideoViews', event.target.value)}
-                    placeholder="Escribe el total de vistas de tus canales de video: Youtube, Vevo, etc."
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-zinc-100 outline-none transition focus:border-cyan-300"
-                  />
-                </label>
+            <label className="space-y-2 sm:col-span-2">
+              <span className="text-xs uppercase tracking-[0.12em] text-zinc-400">Total video views</span>
+              <input
+                value={data.totalVideoViews || ''}
+                onChange={(event) => onFieldChange('totalVideoViews', event.target.value)}
+                placeholder="Escribe el total de vistas de tus canales de video: Youtube, Vevo, etc."
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-zinc-100 outline-none transition focus:border-cyan-300"
+              />
+            </label>
 
-                <label className="space-y-2 sm:col-span-2">
-                  <span className="text-xs uppercase tracking-[0.12em] text-zinc-400">Reconocimientos</span>
-                  <textarea
-                    value={data.recognitions || ''}
-                    onChange={(event) => onFieldChange('recognitions', event.target.value)}
-                    rows={3}
-                    placeholder="Escribe reconocimientos, escenarios, playlists, becas, festivales o formación."
-                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-zinc-100 outline-none transition focus:border-cyan-300"
-                  />
-                </label>
+            <label className="space-y-2 sm:col-span-2">
+              <span className="text-xs uppercase tracking-[0.12em] text-zinc-400">Reconocimientos</span>
+              <textarea
+                value={data.recognitions || ''}
+                onChange={(event) => onFieldChange('recognitions', event.target.value)}
+                rows={3}
+                placeholder="Escribe reconocimientos, escenarios, playlists, becas, festivales o formación."
+                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-zinc-100 outline-none transition focus:border-cyan-300"
+              />
+            </label>
 
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:col-span-2">
-                  <label className="inline-flex cursor-pointer items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={Boolean(data.useRecognitionImage)}
-                      onChange={(event) => onFieldChange('useRecognitionImage', event.target.checked)}
-                      className="h-4 w-4 cursor-pointer rounded border-white/20 bg-white/10"
-                    />
-                    <span className="text-sm font-semibold text-zinc-300">Agregar foto de reconocimientos</span>
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:col-span-2">
+              <label className="inline-flex cursor-pointer items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={Boolean(data.useRecognitionImage)}
+                  onChange={(event) => onFieldChange('useRecognitionImage', event.target.checked)}
+                  className="h-4 w-4 cursor-pointer rounded border-white/20 bg-white/10"
+                />
+                <span className="text-sm font-semibold text-zinc-300">Agregar foto de reconocimientos</span>
+              </label>
+
+              {data.useRecognitionImage && (
+                <div className="mt-4 space-y-3">
+                  <p className="text-xs text-zinc-400">Se recomienda usar una imagen sin fondo (PNG con transparencia)</p>
+                  <label className="block space-y-2 rounded-xl border border-dashed border-cyan-300/50 bg-cyan-300/5 p-4">
+                    <span className="text-xs uppercase tracking-[0.12em] font-semibold text-cyan-300">Selecciona o sube una foto</span>
+                    <input type="file" accept="image/*" onChange={onRecognitionImageUpload} className="w-full cursor-pointer text-sm text-zinc-300 file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-cyan-300 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-zinc-950" />
+                    {selectedFileNames?.recognition && (
+                      <div className="flex items-center gap-2 rounded-lg bg-cyan-300/10 px-3 py-2 mt-2">
+                        <span className="text-xs text-cyan-300 font-medium">✓ {selectedFileNames.recognition}</span>
+                      </div>
+                    )}
                   </label>
-
-                  {data.useRecognitionImage && (
-                    <div className="mt-4 space-y-3">
-                      <p className="text-xs text-zinc-400">Se recomienda usar una imagen sin fondo (PNG con transparencia)</p>
-                      <label className="block space-y-2 rounded-xl border border-dashed border-cyan-300/50 bg-cyan-300/5 p-4">
-                        <span className="text-xs uppercase tracking-[0.12em] font-semibold text-cyan-300">Selecciona o sube una foto</span>
-                        <input type="file" accept="image/*" onChange={onRecognitionImageUpload} className="w-full cursor-pointer text-sm text-zinc-300 file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-cyan-300 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-zinc-950" />
-                        {selectedFileNames?.recognition && (
-                          <div className="flex items-center gap-2 rounded-lg bg-cyan-300/10 px-3 py-2 mt-2">
-                            <span className="text-xs text-cyan-300 font-medium">✓ {selectedFileNames.recognition}</span>
-                          </div>
-                        )}
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => onOpenImageLibrary('recognition')}
-                        className="w-full rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-xs font-semibold text-zinc-300 transition hover:border-white/30 hover:bg-white/10"
-                      >
-                        📚 Biblioteca de fotos
-                      </button>
-                    </div>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => onOpenImageLibrary('recognition')}
+                    className="w-full rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-xs font-semibold text-zinc-300 transition hover:border-white/30 hover:bg-white/10"
+                    >
+                    📚 Biblioteca de fotos
+                  </button>
                 </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -231,7 +260,7 @@ function Stepform({
                 className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-zinc-100 outline-none transition focus:border-cyan-300"
               >
                 <option value="prensa">Prensa (editorial/profesional)</option>
-                <option value="festival">Festival (curatorial/escenico)</option>
+                <option value="festival">Festival (curatorial/escénico)</option>
                 <option value="fanbase">Fanbase (cercano/emocional)</option>
                 <option value="marca">Marca (alianzas/patrocinios)</option>
               </select>
@@ -424,70 +453,105 @@ function Stepform({
 
         <div id="presskit-step-8" className="scroll-mt-28 rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
           <p className="text-sm font-semibold text-fuchsia-300">8. Galería</p>
-          <p className="mt-2 text-sm text-zinc-300">
-            Elige el estilo del collage para desktop. El sistema de layouts dinamicos se aplicara segun cantidad de fotos (3, 5, 6, 7, 8, 9, 10).
-          </p>
-
-          <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3">
-            <p className="text-xs uppercase tracking-[0.12em] text-zinc-400">Estilo de collage</p>
-            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
-              {[
-                { id: 'clasico', label: 'Clasico' },
-                { id: 'urbano', label: 'Urbano' },
-                { id: 'norteno', label: 'Norteno' },
-                { id: 'futurista', label: 'Futurista' },
-                { id: 'elegante', label: 'Elegante' },
-              ].map((style) => {
-                const active = (data.galleryStyle || 'clasico') === style.id;
-                return (
-                  <button
-                    key={style.id}
-                    type="button"
-                    onClick={() => onFieldChange('galleryStyle', style.id)}
-                    className={`rounded-xl border px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] transition ${
-                      active
-                        ? 'border-cyan-300/45 bg-cyan-300/15 text-cyan-200'
-                        : 'border-white/10 bg-white/5 text-zinc-300 hover:border-white/25 hover:bg-white/10 hover:text-white'
-                    }`}
-                  >
-                    {style.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <p className="mt-2 text-sm text-zinc-300">Sube exactamente 5 fotos clave. Estas se usan en previews y PDF.</p>
 
           {imageUploadError && (
             <div className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2 text-xs text-amber-300">
               {imageUploadError}
             </div>
           )}
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <label className="space-y-2 rounded-2xl border border-dashed border-white/15 bg-white/5 p-4">
-              <span className="text-xs uppercase tracking-[0.12em] text-zinc-400">Galería</span>
-              <input type="file" accept="image/*" multiple onChange={onGalleryUpload} className="w-full cursor-pointer text-sm text-zinc-300 file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-fuchsia-400 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-zinc-950" />
-              {Array.isArray(selectedFileNames?.gallery) && selectedFileNames.gallery.length > 0 && (
-                <div className="mt-2 flex max-h-20 flex-col gap-1 overflow-y-auto rounded-lg bg-fuchsia-400/10 px-3 py-2">
-                  {selectedFileNames.gallery.map((name, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <span className="text-xs text-fuchsia-300">✓ {name}</span>
+          <div className="mt-4 grid gap-4">
+            {galleryPhotoSlots.map((slot) => {
+              const imageUrl = data.images?.[slot.index] || '';
+              const selectedName = selectedFileNames?.gallery?.[slot.id];
+
+              return (
+                <div key={slot.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <p className="text-xs uppercase tracking-[0.12em] text-fuchsia-300">{slot.title}</p>
+                  <p className="mt-1 text-xs text-zinc-400">{slot.hint}</p>
+
+                  <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto]">
+                    <label className="space-y-2 rounded-xl border border-dashed border-white/15 bg-white/5 p-3">
+                      <span className="text-[11px] uppercase tracking-[0.12em] text-zinc-400">Subir imagen</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(event) => onGalleryUpload(event, slot.id)}
+                        className="w-full cursor-pointer text-xs text-zinc-300 file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-fuchsia-400 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-zinc-950"
+                      />
+                      {selectedName ? <div className="text-xs text-fuchsia-300">✓ {selectedName}</div> : null}
+                    </label>
+
+                    <div className="flex flex-col gap-2 sm:w-52">
+                      <button
+                        type="button"
+                        onClick={() => onOpenImageLibrary(`gallery:${slot.id}`)}
+                        className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-zinc-300 transition hover:border-cyan-300/50 hover:bg-white/10 hover:text-white"
+                      >
+                        📚 Biblioteca de fotos
+                      </button>
                     </div>
-                  ))}
+                  </div>
                 </div>
-              )}
-            </label>
-            <button
-              type="button"
-              onClick={() => onOpenImageLibrary('gallery')}
-              className="rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-zinc-300 transition hover:border-cyan-300/50 hover:bg-white/10 hover:text-white"
-            >
-              📚 Biblioteca de fotos
-            </button>
+              );
+            })}
           </div>
         </div>
 
         <div id="presskit-step-9" className="scroll-mt-28 rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
-          <p className="text-sm font-semibold text-fuchsia-300">9. Contacto</p>
+          <p className="text-sm font-semibold text-fuchsia-300">9. Artículos de Prensa</p>
+          <p className="mt-2 text-sm text-zinc-300">Sube hasta 3 imágenes de artículos de prensa o notas destacadas. Cada imagen se mostrará como una página completa en el presskit.</p>
+
+          {imageUploadError && (
+            <div className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2 text-xs text-amber-300">
+              {imageUploadError}
+            </div>
+          )}
+          <div className="mt-4 grid gap-4">
+            {[0, 1, 2].map((idx) => {
+              const selectedName = selectedFileNames?.pressArticles?.[idx];
+              return (
+                <div key={idx} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <p className="text-xs uppercase tracking-[0.12em] text-fuchsia-300">Artículo de prensa {idx + 1}</p>
+                  <p className="mt-1 text-xs text-zinc-400">Sube una imagen de nota, reseña o artículo destacado.</p>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto]">
+                    <label className="space-y-2 rounded-xl border border-dashed border-white/15 bg-white/5 p-3">
+                      <span className="text-[11px] uppercase tracking-[0.12em] text-zinc-400">Subir imagen</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => onPressArticleUpload?.(e, idx)}
+                        className="w-full cursor-pointer text-xs text-zinc-300 file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-fuchsia-400 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-zinc-950"
+                      />
+                      {selectedName ? <div className="text-xs text-fuchsia-300">✓ {selectedName}</div> : null}
+                    </label>
+                    <div className="flex flex-col gap-2 sm:w-52">
+                      <button
+                        type="button"
+                        onClick={() => onOpenImageLibrary(`pressArticles:${idx}`)}
+                        className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-zinc-300 transition hover:border-cyan-300/50 hover:bg-white/10 hover:text-white"
+                      >
+                        📚 Biblioteca de fotos
+                      </button>
+                      {data.pressArticles?.[idx] && (
+                        <button
+                          type="button"
+                          onClick={() => onDeletePressArticle?.(idx)}
+                          className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-300 transition hover:bg-red-500/20"
+                        >
+                          Eliminar imagen
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div id="presskit-step-10" className="scroll-mt-28 rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
+          <p className="text-sm font-semibold text-fuchsia-300">10. Contacto</p>
           <p className="mt-2 text-sm text-zinc-300">
             Agrega la información de contacto profesional para cerrar tu EPK con canales directos de booking.
           </p>
@@ -545,7 +609,7 @@ function Stepform({
             </label>
 
             <label className="space-y-2">
-              <span className="text-xs uppercase tracking-[0.12em] text-zinc-400">Pais / Indicativo</span>
+              <span className="text-xs uppercase tracking-[0.12em] text-zinc-400">País / Indicativo</span>
               <select
                 value={data.contactCountryCode || '+57'}
                 onChange={(event) => onFieldChange('contactCountryCode', event.target.value)}
@@ -564,7 +628,7 @@ function Stepform({
               <input
                 value={data.contactPhone || ''}
                 onChange={(event) => onFieldChange('contactPhone', event.target.value.replace(/\D/g, ''))}
-                placeholder="Numero de contacto"
+                placeholder="Número de contacto"
                 inputMode="numeric"
                 pattern="[0-9]*"
                 maxLength={15}
@@ -575,8 +639,8 @@ function Stepform({
           </div>
         </div>
 
-        <div id="presskit-step-10" className="scroll-mt-28 rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
-          <p className="text-sm font-semibold text-fuchsia-300">10. Tema Visual</p>
+        <div id="presskit-step-11" className="scroll-mt-28 rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
+          <p className="text-sm font-semibold text-fuchsia-300">11. Tema Visual</p>
           <p className="mt-2 text-sm text-zinc-300">
             Selecciona la estética de tu presskit. Los cambios se aplicarán automáticamente al preview y PDF.
           </p>
@@ -599,7 +663,7 @@ function Stepform({
                       : 'border-white/10 bg-zinc-900/50 hover:border-white/20 hover:bg-white/10'
                   }`}
                 >
-                  <div className={`h-2 rounded-full bg-linear-to-r ${theme.accent}`} />
+                  <div className={`h-2 rounded-full bg-gradient-to-r ${theme.accent}`} />
                   <p className="mt-3 text-sm font-semibold text-white">{theme.label}</p>
                   <p className="mt-1 text-xs text-zinc-400">Ajusta la identidad visual.</p>
                 </button>
@@ -608,8 +672,8 @@ function Stepform({
           </div>
         </div>
 
-        <div id="presskit-step-11" className="scroll-mt-28 rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
-          <p className="text-sm font-semibold text-fuchsia-300">11. Tipografía</p>
+        <div id="presskit-step-12" className="scroll-mt-28 rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
+          <p className="text-sm font-semibold text-fuchsia-300">12. Tipografía</p>
           <p className="mt-2 text-sm text-zinc-300">
             Elige el estilo de fuente que mejor represente tu identidad artística. Se aplicará automáticamente a todo tu presskit.
           </p>
@@ -637,10 +701,10 @@ function Stepform({
           </div>
         </div>
 
-        <div id="presskit-step-12" className="scroll-mt-28 rounded-2xl border border-white/10 bg-white/5 p-4">
+        <div id="presskit-step-13" className="scroll-mt-28 rounded-2xl border border-white/10 bg-white/5 p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-cyan-300">12. Preview y Guardar</p>
+              <p className="text-sm font-semibold text-cyan-300">13. Preview y Guardar</p>
               <p className="mt-1 text-sm text-zinc-400">La información se autoguarda en Firestore en cada cambio.</p>
             </div>
             <button

@@ -1,3 +1,134 @@
+// Componente para manejar el botón de descarga con touch en móvil y hover en desktop
+function GalleryImage({ image, title, gridClass, artistName, index }) {
+  const [showDownload, setShowDownload] = useState(false);
+
+  // Detecta si es móvil
+  const isMobile = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 640px)').matches;
+
+  // Handlers para touch
+  const handleTouchStart = () => {
+    if (isMobile) setShowDownload(true);
+  };
+  const handleTouchEnd = () => {
+    if (isMobile) setTimeout(() => setShowDownload(false), 2000);
+  };
+
+  // Nombres personalizados por tipo (sin banner)
+  const fileNames = [
+    `epk-official-press-photo-${artistName}.jpg`,
+    `epk-flyer-ready-${artistName}.jpg`,
+    `epk-live-performance-${artistName}.jpg`,
+    `epk-esencia-${artistName}.jpg`,
+  ];
+  const fileName = fileNames[index] || `epk-img-${artistName}.jpg`;
+
+  return (
+    <div
+      className={`relative flex flex-col items-stretch justify-end overflow-hidden rounded-xl border-4 border-white bg-zinc-900 shadow-lg group ${gridClass}`}
+      style={{ minHeight: '140px' }}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onMouseEnter={() => !isMobile && setShowDownload(true)}
+      onMouseLeave={() => !isMobile && setShowDownload(false)}
+    >
+      <img
+        src={image}
+        alt={title}
+        className={`absolute inset-0 h-full w-full object-cover ${index === 1 ? 'object-top' : 'object-center'} z-0`}
+        style={{ filter: 'brightness(0.98)' }}
+      />
+      <div className="relative z-10 flex flex-col justify-end h-full w-full p-3 bg-linear-to-t from-black/60 via-black/10 to-transparent">
+        <div className="backdrop-blur-sm bg-black/40 rounded-lg px-2 py-1 w-fit border border-white/60 mx-auto mb-2 sm:block hidden">
+          <span className="block text-xs font-bold uppercase tracking-wider text-white text-center drop-shadow-lg">
+            {title}
+          </span>
+        </div>
+        <div className="mx-auto mb-2 block sm:hidden">
+          <span className="block text-xs font-bold uppercase tracking-wider text-white text-center">{title}</span>
+        </div>
+        {(showDownload || (!isMobile && undefined)) && (
+          <a
+            href={image}
+            download
+className={`pointer-events-auto absolute bottom-3 right-3 rounded-full border border-white/30 bg-gradient-to-r from-transparent via-white/20 to-transparent backdrop-blur-sm px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-white shadow-lg transition-all duration-300 hover:bg-white/30 hover:shadow-xl hover:scale-105 hover:tracking-[0.2em] focus:opacity-100 ${showDownload || !isMobile ? 'opacity-100 scale-105' : 'opacity-0 group-hover:opacity-100'}`}
+            title="Descargar imagen"
+            onClick={async (e) => {
+              e.preventDefault();
+              try {
+                const response = await fetch(image, { mode: 'cors' });
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = fileName.replace(/\s+/g, '-').toLowerCase();
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+              } catch (err) {
+                console.error('Error descargando imagen:', err);
+              }
+            }}
+          >
+            Descargar
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ContactLogo({ image, artistName }) {
+  const [showDownload, setShowDownload] = useState(false);
+  const isMobile = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 640px)').matches;
+
+  const handleTouchStart = () => {
+    if (isMobile) setShowDownload(true);
+  };
+  const handleTouchEnd = () => {
+    if (isMobile) setTimeout(() => setShowDownload(false), 2000);
+  };
+
+  const fileName = `epk-logo-${artistName}`;
+
+  return (
+    <div
+      className="relative h-full w-full flex items-center justify-center group"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onMouseEnter={() => !isMobile && setShowDownload(true)}
+      onMouseLeave={() => !isMobile && setShowDownload(false)}
+    >
+      <img src={image} alt="Logo de contacto" className="h-full w-full object-contain" />
+      {showDownload && (
+        <button
+          type="button"
+          className="absolute bottom-2 right-2 rounded-full border border-white/30 bg-black/60 backdrop-blur-sm px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-white shadow-lg transition-all hover:bg-black/80 hover:scale-105 active:scale-95 cursor-pointer"
+          onClick={async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            try {
+              const response = await fetch(image, { mode: 'cors' });
+              const blob = await response.blob();
+              const url = window.URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = fileName.replace(/\s+/g, '-').toLowerCase();
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              window.URL.revokeObjectURL(url);
+            } catch (err) {
+              console.error('Error descargando logo:', err);
+            }
+          }}
+        >
+          Descargar Logo
+        </button>
+      )}
+    </div>
+  );
+}
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getTheme } from '../../lib/themeColors.js';
 import {
@@ -121,7 +252,7 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
   const theme = getTheme(presskitData.theme || 'neon');
 
   const cover = presskitData.images?.[0] || '';
-  const gallery = Array.isArray(presskitData.images) ? presskitData.images.slice(1) : [];
+  const gallery = Array.isArray(presskitData.images) ? presskitData.images.slice(1, 6).filter(Boolean) : [];
   const artistName = presskitData.artistName || 'Nombre del artista';
   const genre = presskitData.genre || 'Genero';
   const city = presskitData.city || 'Ciudad';
@@ -247,6 +378,18 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
       });
     }
 
+    // Agregar páginas de artículos de prensa (una por imagen)
+    const pressArticles = Array.isArray(presskitData.pressArticles) ? presskitData.pressArticles.filter(Boolean) : [];
+    if (pressArticles.length > 0) {
+      pressArticles.forEach((img, idx) => {
+        pages.push({
+          type: 'press-article',
+          title: idx === 0 ? 'Artículos de Prensa' : `Prensa (${idx + 1})`,
+          payload: img,
+        });
+      });
+    }
+
     if (contactArtistName || managerName || roadManagerName || presskitData.contactPhone || contactLogo) {
       pages.push({
         type: 'contact',
@@ -276,6 +419,7 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
     roadManagerName,
     shortBio,
     twitterBio,
+    presskitData.pressArticles,
   ]);
 
   useEffect(() => {
@@ -350,6 +494,23 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
   const renderPage = (page) => {
     if (!page) return null;
 
+    if (page.type === 'press-article') {
+      // Página de artículo de prensa: imagen contenida con fondo blanco
+      return (
+        <div className="relative h-full w-full bg-white flex items-center justify-center p-4">
+          {page.payload ? (
+            <img
+              src={page.payload}
+              alt={page.title}
+              className="max-h-full max-w-full object-contain"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-zinc-400">Sin imagen de artículo de prensa</div>
+          )}
+        </div>
+      );
+    }
+
     if (page.type === 'cover') {
       return (
         <div className="relative h-full overflow-hidden">
@@ -409,7 +570,7 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
               </div>
 
               {performanceLiveLink ? (
-                <div className={isCompact ? 'mt-3' : 'hidden lg:flex lg:min-h-0 lg:flex-1 lg:items-start lg:justify-center'}>
+                <div className={isCompact || isEmbedded ? 'mt-3' : 'hidden lg:flex lg:min-h-0 lg:flex-1 lg:items-start lg:justify-center'}>
                   <a
                     href={performanceLiveLink}
                     target="_blank"
@@ -417,7 +578,7 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
                     className="w-full max-w-xl overflow-hidden rounded-xl border border-cyan-300/35 bg-cyan-300/10 transition hover:border-cyan-300/55 hover:bg-cyan-300/15"
                   >
                     <div className="grid grid-cols-[42%_58%]">
-                      <div className={`relative overflow-hidden border-r border-cyan-300/20 ${isCompact ? 'h-24 sm:h-28' : 'h-40'}`}>
+                      <div className={`relative overflow-hidden border-r border-cyan-300/20 ${isCompact || isEmbedded ? 'h-24 sm:h-28' : 'h-40'}`}>
                         {performanceLiveThumbnail ? (
                           <img src={performanceLiveThumbnail} alt="Performance en vivo" className="h-full w-full object-cover" />
                         ) : (
@@ -426,7 +587,7 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
                         <div className="absolute inset-0 bg-linear-to-t from-black/45 to-transparent" />
                       </div>
 
-                      <div className="flex flex-col justify-center p-3">
+                      <div className="flex flex-col justify-center bg-emerald-500/90 p-3">
                         <p className="text-[11px] uppercase tracking-[0.14em] text-cyan-200">Live Performance</p>
                         <p className="mt-1 text-sm font-semibold text-white">Mira mi performance en vivo</p>
                         <p className="mt-1 text-[11px] text-zinc-300">Ver en YouTube</p>
@@ -759,19 +920,42 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
     }
 
     if (page.type === 'gallery') {
+      // Definir los títulos para cada imagen (sin Banner / Web Header)
+      const galleryTitles = [
+        'Official Press Photo',
+        'Flyer Ready',
+        'Live Performance',
+        'Esencia del artista',
+      ];
+      // Definir clases de jerarquía visual (ajustado a 4 slots)
+      const galleryGrid = [
+        // Hero: grande, centrado
+        'md:col-span-6 md:row-span-6 col-span-6 row-span-4',
+        // Flyer Ready: alta
+        'md:col-span-6 md:row-span-6 col-span-6 row-span-4',
+        // Live Performance: alta
+        'md:col-span-6 md:row-span-6 col-span-6 row-span-4',
+        // Esencia del artista: más grande
+        'md:col-span-6 md:row-span-6 col-span-6 row-span-3',
+      ];
       return (
-        <div className="relative h-full p-5">
-          <div className="pointer-events-none absolute left-0 right-0 top-5 z-20 px-6 sm:hidden">
-            <p className="text-center text-5xl font-black uppercase tracking-[0.08em] text-white drop-shadow-[0_0_14px_rgba(255,255,255,0.65)] [text-shadow:0_0_8px_rgba(255,255,255,0.75),0_0_20px_rgba(56,189,248,0.55)]">
-              {artistName}
-            </p>
+        <div className="relative flex-1 min-h-0 w-full p-5 overflow-y-auto">
+          {/* Título y subtítulo para desktop y móvil, sin fondo ni sombra en móvil */}
+          <div className="mb-6">
+            <h2 className="text-center text-2xl sm:text-3xl font-black uppercase tracking-[0.13em] text-white sm:drop-shadow-lg drop-shadow-none bg-none">GALERÍA Y ASSETS</h2>
+            <p className="mt-2 text-center text-sm sm:text-base text-zinc-200 font-medium max-w-2xl mx-auto bg-none drop-shadow-none">Activos oficiales curados para medios y promotores, optimizados para uso digital e impreso.</p>
           </div>
 
-          <div className="grid h-full grid-cols-6 auto-rows-[64px] gap-2 overflow-y-auto overflow-x-hidden rounded-2xl sm:overflow-hidden md:grid-cols-12 md:auto-rows-[52px]">
+          <div className="grid h-auto max-h-none grid-cols-6 md:grid-cols-12 auto-rows-[64px] md:auto-rows-[52px] gap-3 overflow-x-hidden rounded-2xl overflow-y-auto min-h-0 flex-1">
             {page.payload.map((image, index) => (
-              <div key={`${image}-${index}`} className={`${getGalleryResponsiveSpanClass(index)} overflow-hidden rounded-lg border-4 border-white/45 bg-zinc-800`}>
-                <img src={image} alt={`Galeria ${index + 1}`} className="h-full w-full object-cover object-top" />
-              </div>
+              <GalleryImage
+                key={`${image}-${index}`}
+                image={image}
+                title={galleryTitles[index]}
+                gridClass={galleryGrid[index] || ''}
+                artistName={artistName}
+                index={index}
+              />
             ))}
           </div>
         </div>
@@ -784,7 +968,7 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
           <div className="grid gap-4 lg:grid-cols-[34%_66%]">
             <div className="overflow-hidden rounded-2xl border border-white/10 bg-zinc-800 p-4">
               {contactLogo ? (
-                <img src={contactLogo} alt="Logo de contacto" className="h-full w-full object-contain" />
+                <ContactLogo image={contactLogo} artistName={artistName} />
               ) : (
                 <div className="flex h-full min-h-56 items-center justify-center text-sm text-zinc-400">Sin logo</div>
               )}
@@ -851,12 +1035,12 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
             {'<'}
           </button>
 
-          <div className={`relative ${isCompact && currentPage?.type === 'artist' ? 'overflow-y-auto overflow-x-hidden' : 'overflow-hidden'} ${pageViewportClass}`}>
+          <div className={`relative ${(isCompact || currentPage?.type === 'gallery') ? 'overflow-y-auto overflow-x-hidden' : 'overflow-hidden'} ${pageViewportClass}`}>
             <div
-              className="h-full transition-all duration-300 ease-out"
+              className="h-full transition-all duration-500 ease-in-out"
               style={{
-                transform: isTurning ? `translateX(${turnDirection > 0 ? '10px' : '-10px'})` : 'translateX(0px)',
-                opacity: isTurning ? 0.72 : 1,
+                opacity: isTurning ? 0.88 : 1,
+                transform: isTurning ? 'scale(0.998)' : 'scale(1)',
               }}
             >
               {renderPage(currentPage)}

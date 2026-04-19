@@ -15,7 +15,7 @@ function Sidebar({ user }) {
         </li>
         <li>
           <a href="/createPresskit" className="block rounded-lg border border-white/10 bg-white/5 px-3 py-2 transition hover:bg-white/12">
-            Create Presskit
+            Crear Presskit
           </a>
         </li>
         <li>
@@ -26,6 +26,11 @@ function Sidebar({ user }) {
         <li>
           <a href="#" className="block rounded-lg border border-white/10 bg-white/5 px-3 py-2 transition hover:bg-white/12">
             Configuración
+          </a>
+        </li>
+        <li>
+          <a href="#presskit-press-articles" className="block rounded-lg border border-fuchsia-300/30 bg-fuchsia-300/10 px-3 py-2 font-semibold text-fuchsia-400 transition hover:bg-fuchsia-300/20">
+            Artículos de Prensa
           </a>
         </li>
       </ul>

@@ -117,7 +117,7 @@ export default function PresskitPdfDocument({ data, variant = 'professional' }) 
   const safeLinks = Object.entries(safeData.links || {}).filter(([, value]) => Boolean(value));
   const safeImages = (safeData.images || []).filter(isHttpUrl);
   const coverImage = safeImages[0] || '';
-  const galleryImages = safeImages.slice(1, 5);
+  const galleryImages = safeImages.slice(1, 6);
 
   return (
     <Document>

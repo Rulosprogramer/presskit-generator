@@ -61,6 +61,7 @@ const initialPresskitData = {
   contactPhone: '',
   contactLogo: '',
   planTier: '',
+  pressArticles: [],
   theme: 'neon',
 };
 
@@ -129,6 +130,7 @@ function PublicPresskit({ presskitId = '' }) {
             contactPhone: data.contactPhone || '',
             contactLogo: data.contactLogo || '',
             planTier: data.planTier || '',
+            pressArticles: Array.isArray(data.pressArticles) ? data.pressArticles : [],
             theme: data.theme || 'neon',
           }));
           setError('');

@@ -46,6 +46,23 @@ function ensureArtistMilestonesShape(value) {
   }, empty);
 }
 
+const gallerySlotToIndex = {
+  hero: 1,
+  flyer: 2,
+  liveAct: 3,
+  concept: 4,
+};
+
+function setGalleryImageForSlot(images, slot, imageUrl) {
+  const nextImages = Array.isArray(images) ? [...images] : [];
+  // Elimina cualquier imagen previa en el slot landscape (índice 2)
+  nextImages[2] = undefined;
+  const index = gallerySlotToIndex[slot];
+  if (typeof index !== 'number') return nextImages;
+  nextImages[index] = imageUrl;
+  return nextImages.slice(0, 5);
+}
+
 const initialPresskitData = {
   artistName: '',
   genre: '',
@@ -67,7 +84,6 @@ const initialPresskitData = {
   artistMilestones: createEmptyArtistMilestones(),
   releases: [],
   releasesCtaText: 'Dale play y disfruta los videos que estan marcando el camino de Rulos.',
-  galleryStyle: 'clasico',
   images: [],
   links: {
     spotify: '',
@@ -103,6 +119,7 @@ const initialPresskitData = {
   publishedUrl: '',
   theme: 'neon',
   typeface: 'neutral',
+  pressArticles: [],
 };
 
 const steps = [
@@ -114,6 +131,7 @@ const steps = [
   'Releases',
   'Links',
   'Galería',
+  'Artículos de Prensa',
   'Contacto',
   'Tema Visual',
   'Tipografía',
@@ -167,7 +185,10 @@ function getStorageSetupErrorMessage(error) {
 }
 
 function CreatePresskit({ user, onSignOut }) {
-  const [presskitData, setPresskitData] = useState(initialPresskitData);
+  const [presskitData, setPresskitData] = useState({
+    ...initialPresskitData,
+    pressArticles: [], // hasta 3 imágenes de artículos de prensa
+  });
   const [activeStep, setActiveStep] = useState(1);
   const [publishOpen, setPublishOpen] = useState(false);
   const [loadingDraft, setLoadingDraft] = useState(true);
@@ -178,7 +199,7 @@ function CreatePresskit({ user, onSignOut }) {
   const [bioGenerationError, setBioGenerationError] = useState('');
   const [libraryModalOpen, setLibraryModalOpen] = useState(false);
   const [currentImageType, setCurrentImageType] = useState('cover');
-  const [selectedFileNames, setSelectedFileNames] = useState({ cover: '', recognition: '', gallery: [], linkScreenshots: {} });
+  const [selectedFileNames, setSelectedFileNames] = useState({ cover: '', recognition: '', gallery: {}, linkScreenshots: {}, pressArticles: {} });
   const [imageUploadError, setImageUploadError] = useState('');
   const [aiModalOpen, setAiModalOpen] = useState(false);
   const [aiModalSection, setAiModalSection] = useState(null);
@@ -235,7 +256,6 @@ function CreatePresskit({ user, onSignOut }) {
         artistMilestones: normalizeArtistMilestones(localData.artistMilestones || current.artistMilestones),
         releases: Array.isArray(localData.releases) ? localData.releases : current.releases,
         releasesCtaText: localData.releasesCtaText ?? current.releasesCtaText,
-        galleryStyle: localData.galleryStyle || current.galleryStyle || 'clasico',
         images: Array.isArray(localData.images) && localData.images.length ? localData.images : current.images,
         links: {
           ...current.links,
@@ -258,6 +278,7 @@ function CreatePresskit({ user, onSignOut }) {
         planTier: localData.planTier || current.planTier,
         theme: localData.theme || current.theme,
         typeface: localData.typeface || current.typeface,
+        pressArticles: Array.isArray(localData.pressArticles) ? localData.pressArticles.slice(0, 3) : current.pressArticles,
       }));
     } catch (error) {
       console.warn('No se pudo recuperar borrador local:', error);
@@ -305,7 +326,6 @@ function CreatePresskit({ user, onSignOut }) {
             artistMilestones: normalizeArtistMilestones(data.artistMilestones || current.artistMilestones),
             releases: Array.isArray(data.releases) ? data.releases : current.releases,
             releasesCtaText: data.releasesCtaText ?? current.releasesCtaText,
-            galleryStyle: data.galleryStyle || current.galleryStyle || 'clasico',
             images: Array.isArray(data.images) && data.images.length ? data.images : current.images,
             links: {
               ...current.links,
@@ -328,6 +348,7 @@ function CreatePresskit({ user, onSignOut }) {
             planTier: data.planTier || current.planTier,
             theme: data.theme || current.theme || 'neon',
             typeface: data.typeface || current.typeface || 'neutral',
+            pressArticles: Array.isArray(data.pressArticles) ? data.pressArticles.slice(0, 3) : current.pressArticles,
           }));
         }
       } catch (error) {
@@ -372,7 +393,6 @@ function CreatePresskit({ user, onSignOut }) {
         artistMilestones: presskitData.artistMilestones,
         releases: presskitData.releases,
         releasesCtaText: presskitData.releasesCtaText,
-        galleryStyle: presskitData.galleryStyle,
         theme: presskitData.theme,
         typeface: presskitData.typeface,
         genre: presskitData.genre,
@@ -388,6 +408,7 @@ function CreatePresskit({ user, onSignOut }) {
         contactPhone: presskitData.contactPhone,
         contactLogo: presskitData.contactLogo,
         planTier: presskitData.planTier,
+        pressArticles: presskitData.pressArticles,
         status: 'draft',
       };
 
@@ -511,6 +532,55 @@ function CreatePresskit({ user, onSignOut }) {
     }));
   };
 
+  const handleDeletePressArticle = (index) => {
+    setPresskitData((current) => {
+      const next = Array.isArray(current.pressArticles) ? [...current.pressArticles] : [];
+      next[index] = "";
+      return { ...current, pressArticles: next };
+    });
+    setSelectedFileNames((current) => {
+      const nextPress = { ...(current.pressArticles || {}) };
+      delete nextPress[index];
+      return { ...current, pressArticles: nextPress };
+    });
+  };
+
+  // Handler para subir imágenes de artículos de prensa (máx 3)
+  const handlePressArticleUpload = async (event, index) => {
+    const file = event.target.files?.[0];
+    if (!file || !user?.uid) return;
+
+    setImageUploadError('');
+
+    try {
+      await auth.currentUser?.getIdToken(true);
+
+      const exists = await fileExistsInLibrary({ userId: user.uid, fileName: file.name });
+      if (exists) {
+        setImageUploadError(`El archivo "${file.name}" ya está subido. Selecciona uno diferente o elige de tu biblioteca.`);
+        event.target.value = '';
+        return;
+      }
+
+      const imageUrl = await uploadImageFile({ file, userId: user.uid, folder: 'press-articles' });
+      await addImageToLibrary({ userId: user.uid, imageUrl, fileName: file.name, type: 'press-article' });
+
+      setPresskitData((current) => {
+        const next = Array.isArray(current.pressArticles) ? [...current.pressArticles] : [];
+        next[index] = imageUrl;
+        return { ...current, pressArticles: next.slice(0, 3) };
+      });
+
+      setSelectedFileNames((current) => ({
+        ...current,
+        pressArticles: { ...(current.pressArticles || {}), [index]: file.name },
+      }));
+    } catch (error) {
+      setPermissionError(getStorageSetupErrorMessage(error));
+      console.warn('No se pudo subir imagen de artículo de prensa:', error);
+    }
+  };
+
   const handleAddMilestone = (category) => {
     setPresskitData((current) => {
       const currentMilestones = ensureArtistMilestonesShape(current.artistMilestones);
@@ -598,9 +668,9 @@ function CreatePresskit({ user, onSignOut }) {
     }
   };
 
-  const handleGalleryUpload = async (event) => {
-    const files = Array.from(event.target.files || []);
-    if (!files.length || !user?.uid) return;
+  const handleGalleryUpload = async (event, gallerySlot) => {
+    const file = event.target.files?.[0];
+    if (!file || !user?.uid || !gallerySlotToIndex[gallerySlot]) return;
 
     setImageUploadError('');
 
@@ -608,49 +678,27 @@ function CreatePresskit({ user, onSignOut }) {
       // Refrescar el token de autenticación para asegurar permisos válidos
       await auth.currentUser?.getIdToken(true);
 
-      const duplicates = [];
-      const newFiles = [];
-
-      // Verificar duplicados
-      for (const file of files) {
-        const exists = await fileExistsInLibrary({ userId: user.uid, fileName: file.name });
-        if (exists) {
-          duplicates.push(file.name);
-        } else {
-          newFiles.push(file);
-        }
-      }
-
-      if (duplicates.length > 0) {
-        setImageUploadError(
-          `${duplicates.length} archivo(s) ya existen: ${duplicates.join(', ')}. Se subirán solo los nuevos.`
-        );
-      }
-
-      if (newFiles.length === 0) {
+      const exists = await fileExistsInLibrary({ userId: user.uid, fileName: file.name });
+      if (exists) {
+        setImageUploadError(`El archivo "${file.name}" ya está subido. Selecciona uno diferente o elige de tu biblioteca.`);
         event.target.value = '';
         return;
       }
 
-      const imageUrls = await Promise.all(
-        newFiles.map((file) => uploadImageFile({ file, userId: user.uid, folder: 'gallery' }))
-      );
-
-      // Guardar nuevas imágenes en la biblioteca
-      await Promise.all(
-        newFiles.map((file, idx) =>
-          addImageToLibrary({ userId: user.uid, imageUrl: imageUrls[idx], fileName: file.name, type: 'gallery' })
-        )
-      );
+      const imageUrl = await uploadImageFile({ file, userId: user.uid, folder: `gallery/${gallerySlot}` });
+      await addImageToLibrary({ userId: user.uid, imageUrl, fileName: file.name, type: `gallery-${gallerySlot}` });
 
       setPresskitData((current) => ({
         ...current,
-        images: [...current.images, ...imageUrls].slice(0, 8),
+        images: setGalleryImageForSlot(current.images, gallerySlot, imageUrl),
       }));
 
       setSelectedFileNames((current) => ({
         ...current,
-        gallery: [...(current.gallery || []), ...newFiles.map((f) => f.name)],
+        gallery: {
+          ...(current.gallery || {}),
+          [gallerySlot]: file.name,
+        },
       }));
     } catch (error) {
       setPermissionError(getStorageSetupErrorMessage(error));
@@ -941,14 +989,20 @@ function CreatePresskit({ user, onSignOut }) {
         useRecognitionImage: true,
       }));
       setSelectedFileNames((current) => ({ ...current, recognition: image.fileName }));
-    } else if (currentImageType === 'gallery') {
+    } else if (currentImageType?.startsWith('gallery:')) {
+      const gallerySlot = currentImageType.split(':')[1];
+      if (!gallerySlotToIndex[gallerySlot]) return;
+
       setPresskitData((current) => ({
         ...current,
-        images: [...current.images, image.url].slice(0, 8),
+        images: setGalleryImageForSlot(current.images, gallerySlot, image.url),
       }));
       setSelectedFileNames((current) => ({
         ...current,
-        gallery: [...(current.gallery || []), image.fileName],
+        gallery: {
+          ...(current.gallery || {}),
+          [gallerySlot]: image.fileName,
+        },
       }));
     } else if (currentImageType === 'contactLogo') {
       setPresskitData((current) => ({
@@ -956,6 +1010,20 @@ function CreatePresskit({ user, onSignOut }) {
         contactLogo: image.url,
       }));
       setSelectedFileNames((current) => ({ ...current, contactLogo: image.fileName }));
+    } else if (currentImageType?.startsWith('pressArticles:')) {
+      const idx = parseInt(currentImageType.split(':')[1], 10);
+      setPresskitData((current) => {
+        const next = Array.isArray(current.pressArticles) ? [...current.pressArticles] : [];
+        next[idx] = image.url;
+        return { ...current, pressArticles: next.slice(0, 3) };
+      });
+      setSelectedFileNames((current) => ({
+        ...current,
+        pressArticles: {
+          ...(current.pressArticles || {}),
+          [idx]: image.fileName,
+        },
+      }));
     }
   };
 
@@ -1062,7 +1130,6 @@ function CreatePresskit({ user, onSignOut }) {
       artistMilestones: presskitData.artistMilestones,
       releases: presskitData.releases,
       releasesCtaText: presskitData.releasesCtaText,
-      galleryStyle: presskitData.galleryStyle,
       theme: presskitData.theme,
       typeface: presskitData.typeface,
       genre: presskitData.genre,
@@ -1158,6 +1225,8 @@ function CreatePresskit({ user, onSignOut }) {
             onUpdateRelease={handleUpdateRelease}
             onOpenPublish={() => setPublishOpen(true)}
             onOpenImageLibrary={handleOpenImageLibrary}
+            onPressArticleUpload={handlePressArticleUpload}
+            onDeletePressArticle={handleDeletePressArticle}
             saveLabel={saveLabel}
             isGeneratingBio={isGeneratingBio}
             generatingBioSection={generatingBioSection}
