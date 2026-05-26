@@ -213,6 +213,7 @@ function CreatePresskit({ user, onSignOut }) {
   const createdAtRef = useRef(null);
   const lastSavedSignatureRef = useRef('');
   const isSavingRef = useRef(false);
+  const previewDockRef = useRef(null);
 
   const handleSidebarStepClick = (stepNumber) => {
     setActiveStep(stepNumber);
@@ -220,6 +221,27 @@ function CreatePresskit({ user, onSignOut }) {
     if (!target) return;
     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
+
+  useEffect(() => {
+    const updatePreviewDockOffset = () => {
+      const dock = previewDockRef.current;
+      if (!dock) return;
+
+      const scrollY = window.scrollY || window.pageYOffset || 0;
+      const maxDrift = 14;
+      const drift = Math.min(scrollY * 0.0045, maxDrift);
+      dock.style.setProperty('--preview-dock-offset', `${drift}px`);
+    };
+
+    updatePreviewDockOffset();
+    window.addEventListener('scroll', updatePreviewDockOffset, { passive: true });
+    window.addEventListener('resize', updatePreviewDockOffset);
+
+    return () => {
+      window.removeEventListener('scroll', updatePreviewDockOffset);
+      window.removeEventListener('resize', updatePreviewDockOffset);
+    };
+  }, []);
 
   const draftRef = useMemo(() => {
     if (!user?.uid) return null;
@@ -1243,7 +1265,11 @@ function CreatePresskit({ user, onSignOut }) {
           ) : null}
         </div>
 
-        <div className="sticky top-6 space-y-6 h-fit">
+        <div
+          ref={previewDockRef}
+          className="sticky top-2 max-h-[calc(100vh-1rem)] space-y-6 overflow-y-auto pr-1 h-fit transition-transform duration-300 ease-out will-change-transform"
+          style={{ transform: 'translateY(calc(var(--preview-dock-offset, 0px) * -1))' }}
+        >
           <div className="flex flex-wrap gap-2">
             <button
               type="button"

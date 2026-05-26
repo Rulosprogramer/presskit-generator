@@ -50,7 +50,7 @@ function GalleryImage({ image, title, gridClass, artistName, index }) {
           <a
             href={image}
             download
-className={`pointer-events-auto absolute bottom-3 right-3 rounded-full border border-white/30 bg-gradient-to-r from-transparent via-white/20 to-transparent backdrop-blur-sm px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-white shadow-lg transition-all duration-300 hover:bg-white/30 hover:shadow-xl hover:scale-105 hover:tracking-[0.2em] focus:opacity-100 ${showDownload || !isMobile ? 'opacity-100 scale-105' : 'opacity-0 group-hover:opacity-100'}`}
+            className={`pointer-events-auto absolute bottom-3 right-3 rounded-full border border-white/30 bg-linear-to-r from-transparent via-white/20 to-transparent backdrop-blur-sm px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-white shadow-lg transition-all duration-300 hover:bg-white/30 hover:shadow-xl hover:scale-105 hover:tracking-[0.2em] focus:opacity-100 ${showDownload || !isMobile ? 'opacity-100 scale-105' : 'opacity-0 group-hover:opacity-100'}`}
             title="Descargar imagen"
             onClick={async (e) => {
               e.preventDefault();
@@ -131,6 +131,7 @@ function ContactLogo({ image, artistName }) {
 }
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getTheme } from '../../lib/themeColors.js';
+import { useTheme } from '../../context/ThemeContext.tsx';
 import {
   SiApplemusic,
   SiFacebook,
@@ -249,6 +250,7 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
     : isEmbedded
       ? 'aspect-[9/16] w-full sm:aspect-auto sm:h-[clamp(19rem,44vw,30rem)]'
       : 'aspect-[9/16] w-full sm:aspect-auto sm:h-[62vh] lg:h-[86vh]';
+  const { theme: uiTheme } = useTheme();
   const theme = getTheme(presskitData.theme || 'neon');
 
   const cover = presskitData.images?.[0] || '';
@@ -343,13 +345,13 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
 
     const bioBlocks = [
       { key: 'twitter', title: 'Bio 140', content: twitterBio },
-      { key: 'long', title: 'Bio larga', content: longBio },
+      { key: 'long', title: 'Biografía', content: longBio },
     ].filter((item) => item.content);
 
     bioBlocks.forEach((block) => {
       pages.push({
         type: 'bio',
-        title: block.key === 'twitter' ? 'Biografia' : `Biografia · ${block.title}`,
+        title: 'Biografía',
         payload: block,
       });
     });
@@ -537,11 +539,11 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
       return (
         <div className="flex h-full flex-col p-4 sm:p-5">
           <div className="shrink-0 text-center">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-cyan-300 sm:text-xs">Conoce A</p>
-            <h3 className="mt-2 text-[clamp(1.55rem,3.2vw,2.25rem)] font-black text-white">{artistName}</h3>
+            <p className="text-[11px] uppercase tracking-[0.18em] sm:text-xs" style={{ color: uiTheme.accentColor }}>Conoce A</p>
+            <h3 className="mt-2 text-[clamp(1.55rem,3.2vw,2.25rem)] font-black" style={{ color: uiTheme.titleColor }}>{artistName}</h3>
           </div>
 
-          <div className="mt-4 grid min-h-0 flex-1 gap-3 lg:grid-cols-[38%_62%]">
+            <div className="mt-4 grid min-h-0 flex-1 gap-3 lg:grid-cols-[38%_62%]">
             <div className="min-h-0 overflow-hidden rounded-2xl border border-white/10 bg-zinc-800">
               {bioImage ? (
                 <img src={bioImage} alt={`Bio corta de ${artistName}`} className="h-full w-full object-cover" />
@@ -549,49 +551,39 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
                 <div className="flex h-full items-center justify-center px-3 text-center text-xs text-zinc-400 sm:text-sm">Sin imagen de bio corta</div>
               )}
             </div>
-            <div className={`min-h-0 rounded-2xl border border-white/10 bg-white/5 p-3 sm:p-4 ${isCompact ? '' : 'lg:flex lg:flex-col'}`}>
-              <div className={isCompact ? '' : 'lg:min-h-0 lg:flex-1'}>
-                <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-300 sm:text-sm">
-                  <p>{genre} · {city}</p>
-                  {performanceLiveLink ? (
-                    <a
-                      href={performanceLiveLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-semibold text-cyan-300 underline decoration-cyan-300/60 underline-offset-2 lg:hidden"
-                    >
-                      Mira mi performance en vivo
-                    </a>
-                  ) : null}
-                </div>
-                <p className="mt-3 max-h-full overflow-y-auto text-xs leading-5 text-zinc-200 sm:text-sm sm:leading-6">
-                  {shortBio || 'Completa la biografia para mostrar informacion del artista en esta pagina.'}
-                </p>
+            <div
+              className="min-h-0 overflow-y-auto rounded-2xl p-3 sm:p-4 flex flex-col h-full"
+              style={{ backgroundColor: uiTheme.cardBg, border: `1px solid ${uiTheme.borderColor}` }}
+            >
+              <div className="flex flex-col gap-2">
+                <div className="text-xs sm:text-sm" style={{ color: uiTheme.subtitleColor }}>{genre} · {city}</div>
+              </div>
+
+              <div className="mt-3 flex-1 min-h-0 overflow-y-auto">
+                <p className="text-xs leading-5 sm:text-sm sm:leading-6" style={{ color: uiTheme.textColor }}>{shortBio || 'Completa la biografia para mostrar informacion del artista en esta pagina.'}</p>
               </div>
 
               {performanceLiveLink ? (
-                <div className={isCompact || isEmbedded ? 'mt-3' : 'hidden lg:flex lg:min-h-0 lg:flex-1 lg:items-start lg:justify-center'}>
+                <div className="mt-3">
                   <a
                     href={performanceLiveLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full max-w-xl overflow-hidden rounded-xl border border-cyan-300/35 bg-cyan-300/10 transition hover:border-cyan-300/55 hover:bg-cyan-300/15"
+                    className="w-full flex-none flex flex-col overflow-hidden rounded-xl border border-cyan-300/35 bg-cyan-300/10 transition hover:border-cyan-300/55 hover:bg-cyan-300/15"
                   >
-                    <div className="grid grid-cols-[42%_58%]">
-                      <div className={`relative overflow-hidden border-r border-cyan-300/20 ${isCompact || isEmbedded ? 'h-24 sm:h-28' : 'h-40'}`}>
-                        {performanceLiveThumbnail ? (
-                          <img src={performanceLiveThumbnail} alt="Performance en vivo" className="h-full w-full object-cover" />
-                        ) : (
-                          <div className="flex h-full items-center justify-center bg-zinc-900 text-[11px] text-zinc-300">Sin thumbnail</div>
-                        )}
-                        <div className="absolute inset-0 bg-linear-to-t from-black/45 to-transparent" />
-                      </div>
+                    <div className="w-full aspect-video overflow-hidden">
+                      {performanceLiveThumbnail ? (
+                        <img src={performanceLiveThumbnail} alt="Performance en vivo" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="flex h-full items-center justify-center bg-zinc-900 text-[11px] text-zinc-300">Sin thumbnail</div>
+                      )}
+                    </div>
 
-                      <div className="flex flex-col justify-center bg-emerald-500/90 p-3">
-                        <p className="text-[11px] uppercase tracking-[0.14em] text-cyan-200">Live Performance</p>
-                        <p className="mt-1 text-sm font-semibold text-white">Mira mi performance en vivo</p>
-                        <p className="mt-1 text-[11px] text-zinc-300">Ver en YouTube</p>
-                      </div>
+                    <div className="p-3 bg-emerald-500/90">
+                      <p className="text-[11px] uppercase tracking-[0.14em] text-cyan-200">Live Performance</p>
+                      <p className="mt-1 text-sm font-semibold text-white">Mira mi performance en vivo</p>
+                      <p className="mt-1 text-[11px] text-zinc-300">Ver en YouTube</p>
+                      <p className="mt-2 text-xs text-zinc-100 whitespace-pre-line">{presskitData.performanceDescription || ''}</p>
                     </div>
                   </a>
                 </div>
@@ -639,8 +631,9 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
         return (
           <div className="h-full p-5">
             <div className="mx-auto flex h-full min-h-0 max-w-3xl flex-col gap-4">
-              <div className="shrink-0 rounded-2xl border border-cyan-300/35 bg-linear-to-br from-cyan-400/20 via-fuchsia-400/10 to-zinc-900 p-5">
-                <p className="whitespace-pre-line text-sm leading-7 text-zinc-100">{page.payload.content}</p>
+              <div className="relative shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-zinc-950/65 p-5 shadow-[0_16px_40px_rgba(0,0,0,0.35)] backdrop-blur-md">
+                <div className="pointer-events-none absolute inset-0 rounded-2xl bg-linear-to-br from-cyan-400/10 via-fuchsia-400/5 to-transparent" />
+                <p className="relative whitespace-pre-line text-sm leading-7 text-zinc-50">{page.payload.content}</p>
               </div>
 
               <div className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-white/15 bg-linear-to-br from-cyan-400/20 via-fuchsia-400/18 to-zinc-900">
@@ -648,13 +641,18 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
                   <div className="relative h-full w-full">
                     <img src={twitterBioImage} alt="Bio 140" className="h-full w-full object-cover" />
 
+                    <div
+                      className="pointer-events-none absolute inset-0 z-10"
+                      style={{ backgroundColor: uiTheme.overlayColor }}
+                    />
+
                     {milestoneItems.length > 0 ? (
-                      <div className="absolute inset-x-3 top-3 z-10 space-y-2">
+                      <div className="absolute inset-x-3 top-3 z-20 space-y-2">
                         {milestoneItems.map((item, index) => (
                           <p
                             key={`milestone-overlay-${index}`}
                             className={`text-center font-semibold ${milestoneTextSizeClass}`}
-                            style={{ color: theme.primary }}
+                            style={{ color: uiTheme.accentColor }}
                           >
                             {item}
                           </p>
@@ -662,10 +660,6 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
                       </div>
                     ) : null}
 
-                    <div className="pointer-events-none absolute inset-0" style={{
-                      backgroundImage:
-                        'linear-gradient(to right, rgba(0,0,0,0.5), transparent 12%, transparent 88%, rgba(0,0,0,0.5)), linear-gradient(to bottom, rgba(0,0,0,0.45), transparent 14%, transparent 86%, rgba(0,0,0,0.55))',
-                    }} />
                   </div>
                 ) : (
                   <div className="flex h-full items-center justify-center text-sm text-zinc-400">Agrega una foto para la Bio 140</div>
@@ -683,7 +677,7 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
               {longBioImage ? (
                 <img
                   src={longBioImage}
-                  alt="Bio larga"
+                  alt="Biografía"
                   className="absolute inset-0 h-full w-full object-cover"
                 />
               ) : (
@@ -798,7 +792,7 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
               </div>
             </div>
 
-            <div className="absolute inset-0" style={{ backgroundColor: 'rgba(16, 185, 129, 0.8)' }} />
+            <div className="absolute inset-0" style={{ backgroundColor: uiTheme.overlayColor }} />
 
             <div className="relative z-10 p-5">
               <div className="text-center">
@@ -964,22 +958,28 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
 
     if (page.type === 'contact') {
       return (
-        <div className="h-full p-5">
+        <div className="h-full p-5" style={{ backgroundColor: uiTheme.bgColor }}>
           <div className="grid gap-4 lg:grid-cols-[34%_66%]">
-            <div className="overflow-hidden rounded-2xl border border-white/10 bg-zinc-800 p-4">
+            <div
+              className="overflow-hidden rounded-2xl p-4"
+              style={{ backgroundColor: uiTheme.cardBg, border: `1px solid ${uiTheme.borderColor}` }}
+            >
               {contactLogo ? (
                 <ContactLogo image={contactLogo} artistName={artistName} />
               ) : (
-                <div className="flex h-full min-h-56 items-center justify-center text-sm text-zinc-400">Sin logo</div>
+                <div className="flex h-full min-h-56 items-center justify-center text-sm" style={{ color: uiTheme.subtitleColor }}>Sin logo</div>
               )}
             </div>
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-              <p className="text-xs uppercase tracking-wider text-fuchsia-300">Contacto</p>
-              <h3 className="mt-2 text-2xl font-black text-white">{contactArtistName || 'Nombre del artista'}</h3>
-              <div className="mt-4 space-y-2 text-sm text-zinc-200">
-                <p><span className="text-zinc-400">Manager:</span> {managerName || 'No especificado'}</p>
-                <p><span className="text-zinc-400">Road manager:</span> {roadManagerName || 'No especificado'}</p>
-                <p><span className="text-zinc-400">Telefono:</span> {contactPhone || 'No especificado'}</p>
+            <div
+              className="rounded-2xl p-4"
+              style={{ backgroundColor: uiTheme.cardBg, border: `1px solid ${uiTheme.borderColor}` }}
+            >
+              <p className="text-xs uppercase tracking-wider" style={{ color: uiTheme.accentColor }}>Contacto</p>
+              <h3 className="mt-2 text-2xl font-black" style={{ color: uiTheme.titleColor }}>{contactArtistName || 'Nombre del artista'}</h3>
+              <div className="mt-4 space-y-2 text-sm" style={{ color: uiTheme.textColor }}>
+                <p><span style={{ color: uiTheme.subtitleColor }}>Manager:</span> {managerName || 'No especificado'}</p>
+                <p><span style={{ color: uiTheme.subtitleColor }}>Road manager:</span> {roadManagerName || 'No especificado'}</p>
+                <p><span style={{ color: uiTheme.subtitleColor }}>Telefono:</span> {contactPhone || 'No especificado'}</p>
               </div>
             </div>
           </div>
@@ -994,8 +994,11 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
     <div className={isCompact || isEmbedded ? '' : 'lg:grid lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-4'}>
       {!isCompact && !isEmbedded ? (
         <aside className="hidden lg:block">
-          <div className="sticky top-6 rounded-2xl border border-white/10 bg-zinc-900/70 p-4">
-            <p className="text-xs uppercase tracking-[0.14em] text-cyan-300">Indice</p>
+          <div
+            className="sticky top-6 rounded-2xl p-4"
+            style={{ backgroundColor: uiTheme.cardBg, border: `1px solid ${uiTheme.borderColor}` }}
+          >
+            <p className="text-xs uppercase tracking-[0.14em]" style={{ color: uiTheme.accentColor }}>Indice</p>
             <div className="mt-3 space-y-2">
               {webPages.map((page, index) => {
                 const active = index === pageIndex;
@@ -1004,11 +1007,11 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
                     key={`${page.title}-${index}`}
                     type="button"
                     onClick={() => jumpToPage(index)}
-                    className={`w-full rounded-xl border px-3 py-2 text-left text-xs font-semibold transition ${
-                      active
-                        ? 'border-cyan-300/45 bg-cyan-300/15 text-cyan-200'
-                        : 'border-white/10 bg-white/5 text-zinc-300 hover:border-white/25 hover:bg-white/10 hover:text-white'
-                    }`}
+                    className="w-full rounded-xl px-3 py-2 text-left text-xs font-semibold transition"
+                    style={active
+                      ? { backgroundColor: `${uiTheme.accentColor}22`, border: `1px solid ${uiTheme.accentColor}66`, color: uiTheme.accentColor }
+                      : { backgroundColor: 'transparent', border: `1px solid ${uiTheme.borderColor}`, color: uiTheme.subtitleColor }
+                    }
                   >
                     {index + 1}. {page.title}
                   </button>
@@ -1019,10 +1022,16 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
         </aside>
       ) : null}
 
-      <article className="w-full overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/80 shadow-[0_18px_42px_rgba(0,0,0,0.28)]">
-        <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-          <p className="text-xs uppercase tracking-wider text-cyan-300">{currentPage?.title || 'Preview'}</p>
-          <p className="text-xs text-zinc-400">Pagina {pageIndex + 1} de {webPages.length}</p>
+      <article
+        className="w-full overflow-hidden rounded-2xl shadow-[0_18px_42px_rgba(0,0,0,0.28)]"
+        style={{ backgroundColor: uiTheme.bgColor, border: `1px solid ${uiTheme.borderColor}` }}
+      >
+        <div
+          className="flex items-center justify-between px-4 py-3"
+          style={{ borderBottom: `1px solid ${uiTheme.borderColor}` }}
+        >
+          <p className="text-xs uppercase tracking-wider" style={{ color: uiTheme.accentColor }}>{currentPage?.title || 'Preview'}</p>
+          <p className="text-xs" style={{ color: uiTheme.subtitleColor }}>Pagina {pageIndex + 1} de {webPages.length}</p>
         </div>
 
         <div className="relative">

@@ -12,10 +12,20 @@ import {
 } from 'react-icons/si';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { getTheme } from '../lib/themeColors.js';
 import { getTypeface } from '../lib/typefaces.js';
+import { useTheme } from '../context/ThemeContext.tsx';
 import PresskitPdfDocument from '../components/pdfx/PresskitPdfDocument.jsx';
 import Topbar from '../components/post-login/Topbar.jsx';
+
+function hexify(color) {
+  if (!color) return '#000000';
+  if (/^#[0-9a-f]{6}$/i.test(color)) return color;
+  const h3 = /^#([0-9a-f])([0-9a-f])([0-9a-f])$/i.exec(color);
+  if (h3) return `#${h3[1]}${h3[1]}${h3[2]}${h3[2]}${h3[3]}${h3[3]}`;
+  const m = /rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i.exec(color);
+  if (m) return '#' + [m[1], m[2], m[3]].map(n => parseInt(n).toString(16).padStart(2, '0')).join('');
+  return '#000000';
+}
 
 const initialPresskitData = {
   artistName: '',
@@ -29,10 +39,12 @@ const initialPresskitData = {
   bioStyle: 'prensa',
   twitterBio: '',
   twitterBioImage: '',
+  shortBio: '',
   bio: '',
   bioImage: '',
   longBio: '',
   longBioImage: '',
+  performanceLiveLink: '',
   interviewLink: '',
   releases: [],
   images: [],
@@ -91,10 +103,12 @@ function PresskitPDF({ user, onSignOut, presskitId = '' }) {
             bioStyle: data.bioStyle || 'prensa',
             twitterBio: data.twitterBio || '',
             twitterBioImage: data.twitterBioImage || '',
+            shortBio: data.shortBio || data.bio || '',
             bio: data.bio || '',
             bioImage: data.bioImage || '',
             longBio: data.longBio || '',
             longBioImage: data.longBioImage || '',
+            performanceLiveLink: data.performanceLiveLink || '',
             interviewLink: data.interviewLink || '',
             releases: Array.isArray(data.releases) ? data.releases : [],
             images: Array.isArray(data.images) ? data.images : [],
@@ -200,6 +214,21 @@ function PresskitPDF({ user, onSignOut, presskitId = '' }) {
     if (domain) return `https://unavatar.io/${domain}`;
     return '';
   };
+  const getYoutubeThumbnailUrl = (url) => {
+    if (!url) return '';
+    const match = String(url).match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+    const videoId = match?.[1];
+    return videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : '';
+  };
+  const getMilestonesByCategory = (artistMilestones) => {
+    const milestones = artistMilestones || {};
+    return [
+      { key: 'digital', label: 'Digital', items: Array.isArray(milestones.digital) ? milestones.digital : [] },
+      { key: 'live', label: 'Live', items: Array.isArray(milestones.live) ? milestones.live : [] },
+      { key: 'press', label: 'Press', items: Array.isArray(milestones.press) ? milestones.press : [] },
+      { key: 'collaborations', label: 'Colaboraciones', items: Array.isArray(milestones.collaborations) ? milestones.collaborations : [] },
+    ];
+  };
   const getCollageSpanClass = (index, total) => {
     if (total <= 1) return 'col-span-3 row-span-3';
     if (total === 2) return index === 0 ? 'col-span-2 row-span-3' : 'col-span-1 row-span-3';
@@ -223,8 +252,28 @@ function PresskitPDF({ user, onSignOut, presskitId = '' }) {
 
     return editorialPattern[index % editorialPattern.length];
   };
-  const theme = getTheme(presskitData.theme || 'neon');
+  const { theme: uiTheme } = useTheme();
+  const theme = {
+    bgHex:          hexify(uiTheme.bgColor),
+    primaryText:    hexify(uiTheme.accentColor),
+    textBg:         uiTheme.titleColor,
+    textBgSecondary:uiTheme.textColor,
+    secondaryText:  uiTheme.subtitleColor,
+  };
+  const pdfColors = {
+    bg:     hexify(uiTheme.bgColor),
+    card:   uiTheme.cardBg,
+    title:  uiTheme.titleColor,
+    text:   uiTheme.textColor,
+    accent: hexify(uiTheme.accentColor),
+    border: uiTheme.borderColor,
+  };
   const typeface = getTypeface(presskitData.typeface || 'neutral');
+  const bio140 = presskitData.twitterBio || 'Sin bio de 140 caracteres.';
+  const bio140Image = presskitData.twitterBioImage || '';
+  const longBio = presskitData.longBio || presskitData.bio || 'Sin biografía completa.';
+  const longBioImage = presskitData.longBioImage || '';
+  const milestoneCards = getMilestonesByCategory(presskitData.artistMilestones);
   const pdfFileName = `${(presskitData.artistName || 'presskit').toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${pdfVariant}.pdf`;
 
   return (
@@ -255,7 +304,7 @@ function PresskitPDF({ user, onSignOut, presskitId = '' }) {
           </button>
 
           <PDFDownloadLink
-            document={<PresskitPdfDocument data={presskitData} variant={pdfVariant} />}
+            document={<PresskitPdfDocument data={presskitData} variant={pdfVariant} colors={pdfColors} />}
             fileName={pdfFileName}
             className="rounded-lg border border-amber-300/40 px-3 py-2 text-xs font-semibold text-amber-300 transition hover:bg-amber-300/10"
           >
@@ -266,7 +315,7 @@ function PresskitPDF({ user, onSignOut, presskitId = '' }) {
         {showPdfPreview ? (
           <div className="mt-4 overflow-hidden rounded-2xl border border-white/15">
             <PDFViewer width="100%" height={680} showToolbar>
-              <PresskitPdfDocument data={presskitData} variant={pdfVariant} />
+              <PresskitPdfDocument data={presskitData} variant={pdfVariant} colors={pdfColors} />
             </PDFViewer>
           </div>
         ) : null}
@@ -309,135 +358,193 @@ function PresskitPDF({ user, onSignOut, presskitId = '' }) {
             <article className="relative mt-6 grid aspect-8.5/11 w-full max-h-[82vh] grid-rows-[auto_1fr] overflow-hidden rounded-[20px]" style={{ backgroundColor: theme.bgHex, borderColor: theme.primaryText + '20', color: theme.textBg, fontFamily: typeface.fontFamily }}>
               <header className="px-5 py-4" style={{ borderColor: theme.primaryText + '20', borderBottomWidth: '1px' }}>
                 <div className="text-center">
-                  <p className="text-xs uppercase tracking-[0.16em]" style={{ color: theme.primaryText }}>Reconocimientos y Streams</p>
-                </div>
-              </header>
-
-              <div className="grid min-h-0 gap-5 overflow-y-auto px-5 py-5" style={{ color: theme.textBgSecondary }}>
-                {presskitData.useRecognitionImage && presskitData.recognitionImage ? (
-                  <div className="grid gap-4 md:grid-cols-[42%_58%]">
-                    <div className="overflow-hidden rounded-2xl" style={{ borderColor: theme.primaryText + '30', borderWidth: '1px' }}>
-                      <img src={presskitData.recognitionImage} alt="Reconocimientos" className="h-full min-h-45 w-full object-cover" />
-                    </div>
-                    <div className="rounded-2xl p-4 text-sm" style={{ backgroundColor: theme.primaryText + '08', borderColor: theme.primaryText + '30', borderWidth: '1px' }}>
-                      <p className="text-xs uppercase tracking-[0.14em]" style={{ color: theme.primaryText }}>Reconocimientos</p>
-                      <p className="mt-2 whitespace-pre-line">{presskitData.recognitions || 'Añade reconocimientos, escenarios, playlists, becas, festivales o formación para completar esta sección.'}</p>
-                    </div>
-                  </div>
-                ) : presskitData.recognitions ? (
-                  <section>
-                    <p className="text-xs uppercase tracking-[0.14em]" style={{ color: theme.primaryText }}>Reconocimientos</p>
-                    <p className="mt-2 text-sm leading-7 whitespace-pre-line">{presskitData.recognitions}</p>
-                  </section>
-                ) : null}
-
-                <div className="mt-auto grid gap-3 pt-4 sm:grid-cols-2" style={{ borderColor: theme.primaryText + '20', borderTopWidth: '1px' }}>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.14em]" style={{ color: theme.primaryText }}>Total streams</p>
-                    <p className="mt-2 text-2xl font-black" style={{ color: theme.textBg }}>{presskitData.totalStreams || 'Sin dato'}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.14em]" style={{ color: theme.primaryText }}>Total video views</p>
-                    <p className="mt-2 text-2xl font-black" style={{ color: theme.textBg }}>{presskitData.totalVideoViews || 'Sin dato'}</p>
-                  </div>
-                </div>
-              </div>
-            </article>
-
-            <article className="relative mt-6 grid aspect-8.5/11 w-full max-h-[82vh] grid-rows-[auto_1fr] overflow-hidden rounded-[20px]" style={{ backgroundColor: theme.bgHex, borderColor: theme.primaryText + '20', color: theme.textBg, fontFamily: typeface.fontFamily }}>
-              <header className="px-5 py-4" style={{ borderColor: theme.primaryText + '20', borderBottomWidth: '1px' }}>
-                <div className="text-center">
                   <p className="text-xs uppercase tracking-[0.16em]" style={{ color: theme.primaryText }}>CONOCE A</p>
                   <h2 className="mt-2 text-3xl font-black" style={{ fontFamily: typeface.fontFamily, letterSpacing: typeface.letterSpacing, color: theme.textBg }}>{presskitData.artistName || 'Nombre del artista'}</h2>
                 </div>
               </header>
 
-              <div className="grid min-h-0 gap-5 overflow-y-auto px-5 py-5" style={{ color: theme.textBgSecondary }}>
-                {/* Fila 1: Bio 140 caracteres */}
-                {presskitData.twitterBio && (
-                  <div className={`pb-5 ${presskitData.twitterBioImage ? 'grid grid-cols-[1fr_auto] gap-4' : ''}`} style={{ borderColor: theme.primaryText + '20', borderBottomWidth: '1px' }}>
-                    <div className="flex-1">
-                      <p className="text-xs uppercase tracking-[0.12em] mb-2" style={{ color: theme.primaryText }}>La Esencia</p>
-                      <p className="text-sm leading-7">{presskitData.twitterBio}</p>
-                    </div>
-                    {presskitData.twitterBioImage ? (
-                      <img
-                        src={presskitData.twitterBioImage}
-                        alt="Bio 140"
-                        className="h-24 w-24 rounded-lg object-cover"
-                      />
-                    ) : null}
-                  </div>
-                )}
+              <div className="grid min-h-0 gap-4 overflow-y-auto px-5 py-5" style={{ color: theme.textBgSecondary }}>
+                <section className="rounded-2xl border p-4" style={{ borderColor: theme.primaryText + '25', backgroundColor: theme.primaryText + '08' }}>
+                  <p className="text-xs uppercase tracking-[0.12em]" style={{ color: theme.primaryText }}>{presskitData.genre || 'Género'} · {presskitData.city || 'Ciudad'}</p>
+                  <p className="mt-3 text-sm leading-7" style={{ color: theme.textBgSecondary }}>
+                    {presskitData.shortBio || presskitData.bio || 'Completa la biografia corta para mostrar la historia del artista en esta pagina.'}
+                  </p>
+                </section>
 
-                {/* Fila 2: Bio Corta */}
-                {presskitData.bio && (
-                  <div className={`pb-5 ${presskitData.bioImage ? 'grid grid-cols-[auto_1fr] gap-4' : ''}`} style={{ borderColor: theme.primaryText + '20', borderBottomWidth: '1px' }}>
-                    {presskitData.bioImage ? (
+                {presskitData.performanceLiveLink ? (
+                  <section className="overflow-hidden rounded-2xl border" style={{ borderColor: theme.primaryText + '25', backgroundColor: theme.primaryText + '08' }}>
+                    {getYoutubeThumbnailUrl(presskitData.performanceLiveLink) ? (
                       <img
-                        src={presskitData.bioImage}
-                        alt="Bio Corta"
-                        className="h-28 w-28 rounded-lg object-cover"
+                        src={getYoutubeThumbnailUrl(presskitData.performanceLiveLink)}
+                        alt="Performance en vivo"
+                        className="h-56 w-full object-cover"
                       />
-                    ) : null}
-                    <div className="flex-1">
-                      <p className="text-xs uppercase tracking-[0.12em] mb-2" style={{ color: theme.primaryText }}>Historia</p>
-                      <p className="text-sm leading-7" style={{ color: theme.textBgSecondary }}>{presskitData.bio}</p>
-                    </div>
-                  </div>
-                )}
+                    ) : (
+                      <div className="flex h-56 items-center justify-center" style={{ backgroundColor: theme.primaryText + '10', color: theme.textBgSecondary }}>
+                        Sin thumbnail de video
+                      </div>
+                    )}
 
-                {/* Fila 3: Entrevistas */}
-                {presskitData.interviewLink ? (
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.12em] mb-2" style={{ color: theme.primaryText }}>Entrevista</p>
-                    <a
-                      href={presskitData.interviewLink}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex max-w-full rounded-full px-3 py-1 text-xs transition break-all"
-                      style={{ borderColor: theme.primaryText + '50', backgroundColor: theme.primaryText + '10', color: theme.primaryText }}
-                    >
-                      {presskitData.interviewLink}
-                    </a>
-                  </div>
+                    <div className="p-4">
+                      <p className="text-xs uppercase tracking-[0.12em]" style={{ color: theme.primaryText }}>Live Performance</p>
+                      <p className="mt-2 text-xl font-black" style={{ color: theme.textBg }}>Mira mi performance en vivo</p>
+                      <a
+                        href={presskitData.performanceLiveLink}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-3 inline-flex max-w-full rounded-full px-3 py-1 text-xs transition break-all"
+                        style={{ borderColor: theme.primaryText + '50', backgroundColor: theme.primaryText + '10', color: theme.primaryText }}
+                      >
+                        {presskitData.performanceLiveLink}
+                      </a>
+                    </div>
+                  </section>
                 ) : null}
               </div>
             </article>
 
-            {/* Página 4: Bio Larga */}
-            {presskitData.longBio && (
-              <article className="relative mt-6 grid aspect-8.5/11 w-full max-h-[82vh] grid-rows-[auto_1fr] overflow-hidden rounded-[20px]" style={{ backgroundColor: theme.bgHex, borderColor: theme.primaryText + '20', color: theme.textBg, fontFamily: typeface.fontFamily }}>
-                {/* Imagen de fondo */}
-                {presskitData.longBioImage && (
-                  <img
-                    src={presskitData.longBioImage}
-                    alt="Bio Completa"
-                    className="absolute inset-0 h-full w-full object-cover"
-                  />
-                )}
-                
-                {/* Overlay gradient para legibilidad */}
-                <div className="absolute inset-0" style={{ backgroundImage: `linear-gradient(to top, ${theme.bgHex}e6, ${theme.bgHex}88, ${theme.bgHex}66)` }} />
-                
-                {/* Contenido de texto */}
-                <div className="relative z-10 flex h-full flex-col justify-end p-6">
-                  <p className="text-xs uppercase tracking-[0.12em] mb-4" style={{ color: theme.primaryText }}>La Visión Completa</p>
-                  <div 
+            <article className="relative mt-6 grid aspect-8.5/11 w-full max-h-[82vh] grid-rows-[auto_1fr_auto] overflow-hidden rounded-[20px]" style={{ backgroundColor: theme.bgHex, borderColor: theme.primaryText + '20', color: theme.textBg, fontFamily: typeface.fontFamily }}>
+              <header className="px-5 py-4" style={{ borderColor: theme.primaryText + '20', borderBottomWidth: '1px' }}>
+                <div className="text-center">
+                  <p className="text-xs uppercase tracking-[0.16em]" style={{ color: theme.primaryText }}>Reconocimientos y Streams</p>
+                </div>
+              </header>
+
+              <div className="grid min-h-0 grid-cols-1 gap-4 px-5 py-5 md:grid-cols-[42%_58%]" style={{ color: theme.textBgSecondary }}>
+                <div className="overflow-hidden rounded-2xl border" style={{ borderColor: theme.primaryText + '30' }}>
+                  {presskitData.useRecognitionImage && presskitData.recognitionImage ? (
+                    <img src={presskitData.recognitionImage} alt="Reconocimientos" className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full min-h-72 items-center justify-center px-6 text-center" style={{ backgroundColor: theme.primaryText + '10' }}>
+                      <p className="text-sm leading-6" style={{ color: theme.textBgSecondary }}>
+                        Sube una imagen de reconocimientos para completar esta página editorial.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="rounded-2xl border p-4 text-sm" style={{ backgroundColor: theme.primaryText + '08', borderColor: theme.primaryText + '30' }}>
+                  <p className="text-xs uppercase tracking-[0.14em]" style={{ color: theme.primaryText }}>Reconocimientos</p>
+                  <p
+                    className="mt-2"
                     style={{
-                      fontSize: '13px',
-                      lineHeight: '1.4',
-                      wordWrap: 'break-word',
-                      overflowWrap: 'break-word',
+                      color: theme.textBgSecondary,
                       display: '-webkit-box',
-                      WebkitLineClamp: 28,
                       WebkitBoxOrient: 'vertical',
-                      textShadow: `0 2px 8px rgba(0,0,0,0.8)`,
-                      whitespace: 'pre-line',
-                      color: theme.textBg,
+                      WebkitLineClamp: 9,
+                      overflow: 'hidden',
+                      whiteSpace: 'pre-line',
                     }}
                   >
-                    {presskitData.longBio}
+                    {presskitData.recognitions || 'Añade reconocimientos, escenarios, playlists, becas, festivales o formación para completar esta sección.'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid gap-3 px-5 pb-5 pt-0 sm:grid-cols-2" style={{ borderColor: theme.primaryText + '20', borderTopWidth: '1px' }}>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.14em]" style={{ color: theme.primaryText }}>Total streams</p>
+                  <p className="mt-2 text-2xl font-black" style={{ color: theme.textBg }}>{presskitData.totalStreams || 'Sin dato'}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.14em]" style={{ color: theme.primaryText }}>Total video views</p>
+                  <p className="mt-2 text-2xl font-black" style={{ color: theme.textBg }}>{presskitData.totalVideoViews || 'Sin dato'}</p>
+                </div>
+              </div>
+            </article>
+
+            {/* Página 4: Biografía */}
+            <article className="relative mt-6 grid aspect-8.5/11 w-full max-h-[82vh] grid-rows-[auto_1fr] overflow-hidden rounded-[20px]" style={{ backgroundColor: theme.bgHex, borderColor: theme.primaryText + '20', color: theme.textBg, fontFamily: typeface.fontFamily }}>
+              <header className="px-5 py-4" style={{ borderColor: theme.primaryText + '20', borderBottomWidth: '1px' }}>
+                <div className="text-center">
+                  <p className="text-xs uppercase tracking-[0.16em]" style={{ color: theme.primaryText }}>Biografía</p>
+                </div>
+              </header>
+
+              <div className="flex min-h-0 flex-col gap-4 px-5 py-5" style={{ color: theme.textBgSecondary }}>
+                <section className="shrink-0 rounded-2xl border p-4" style={{ borderColor: theme.primaryText + '25', backgroundColor: theme.primaryText + '08', flex: '0 0 22%' }}>
+                  <p
+                    className="text-sm leading-7"
+                    style={{
+                      color: theme.textBgSecondary,
+                      display: '-webkit-box',
+                      WebkitBoxOrient: 'vertical',
+                      WebkitLineClamp: 6,
+                      overflow: 'hidden',
+                      whiteSpace: 'pre-line',
+                    }}
+                  >
+                    {bio140}
+                  </p>
+                </section>
+
+                <section className="relative min-h-0 flex-1 overflow-hidden rounded-2xl border" style={{ borderColor: theme.primaryText + '25', backgroundColor: theme.primaryText + '08' }}>
+                  {bio140Image ? (
+                    <img src={bio140Image} alt="Bio de 140 caracteres" className="absolute inset-0 h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full min-h-96 items-center justify-center px-6 text-center" style={{ backgroundColor: theme.primaryText + '10' }}>
+                      <p className="text-sm leading-6" style={{ color: theme.textBgSecondary }}>
+                        Sube una imagen de bio de 140 caracteres para completar esta página editorial.
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="absolute inset-0" style={{ backgroundImage: `linear-gradient(to top, ${theme.bgHex}e6, ${theme.bgHex}88, ${theme.bgHex}33)` }} />
+
+                  <div className="absolute left-4 right-4 top-4 flex flex-wrap gap-2">
+                    {milestoneCards.map((milestone) => (
+                      <div key={milestone.key} className="min-w-[42%] flex-1 rounded-xl border px-3 py-2 backdrop-blur-md" style={{ borderColor: theme.primaryText + '40', backgroundColor: '#0a0a12a8' }}>
+                        <p className="text-[10px] font-black uppercase tracking-[0.14em]" style={{ color: theme.primaryText }}>{milestone.label}</p>
+                        <p
+                          className="mt-1 text-[11px] leading-4"
+                          style={{
+                            color: theme.textBg,
+                            display: '-webkit-box',
+                            WebkitBoxOrient: 'vertical',
+                            WebkitLineClamp: 3,
+                            overflow: 'hidden',
+                            whiteSpace: 'pre-line',
+                          }}
+                        >
+                          {milestone.items.length > 0 ? milestone.items.slice(0, 3).map((item) => `• ${item}`).join('\n') : 'Sin hitos registrados.'}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              </div>
+            </article>
+
+            {/* Página 5: Biografía */}
+            {(presskitData.longBio || presskitData.longBioImage) && (
+              <article className="relative mt-6 grid aspect-8.5/11 w-full max-h-[82vh] grid-rows-[auto_1fr] overflow-hidden rounded-[20px]" style={{ backgroundColor: theme.bgHex, borderColor: theme.primaryText + '20', color: theme.textBg, fontFamily: typeface.fontFamily }}>
+                <header className="px-5 py-4" style={{ borderColor: theme.primaryText + '20', borderBottomWidth: '1px' }}>
+                  <div className="text-center">
+                    <p className="text-xs uppercase tracking-[0.16em]" style={{ color: theme.primaryText }}>Biografía</p>
+                  </div>
+                </header>
+
+                <div className="relative min-h-0 overflow-hidden px-5 py-5">
+                  {longBioImage ? (
+                    <img src={longBioImage} alt="Biografía" className="absolute inset-0 h-full w-full object-cover" />
+                  ) : (
+                    <div className="absolute inset-0" style={{ backgroundColor: theme.bgHex }} />
+                  )}
+
+                  <div className="absolute inset-0" style={{ backgroundImage: `linear-gradient(to top, ${theme.bgHex}f2, ${theme.bgHex}aa 42%, ${theme.bgHex}66)` }} />
+
+                  <div className="relative z-10 flex h-full items-end">
+                    <div className="w-full rounded-2xl border p-4 sm:p-5" style={{ borderColor: theme.primaryText + '30', backgroundColor: '#0a0a12b3' }}>
+                      <p
+                        className="whitespace-pre-line text-sm leading-7 sm:text-[15px]"
+                        style={{
+                          color: theme.textBg,
+                          textShadow: '0 2px 12px rgba(0,0,0,0.85)',
+                        }}
+                      >
+                        {longBio}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </article>

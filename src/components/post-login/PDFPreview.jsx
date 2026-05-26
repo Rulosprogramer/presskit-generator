@@ -33,18 +33,9 @@ function PDFPreview({ presskitData }) {
   }, []);
 
   return (
-    <div className="h-140 overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/90" ref={wrapperRef}>
-      <div className="flex h-full w-full items-center justify-center">
-        <div
-          style={{
-            transform: `scale(${scale})`,
-            transformOrigin: 'center center',
-            width: `${A4_WIDTH}px`,
-            height: `${A4_HEIGHT}px`,
-          }}
-        >
-          <PresskitPDF presskitData={presskitData} />
-        </div>
+    <div className="h-140 overflow-y-auto overflow-x-hidden rounded-2xl border border-white/10 bg-zinc-950/90" ref={wrapperRef}>
+      <div className="flex min-h-full w-full justify-center py-4">
+        <PresskitPDF presskitData={presskitData} scale={scale} />
       </div>
     </div>
   );

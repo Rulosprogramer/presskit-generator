@@ -17,6 +17,7 @@ import CreatePresskit from './pages/CreatePresskit.jsx'
 import PublicPresskit from './pages/PublicPresskit.jsx'
 import Checkout from './pages/Checkout.jsx'
 import { auth } from './lib/firebase'
+import ThemePicker from './components/ThemePicker.jsx'
 
 const PresskitPDF = lazy(() => import('./pages/PresskitPDF.jsx'))
 
@@ -58,6 +59,9 @@ function App() {
 
   return (
     <div className="bg-zinc-950 text-zinc-100">
+      {(isDashboardPage || isCreatePresskitPage || isPresskitPdfPage || isPublicPresskitPage) && (
+        <ThemePicker />
+      )}
       {isAuthPage ? (
         <main>
           <AuthPage />

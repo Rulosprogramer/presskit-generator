@@ -1,7 +1,8 @@
-import ThemeSlector from './ThemeSlector.jsx';
 import ReleaseStep from './ReleaseStep.jsx';
 import ArtistMilestonesStep from './ArtistMilestonesStep.jsx';
+import ThemePickerStep from './ThemePickerStep.jsx';
 import { getTypeface, getTypefaceOptions } from '../../lib/typefaces.js';
+
 
 const latamCountryCodes = [
   { code: '+52', label: 'Mexico (+52)' },
@@ -51,6 +52,20 @@ const galleryPhotoSlots = [
     hint: 'Tu vibra fuera del escenario. Muestra tu estilo de vida y estética.',
   },
 ];
+
+function ImagePreviewThumb({ src, alt, emptyLabel = 'Sin imagen seleccionada' }) {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/60">
+      {src ? (
+        <img src={src} alt={alt} className="h-28 w-full object-cover sm:h-32" />
+      ) : (
+        <div className="flex h-28 w-full items-center justify-center px-4 text-center text-xs text-zinc-400 sm:h-32">
+          {emptyLabel}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function Stepform({
   data,
@@ -114,8 +129,9 @@ function Stepform({
             </div>
           )}
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <label className="space-y-2 rounded-2xl border border-dashed border-white/15 bg-white/5 p-4">
+            <label className="space-y-3 rounded-2xl border border-dashed border-white/15 bg-white/5 p-4">
               <span className="text-xs uppercase tracking-[0.12em] text-zinc-400">Upload portada</span>
+              <ImagePreviewThumb src={data.images?.[0] || ''} alt="Miniatura de portada" emptyLabel="La portada seleccionada aparecerá aquí" />
               <input type="file" accept="image/*" onChange={onCoverUpload} className="w-full cursor-pointer text-sm text-zinc-300 file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-cyan-300 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-zinc-950" />
               {selectedFileNames?.cover && (
                 <div className="mt-2 flex items-center gap-2 rounded-lg bg-cyan-300/10 px-3 py-2">
@@ -224,8 +240,9 @@ function Stepform({
               {data.useRecognitionImage && (
                 <div className="mt-4 space-y-3">
                   <p className="text-xs text-zinc-400">Se recomienda usar una imagen sin fondo (PNG con transparencia)</p>
-                  <label className="block space-y-2 rounded-xl border border-dashed border-cyan-300/50 bg-cyan-300/5 p-4">
+                  <label className="block space-y-3 rounded-xl border border-dashed border-cyan-300/50 bg-cyan-300/5 p-4">
                     <span className="text-xs uppercase tracking-[0.12em] font-semibold text-cyan-300">Selecciona o sube una foto</span>
+                    <ImagePreviewThumb src={data.recognitionImage || ''} alt="Miniatura de reconocimientos" emptyLabel="La foto de reconocimientos aparecerá aquí" />
                     <input type="file" accept="image/*" onChange={onRecognitionImageUpload} className="w-full cursor-pointer text-sm text-zinc-300 file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-cyan-300 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-zinc-950" />
                     {selectedFileNames?.recognition && (
                       <div className="flex items-center gap-2 rounded-lg bg-cyan-300/10 px-3 py-2 mt-2">
@@ -269,6 +286,7 @@ function Stepform({
             <label className="space-y-2">
               <span className="text-xs uppercase tracking-[0.12em] text-zinc-400">Bio (140 caracteres)</span>
               <div className="space-y-2">
+                <ImagePreviewThumb src={data.twitterBioImage || ''} alt="Miniatura de bio de 140 caracteres" emptyLabel="La imagen de esta bio aparecerá aquí" />
                 <textarea
                   value={data.twitterBio || ''}
                   onChange={(event) => onFieldChange('twitterBio', event.target.value)}
@@ -296,6 +314,7 @@ function Stepform({
             <label className="space-y-2">
               <span className="text-xs uppercase tracking-[0.12em] text-zinc-400">Bio Corta (1 párrafo)</span>
               <div className="space-y-2">
+                <ImagePreviewThumb src={data.bioImage || ''} alt="Miniatura de bio corta" emptyLabel="La imagen de bio corta aparecerá aquí" />
                 <textarea
                   value={data.bio}
                   onChange={(event) => onFieldChange('bio', event.target.value)}
@@ -323,6 +342,7 @@ function Stepform({
             <label className="space-y-2">
               <span className="text-xs uppercase tracking-[0.12em] text-zinc-400">Bio Completa (3-4 párrafos)</span>
               <div className="space-y-2">
+                <ImagePreviewThumb src={data.longBioImage || ''} alt="Miniatura de bio completa" emptyLabel="La imagen de bio completa aparecerá aquí" />
                 <textarea
                   value={data.longBio || ''}
                   onChange={(event) => onFieldChange('longBio', event.target.value)}
@@ -434,6 +454,11 @@ function Stepform({
                   <>
                     <label className="block space-y-2 rounded-xl border border-dashed border-white/15 bg-white/5 p-3">
                       <span className="text-[11px] uppercase tracking-[0.12em] text-zinc-400">Captura de pantalla</span>
+                      <ImagePreviewThumb
+                        src={data.linkScreenshots?.[key] || ''}
+                        alt={`Miniatura de ${label}`}
+                        emptyLabel="La captura seleccionada aparecerá aquí"
+                      />
                       <input
                         type="file"
                         accept="image/*"
@@ -469,6 +494,10 @@ function Stepform({
                 <div key={slot.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
                   <p className="text-xs uppercase tracking-[0.12em] text-fuchsia-300">{slot.title}</p>
                   <p className="mt-1 text-xs text-zinc-400">{slot.hint}</p>
+
+                  <div className="mt-3 max-w-56">
+                    <ImagePreviewThumb src={imageUrl} alt={`Miniatura de ${slot.title}`} emptyLabel="Sin imagen en este slot" />
+                  </div>
 
                   <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto]">
                     <label className="space-y-2 rounded-xl border border-dashed border-white/15 bg-white/5 p-3">
@@ -510,10 +539,14 @@ function Stepform({
           <div className="mt-4 grid gap-4">
             {[0, 1, 2].map((idx) => {
               const selectedName = selectedFileNames?.pressArticles?.[idx];
+              const pressArticleImage = data.pressArticles?.[idx] || '';
               return (
                 <div key={idx} className="rounded-2xl border border-white/10 bg-white/5 p-4">
                   <p className="text-xs uppercase tracking-[0.12em] text-fuchsia-300">Artículo de prensa {idx + 1}</p>
                   <p className="mt-1 text-xs text-zinc-400">Sube una imagen de nota, reseña o artículo destacado.</p>
+                  <div className="mt-3 max-w-56">
+                    <ImagePreviewThumb src={pressArticleImage} alt={`Miniatura de artículo de prensa ${idx + 1}`} emptyLabel="La imagen del artículo aparecerá aquí" />
+                  </div>
                   <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto]">
                     <label className="space-y-2 rounded-xl border border-dashed border-white/15 bg-white/5 p-3">
                       <span className="text-[11px] uppercase tracking-[0.12em] text-zinc-400">Subir imagen</span>
@@ -566,8 +599,9 @@ function Stepform({
               />
             </label>
 
-            <label className="space-y-2 sm:col-span-2 rounded-2xl border border-dashed border-white/15 bg-white/5 p-4">
+            <label className="space-y-3 sm:col-span-2 rounded-2xl border border-dashed border-white/15 bg-white/5 p-4">
               <span className="text-xs uppercase tracking-[0.12em] text-zinc-400">Logo (opcional)</span>
+              <ImagePreviewThumb src={data.contactLogo || ''} alt="Miniatura del logo de contacto" emptyLabel="El logo seleccionado aparecerá aquí" />
               <input
                 type="file"
                 accept="image/*"
@@ -642,33 +676,10 @@ function Stepform({
         <div id="presskit-step-11" className="scroll-mt-28 rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
           <p className="text-sm font-semibold text-fuchsia-300">11. Tema Visual</p>
           <p className="mt-2 text-sm text-zinc-300">
-            Selecciona la estética de tu presskit. Los cambios se aplicarán automáticamente al preview y PDF.
+            Elige un estilo rápido o ajusta cada variable color a color. Los cambios se aplican al preview en tiempo real.
           </p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {[
-              { id: 'neon', label: 'Neon', accent: 'from-fuchsia-400 to-cyan-300' },
-              { id: 'neutral', label: 'Neutral', accent: 'from-white to-zinc-400' },
-              { id: 'dark', label: 'Dark', accent: 'from-zinc-800 to-zinc-600' },
-              { id: 'minimal', label: 'Minimal', accent: 'from-emerald-300 to-cyan-300' },
-            ].map((theme) => {
-              const active = theme.id === data.theme;
-              return (
-                <button
-                  key={theme.id}
-                  type="button"
-                  onClick={() => onFieldChange('theme', theme.id)}
-                  className={`rounded-2xl border p-4 text-left transition duration-300 hover:-translate-y-0.5 cursor-pointer ${
-                    active
-                      ? 'border-cyan-300/50 bg-cyan-300/10 shadow-[0_0_28px_rgba(34,211,238,0.2)]'
-                      : 'border-white/10 bg-zinc-900/50 hover:border-white/20 hover:bg-white/10'
-                  }`}
-                >
-                  <div className={`h-2 rounded-full bg-gradient-to-r ${theme.accent}`} />
-                  <p className="mt-3 text-sm font-semibold text-white">{theme.label}</p>
-                  <p className="mt-1 text-xs text-zinc-400">Ajusta la identidad visual.</p>
-                </button>
-              );
-            })}
+          <div className="mt-5">
+            <ThemePickerStep data={data} onFieldChange={onFieldChange} />
           </div>
         </div>
 

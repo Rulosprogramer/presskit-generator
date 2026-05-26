@@ -18,7 +18,7 @@ function LivePreview({ data }) {
       </div>
 
       <div className="space-y-3">
-        <p className="text-xs uppercase tracking-[0.16em] text-fuchsia-300">Preview en vivo para descargar (A4)</p>
+        <p className="text-xs uppercase tracking-[0.16em] text-fuchsia-300">Preview en vivo para descargar</p>
         <PDFPreview presskitData={data} />
       </div>
     </section>
