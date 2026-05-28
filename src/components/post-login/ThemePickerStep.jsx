@@ -306,6 +306,7 @@ function AdvancedColorPicker({ currentValue, onSelect, onClose, triggerRect }) {
             <div className="flex flex-1 items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2 py-1.5">
               <span className="text-xs text-zinc-500">#</span>
               <input
+                id="color-picker-hex"
                 value={hexInput.toUpperCase()}
                 onChange={onHexChange}
                 onKeyDown={e => e.key === 'Enter' && e.preventDefault()}

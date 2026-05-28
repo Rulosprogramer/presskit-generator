@@ -188,6 +188,7 @@ function BiographyAIModal({ isOpen, onClose, onUseBio, section, artistData, curr
           <div className="mb-4 rounded-2xl border border-white/10 bg-white/5 p-4">
             <p className="text-xs uppercase tracking-[0.12em] text-cyan-300 font-semibold mb-2">{isReleaseCta ? 'Editar CTA' : 'Editar biografía'}</p>
             <textarea
+              id="bio-edit-textarea"
               value={generatedBio}
               onChange={(e) => setGeneratedBio(e.target.value)}
               rows={3}
@@ -199,6 +200,7 @@ function BiographyAIModal({ isOpen, onClose, onUseBio, section, artistData, curr
         {/* Input Area */}
         <div className="mb-4 flex gap-2">
           <input
+            id="bio-chat-input"
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}

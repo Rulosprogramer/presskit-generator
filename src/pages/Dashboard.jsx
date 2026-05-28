@@ -83,14 +83,14 @@ function Dashboard({ user }) {
     <section className="space-y-6 rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-          <p className="mt-2 text-zinc-300">Bienvenido, {displayName}. Aquí viven tus presskits.</p>
+          <h1 className="text-3xl font-bold text-white">Construye Tu Identidad Artística</h1>
+          <p className="mt-2 text-zinc-300">{displayName}. Aquí viven tus presskits.</p>
         </div>
         <a
           href="/createPresskit"
           className="inline-flex items-center justify-center rounded-xl bg-fuchsia-400 px-6 py-3 text-base font-bold text-zinc-950 transition hover:bg-fuchsia-300"
         >
-          Crear Nuevo Press Kit
+          {hasPresskits ? 'Actualizar Presskit' : 'Crear Nuevo Press Kit'}
         </a>
       </div>
 

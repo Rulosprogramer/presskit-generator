@@ -79,6 +79,7 @@ function ArtistMilestonesStep({
                     return (
                       <div key={key} className="rounded-2xl border border-white/10 bg-zinc-950/40 p-3">
                         <input
+                          id={`milestone-${category}-${index}`}
                           value={item || ''}
                           onChange={(event) => onUpdateMilestone?.(category, index, event.target.value)}
                           maxLength={160}

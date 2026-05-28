@@ -1,41 +1,61 @@
-import { useEffect, useRef, useState } from 'react';
-import PresskitPDF from './PresskitPDF.jsx';
+import { BlobProvider } from '@react-pdf/renderer';
+import PresskitPdfDocument from '../pdfx/PresskitPdfDocument.jsx';
+import { useTheme } from '../../context/ThemeContext.tsx';
+import { useEffect, useState } from 'react';
+import { resolvePdfPresskitData } from '../../lib/pdfImageResolver';
 
-const A4_WIDTH = 794;
-const A4_HEIGHT = 1123;
+function hexify(color) {
+  if (!color) return '#000000';
+  if (/^#[0-9a-f]{6}$/i.test(color)) return color;
+  const h3 = /^#([0-9a-f])([0-9a-f])([0-9a-f])$/i.exec(color);
+  if (h3) return `#${h3[1]}${h3[1]}${h3[2]}${h3[2]}${h3[3]}${h3[3]}`;
+  const m = /rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i.exec(color);
+  if (m) return '#' + [m[1], m[2], m[3]].map(n => parseInt(n).toString(16).padStart(2, '0')).join('');
+  return '#000000';
+}
 
 function PDFPreview({ presskitData }) {
-  const wrapperRef = useRef(null);
-  const [scale, setScale] = useState(0.5);
+  const { theme: uiTheme } = useTheme();
+  const [pdfPresskitData, setPdfPresskitData] = useState(presskitData || {});
+  const pdfColors = {
+    bg:     hexify(uiTheme.bgColor),
+    card:   uiTheme.cardBg,
+    title:  uiTheme.titleColor,
+    text:   uiTheme.textColor,
+    accent: hexify(uiTheme.accentColor),
+    border: uiTheme.borderColor,
+  };
 
   useEffect(() => {
-    const element = wrapperRef.current;
-    if (!element) return undefined;
-
-    const updateScale = () => {
-      const { clientWidth, clientHeight } = element;
-      const availableWidth = Math.max(clientWidth - 32, 0);
-      const availableHeight = Math.max(clientHeight - 32, 0);
-      const nextScale = Math.min(availableWidth / A4_WIDTH, availableHeight / A4_HEIGHT, 1);
-      setScale(nextScale || 0.5);
-    };
-
-    updateScale();
-
-    const observer = new ResizeObserver(updateScale);
-    observer.observe(element);
-    window.addEventListener('resize', updateScale);
-
+    let cancelled = false;
+    resolvePdfPresskitData(presskitData).then((resolved) => {
+      if (!cancelled) setPdfPresskitData(resolved);
+    });
     return () => {
-      observer.disconnect();
-      window.removeEventListener('resize', updateScale);
+      cancelled = true;
     };
-  }, []);
+  }, [presskitData]);
+
+  const docKey = JSON.stringify(pdfPresskitData || {});
 
   return (
-    <div className="h-140 overflow-y-auto overflow-x-hidden rounded-2xl border border-white/10 bg-zinc-950/90" ref={wrapperRef}>
-      <div className="flex min-h-full w-full justify-center py-4">
-        <PresskitPDF presskitData={presskitData} scale={scale} />
+    <div className="h-140 overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/90">
+      <div className="h-full w-full overflow-hidden">
+        <BlobProvider key={docKey} document={<PresskitPdfDocument data={pdfPresskitData} variant="professional" colors={pdfColors} />}>
+          {({ url, loading }) => (
+            loading || !url ? (
+              <div className="flex h-full items-center justify-center text-sm text-zinc-400">
+                Generando preview PDF...
+              </div>
+            ) : (
+              <iframe
+                title="Preview PDF"
+                src={`${url}#toolbar=0`}
+                className="h-full w-full border-0"
+              />
+            )
+          )}
+        </BlobProvider>
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { auth, db, storage } from '../lib/firebase';
+import { normalizePresskitStorageUrls } from '../lib/pdfImageResolver';
 import { generateBioSectionWithAI } from '../lib/aiBio';
 import { fileExistsInLibrary, addImageToLibrary } from '../lib/imageLibrary';
 import Topbar from '../components/post-login/Topbar.jsx';
@@ -51,16 +52,16 @@ const gallerySlotToIndex = {
   flyer: 2,
   liveAct: 3,
   concept: 4,
+  horizA: 5,
+  horizB: 6,
 };
 
 function setGalleryImageForSlot(images, slot, imageUrl) {
   const nextImages = Array.isArray(images) ? [...images] : [];
-  // Elimina cualquier imagen previa en el slot landscape (índice 2)
-  nextImages[2] = undefined;
   const index = gallerySlotToIndex[slot];
   if (typeof index !== 'number') return nextImages;
   nextImages[index] = imageUrl;
-  return nextImages.slice(0, 5);
+  return nextImages.slice(0, 7);
 }
 
 const initialPresskitData = {
@@ -118,7 +119,6 @@ const initialPresskitData = {
   planTier: '',
   publishedUrl: '',
   theme: 'neon',
-  typeface: 'neutral',
   pressArticles: [],
 };
 
@@ -134,7 +134,7 @@ const steps = [
   'Artículos de Prensa',
   'Contacto',
   'Tema Visual',
-  'Tipografía',
+  'Identidad Visual',
   'Preview y guardar',
 ];
 
@@ -144,6 +144,20 @@ function getLocalDraftKey(uid) {
 
 function isRemoteUrl(value) {
   return typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'));
+}
+
+function isAllowedImageFile(file) {
+  if (!file) return false;
+
+  const fileName = String(file.name || '').toLowerCase();
+  const fileType = String(file.type || '').toLowerCase();
+
+  if (fileType === 'image/svg+xml' || fileName.endsWith('.svg')) {
+    return false;
+  }
+
+  return /\.(jpe?g|png|webp)$/i.test(fileName)
+    || ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(fileType);
 }
 
 function compactDraftForLocal(data) {
@@ -161,8 +175,18 @@ function compactDraftForLocal(data) {
   };
 }
 
+function validateImageFile(file) {
+  if (!isAllowedImageFile(file)) {
+    return 'Solo se permiten imágenes PNG, JPG o WEBP.';
+  }
+  return null;
+}
+
 async function uploadImageFile({ file, userId, folder }) {
-  const safeName = (file?.name || 'image').replace(/[^a-zA-Z0-9._-]/g, '_');
+  const safeName = (file?.name || 'image')
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-zA-Z0-9._-]/g, '_');
   const imageRef = ref(storage, `presskits/${userId}/${folder}/${Date.now()}-${safeName}`);
   await uploadBytes(imageRef, file);
   return getDownloadURL(imageRef);
@@ -299,7 +323,6 @@ function CreatePresskit({ user, onSignOut }) {
         contactLogo: localData.contactLogo || current.contactLogo,
         planTier: localData.planTier || current.planTier,
         theme: localData.theme || current.theme,
-        typeface: localData.typeface || current.typeface,
         pressArticles: Array.isArray(localData.pressArticles) ? localData.pressArticles.slice(0, 3) : current.pressArticles,
       }));
     } catch (error) {
@@ -369,7 +392,6 @@ function CreatePresskit({ user, onSignOut }) {
             contactLogo: data.contactLogo || current.contactLogo,
             planTier: data.planTier || current.planTier,
             theme: data.theme || current.theme || 'neon',
-            typeface: data.typeface || current.typeface || 'neutral',
             pressArticles: Array.isArray(data.pressArticles) ? data.pressArticles.slice(0, 3) : current.pressArticles,
           }));
         }
@@ -416,7 +438,6 @@ function CreatePresskit({ user, onSignOut }) {
         releases: presskitData.releases,
         releasesCtaText: presskitData.releasesCtaText,
         theme: presskitData.theme,
-        typeface: presskitData.typeface,
         genre: presskitData.genre,
         city: presskitData.city,
         images: presskitData.images,
@@ -434,11 +455,6 @@ function CreatePresskit({ user, onSignOut }) {
         status: 'draft',
       };
 
-      const signature = JSON.stringify(savePayload);
-      if (signature === lastSavedSignatureRef.current || isSavingRef.current) {
-        return;
-      }
-
       setSaveState('saving');
       isSavingRef.current = true;
 
@@ -450,6 +466,15 @@ function CreatePresskit({ user, onSignOut }) {
         }
         await auth.currentUser.getIdToken();
 
+        const normalizedSavePayload = await normalizePresskitStorageUrls(savePayload);
+        const signature = JSON.stringify(normalizedSavePayload);
+
+        if (signature === lastSavedSignatureRef.current) {
+          isSavingRef.current = false;
+          setSaveState('idle');
+          return;
+        }
+
         const now = new Date();
         if (!createdAtRef.current) {
           createdAtRef.current = now;
@@ -458,7 +483,7 @@ function CreatePresskit({ user, onSignOut }) {
         await setDoc(
           draftRef,
           {
-            ...savePayload,
+            ...normalizedSavePayload,
             createdAt: createdAtRef.current,
             updatedAt: now,
           },
@@ -573,6 +598,8 @@ function CreatePresskit({ user, onSignOut }) {
     if (!file || !user?.uid) return;
 
     setImageUploadError('');
+    const svgError = validateImageFile(file);
+    if (svgError) { setImageUploadError(svgError); event.target.value = ''; return; }
 
     try {
       await auth.currentUser?.getIdToken(true);
@@ -656,6 +683,8 @@ function CreatePresskit({ user, onSignOut }) {
     if (!file || !user?.uid) return;
 
     setImageUploadError('');
+    const svgError = validateImageFile(file);
+    if (svgError) { setImageUploadError(svgError); event.target.value = ''; return; }
 
     try {
       // Refrescar el token de autenticación para asegurar permisos válidos
@@ -695,6 +724,8 @@ function CreatePresskit({ user, onSignOut }) {
     if (!file || !user?.uid || !gallerySlotToIndex[gallerySlot]) return;
 
     setImageUploadError('');
+    const svgError = validateImageFile(file);
+    if (svgError) { setImageUploadError(svgError); event.target.value = ''; return; }
 
     try {
       // Refrescar el token de autenticación para asegurar permisos válidos
@@ -733,6 +764,8 @@ function CreatePresskit({ user, onSignOut }) {
     if (!file || !user?.uid) return;
 
     setImageUploadError('');
+    const svgError = validateImageFile(file);
+    if (svgError) { setImageUploadError(svgError); event.target.value = ''; return; }
 
     try {
       // Refrescar el token de autenticación para asegurar permisos válidos
@@ -773,6 +806,8 @@ function CreatePresskit({ user, onSignOut }) {
     if (!file || !user?.uid) return;
 
     setImageUploadError('');
+    const svgError = validateImageFile(file);
+    if (svgError) { setImageUploadError(svgError); event.target.value = ''; return; }
 
     try {
       await auth.currentUser?.getIdToken(true);
@@ -818,6 +853,8 @@ function CreatePresskit({ user, onSignOut }) {
     if (!file || !user?.uid) return;
 
     setImageUploadError('');
+    const svgError = validateImageFile(file);
+    if (svgError) { setImageUploadError(svgError); event.target.value = ''; return; }
 
     try {
       await auth.currentUser?.getIdToken(true);
@@ -853,6 +890,8 @@ function CreatePresskit({ user, onSignOut }) {
     if (!file || !user?.uid) return;
 
     setImageUploadError('');
+    const svgError = validateImageFile(file);
+    if (svgError) { setImageUploadError(svgError); event.target.value = ''; return; }
 
     try {
       await auth.currentUser?.getIdToken(true);
@@ -1153,7 +1192,6 @@ function CreatePresskit({ user, onSignOut }) {
       releases: presskitData.releases,
       releasesCtaText: presskitData.releasesCtaText,
       theme: presskitData.theme,
-      typeface: presskitData.typeface,
       genre: presskitData.genre,
       city: presskitData.city,
       images: presskitData.images,

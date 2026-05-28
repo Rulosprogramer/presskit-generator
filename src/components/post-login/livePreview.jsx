@@ -1,5 +1,5 @@
 import PresskitWeb from './PresskitWeb.jsx';
-import PDFPreview from './PDFPreview.jsx';
+import HTMLPreview from '../preview/HTMLPreview.jsx';
 
 function LivePreview({ data }) {
   return (
@@ -19,7 +19,7 @@ function LivePreview({ data }) {
 
       <div className="space-y-3">
         <p className="text-xs uppercase tracking-[0.16em] text-fuchsia-300">Preview en vivo para descargar</p>
-        <PDFPreview presskitData={data} />
+        <HTMLPreview presskitData={data} />
       </div>
     </section>
   );

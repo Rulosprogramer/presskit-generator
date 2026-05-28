@@ -1,12 +1,15 @@
 import { Document, Image, Link, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
 import { theme as pdfxTheme } from '../../lib/pdfx-theme';
+import { isValidPdfImage } from '../../lib/pdfImageResolver';
+
+const FONT_SCALE = 0.88;
 
 const styles = StyleSheet.create({
   page: {
     backgroundColor: pdfxTheme.colors.background,
     color: pdfxTheme.colors.foreground,
     fontFamily: pdfxTheme.typography.body.fontFamily,
-    fontSize: pdfxTheme.typography.body.fontSize,
+    fontSize: pdfxTheme.typography.body.fontSize * FONT_SCALE,
     paddingTop: pdfxTheme.spacing.page.marginTop,
     paddingRight: pdfxTheme.spacing.page.marginRight,
     paddingBottom: pdfxTheme.spacing.page.marginBottom,
@@ -44,7 +47,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   coverArtist: {
-    fontSize: 34,
+    fontSize: 34 * FONT_SCALE,
     lineHeight: 1.05,
     fontWeight: pdfxTheme.primitives.fontWeights.bold,
     color: '#ffffff',
@@ -58,7 +61,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   coverPresskit: {
-    fontSize: 13,
+    fontSize: 13 * FONT_SCALE,
     fontWeight: pdfxTheme.primitives.fontWeights.bold,
     color: '#ffffff',
     letterSpacing: 4,
@@ -71,13 +74,13 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   title: {
-    fontSize: pdfxTheme.typography.heading.fontSize.h2,
+    fontSize: pdfxTheme.typography.heading.fontSize.h2 * FONT_SCALE,
     fontWeight: pdfxTheme.primitives.fontWeights.bold,
     color: pdfxTheme.colors.primary,
   },
   subtitle: {
     marginTop: 4,
-    fontSize: 10,
+    fontSize: 10 * FONT_SCALE,
     color: pdfxTheme.colors.mutedForeground,
   },
   section: {
@@ -85,7 +88,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   sectionTitle: {
-    fontSize: pdfxTheme.typography.heading.fontSize.h5,
+    fontSize: pdfxTheme.typography.heading.fontSize.h5 * FONT_SCALE,
     fontWeight: pdfxTheme.primitives.fontWeights.semibold,
     color: pdfxTheme.colors.primary,
     textTransform: 'uppercase',
@@ -98,116 +101,138 @@ const styles = StyleSheet.create({
     position: 'relative',
     width: '100%',
     height: '100%',
+    overflow: 'hidden',
     backgroundColor: '#0a0a12',
-    color: '#ffffff',
-    paddingTop: 42,
-    paddingRight: 40,
-    paddingBottom: 40,
-    paddingLeft: 40,
+  },
+  pageTwoBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+  },
+  pageTwoScrim: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.52)',
   },
   pageTwoHeader: {
-    textAlign: 'center',
-    marginBottom: 26,
+    position: 'absolute',
+    top: 34,
+    left: 48,
+    right: 48,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  pageTwoCenter: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingLeft: 48,
+    paddingRight: 48,
+    paddingBottom: 90,
   },
   pageTwoKicker: {
     margin: 0,
-    color: '#67e8f9',
+    textAlign: 'center',
     textTransform: 'uppercase',
     letterSpacing: 2.5,
-    fontSize: 13,
+    fontSize: 10 * FONT_SCALE,
+    fontWeight: 600,
   },
   pageTwoArtist: {
-    marginTop: 10,
-    marginRight: 0,
-    marginBottom: 0,
-    marginLeft: 0,
-    fontSize: 56,
+    marginTop: 8,
+    textAlign: 'center',
+    fontSize: 46 * FONT_SCALE,
     lineHeight: 1,
     fontWeight: 800,
     color: '#ffffff',
   },
-  pageTwoBody: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 18,
-    minHeight: 0,
-  },
-  pageTwoBioCard: {
-    borderRadius: 20,
-    borderWidth: 1,
-    borderStyle: 'solid',
-    borderColor: 'rgba(255,255,255,0.12)',
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    paddingTop: 20,
-    paddingRight: 20,
-    paddingBottom: 20,
-    paddingLeft: 20,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 14,
-    minHeight: 0,
-  },
   pageTwoInfo: {
-    color: '#67e8f9',
+    marginBottom: 14,
+    textAlign: 'center',
     textTransform: 'uppercase',
-    letterSpacing: 2,
-    fontSize: 12,
+    letterSpacing: 1.6,
+    fontSize: 13 * FONT_SCALE,
+    fontWeight: 600,
   },
   pageTwoBio: {
-    margin: 0,
-    color: '#f4f4f5',
-    fontSize: 17,
-    lineHeight: 1.55,
-    whiteSpace: 'pre-line',
+    textAlign: 'center',
+    color: 'rgba(255,255,255,0.9)',
+    fontSize: 15 * FONT_SCALE,
+    lineHeight: 1.6,
+    fontWeight: 400,
+  },
+  pageTwoVideoWrap: {
+    position: 'absolute',
+    bottom: 28,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
   },
   pageTwoVideoCard: {
-    borderRadius: 20,
+    borderRadius: 12,
     overflow: 'hidden',
     borderWidth: 1,
     borderStyle: 'solid',
-    borderColor: 'rgba(255,255,255,0.12)',
-    backgroundColor: 'rgba(16,185,129,0.12)',
+    borderColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: 'rgba(0,0,0,0.62)',
     display: 'flex',
     flexDirection: 'column',
+    width: 280,
   },
-  pageTwoVideoImage: {
+  pageTwoVideoThumb: {
     width: '100%',
-    height: 200,
+    height: 110,
     objectFit: 'cover',
     backgroundColor: '#111827',
   },
   pageTwoVideoBody: {
-    paddingTop: 16,
-    paddingRight: 18,
-    paddingBottom: 18,
-    paddingLeft: 18,
+    paddingTop: 10,
+    paddingRight: 14,
+    paddingBottom: 14,
+    paddingLeft: 14,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
   },
   pageTwoVideoKicker: {
     margin: 0,
+    textAlign: 'center',
     color: '#67e8f9',
-    fontSize: 12,
-    letterSpacing: 2,
+    fontSize: 7 * FONT_SCALE,
+    letterSpacing: 1.2,
     textTransform: 'uppercase',
+    fontWeight: 600,
   },
   pageTwoVideoTitle: {
-    marginTop: 8,
-    marginRight: 0,
-    marginBottom: 0,
-    marginLeft: 0,
+    marginTop: 3,
+    textAlign: 'center',
     color: '#ffffff',
-    fontSize: 20,
-    lineHeight: 1.15,
-    fontWeight: 800,
+    fontSize: 10 * FONT_SCALE,
+    lineHeight: 1.1,
+    fontWeight: 700,
   },
   pageTwoVideoLink: {
-    marginTop: 8,
-    marginRight: 0,
-    marginBottom: 0,
-    marginLeft: 0,
+    marginTop: 6,
+    textAlign: 'center',
     color: '#a7f3d0',
-    fontSize: 12,
+    fontSize: 13 * FONT_SCALE,
     textDecoration: 'underline',
-    wordBreak: 'break-all',
+    fontWeight: 600,
   },
   pageThree: {
     position: 'relative',
@@ -232,7 +257,7 @@ const styles = StyleSheet.create({
     color: '#f472b6',
     textTransform: 'uppercase',
     letterSpacing: 2.4,
-    fontSize: 13,
+    fontSize: 13 * FONT_SCALE,
     fontWeight: 800,
   },
   pageThreeBody: {
@@ -288,7 +313,7 @@ const styles = StyleSheet.create({
     color: '#f472b6',
     textTransform: 'uppercase',
     letterSpacing: 2.2,
-    fontSize: 12,
+    fontSize: 12 * FONT_SCALE,
     fontWeight: 800,
   },
   pageThreeText: {
@@ -297,7 +322,7 @@ const styles = StyleSheet.create({
     marginBottom: 0,
     marginLeft: 0,
     color: '#f4f4f5',
-    fontSize: 15,
+    fontSize: 15 * FONT_SCALE,
     lineHeight: 1.5,
     whiteSpace: 'pre-line',
   },
@@ -329,7 +354,7 @@ const styles = StyleSheet.create({
     color: '#f472b6',
     textTransform: 'uppercase',
     letterSpacing: 2,
-    fontSize: 11,
+    fontSize: 11 * FONT_SCALE,
     fontWeight: 800,
   },
   pageThreeMetricValue: {
@@ -338,20 +363,14 @@ const styles = StyleSheet.create({
     marginBottom: 0,
     marginLeft: 0,
     color: '#ffffff',
-    fontSize: 28,
+    fontSize: 28 * FONT_SCALE,
     lineHeight: 1,
     fontWeight: 900,
   },
   pageFour: {
-    position: 'relative',
     width: '100%',
     height: '100%',
-    backgroundColor: '#0a0a12',
-    color: '#ffffff',
-    paddingTop: 0,
-    paddingRight: 0,
-    paddingBottom: 0,
-    paddingLeft: 0,
+    flexDirection: 'column',
   },
   pageFourHeader: {
     height: 88,
@@ -359,68 +378,51 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(255,255,255,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
   },
   pageFourTitle: {
     margin: 0,
     color: '#67e8f9',
     textTransform: 'uppercase',
     letterSpacing: 2.4,
-    fontSize: 14,
+    fontSize: 13 * FONT_SCALE,
     fontWeight: 800,
   },
-  pageFourBody: {
-    flexDirection: 'column',
-    gap: 18,
-    flex: 1,
+  pageFourBioSection: {
     paddingTop: 24,
-    paddingRight: 24,
+    paddingRight: 32,
     paddingBottom: 24,
-    paddingLeft: 24,
-    minHeight: 0,
-  },
-  pageFourBioCard: {
-    flexGrow: 0,
+    paddingLeft: 32,
     flexShrink: 0,
-    flexBasis: '22%',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderStyle: 'solid',
-    borderColor: 'rgba(255,255,255,0.12)',
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    paddingTop: 18,
-    paddingRight: 18,
-    paddingBottom: 18,
-    paddingLeft: 18,
+    alignItems: 'center',
   },
   pageFourBioText: {
-    margin: 0,
     color: '#f4f4f5',
-    fontSize: 16,
+    fontSize: 14 * FONT_SCALE,
     lineHeight: 1.55,
-    whiteSpace: 'pre-line',
+    textAlign: 'center',
   },
-  pageFourVisualCard: {
-    position: 'relative',
-    flexGrow: 1,
-    flexShrink: 1,
-    flexBasis: '78%',
+  pageFourImageSection: {
     flex: 1,
-    minHeight: 0,
-    borderRadius: 20,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderStyle: 'solid',
-    borderColor: 'rgba(255,255,255,0.12)',
-    backgroundColor: 'rgba(255,255,255,0.05)',
-  },
-  pageFourImageCard: {
-    position: 'absolute',
-    inset: 0,
+    position: 'relative',
   },
   pageFourImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     width: '100%',
     height: '100%',
     objectFit: 'cover',
+  },
+  pageFourScrim: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.48)',
   },
   pageFourFallback: {
     width: '100%',
@@ -430,65 +432,65 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     color: '#d4d4d8',
     backgroundColor: 'rgba(255,255,255,0.04)',
-    fontSize: 12,
+    fontSize: 12 * FONT_SCALE,
   },
   pageFourMilestoneOverlay: {
     position: 'absolute',
     top: 16,
-    left: 16,
-    right: 16,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
+    left: 20,
+    right: 20,
+    bottom: 16,
+    flexDirection: 'column',
+    justifyContent: 'space-around',
+    alignItems: 'center',
   },
-  pageFourMilestoneCard: {
-    flexGrow: 1,
-    flexBasis: '42%',
-    borderRadius: 16,
+  pageFourMilestoneItem: {
+    width: '100%',
+    borderRadius: 10,
     borderWidth: 1,
     borderStyle: 'solid',
-    borderColor: 'rgba(103,232,249,0.20)',
-    backgroundColor: 'rgba(10,10,18,0.62)',
-    paddingTop: 12,
-    paddingRight: 12,
-    paddingBottom: 12,
-    paddingLeft: 12,
-    overflow: 'hidden',
+    borderColor: 'rgba(103,232,249,0.22)',
+    backgroundColor: 'rgba(10,10,18,0.72)',
+    alignItems: 'center',
   },
-  pageFourMilestoneLabel: {
-    margin: 0,
-    color: '#67e8f9',
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-    fontSize: 10,
-    fontWeight: 800,
-  },
-  pageFourMilestoneList: {
-    marginTop: 6,
-    marginRight: 0,
-    marginBottom: 0,
-    marginLeft: 0,
+  pageFourMilestoneText: {
+    textAlign: 'center',
     color: '#f4f4f5',
-    fontSize: 12,
-    lineHeight: 1.25,
-    display: '-webkit-box',
-    WebkitBoxOrient: 'vertical',
-    WebkitLineClamp: 3,
-    overflow: 'hidden',
-    whiteSpace: 'pre-line',
+    fontWeight: 500,
+    lineHeight: 1.2,
   },
   pageFive: {
     position: 'relative',
     width: '100%',
     height: '100%',
-    backgroundColor: '#0a0a12',
-    color: '#ffffff',
-    overflow: 'hidden',
+  },
+  pageFiveBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+  },
+  pageFiveScrim: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.55)',
   },
   pageFiveHeader: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     height: 88,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: 'rgba(10,10,18,0.82)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -497,64 +499,462 @@ const styles = StyleSheet.create({
     color: '#67e8f9',
     textTransform: 'uppercase',
     letterSpacing: 2.4,
-    fontSize: 14,
+    fontSize: 13 * FONT_SCALE,
     fontWeight: 800,
   },
-  pageFiveBody: {
+  pageFiveArtistSub: {
+    marginTop: 6,
+    marginBottom: 20,
+    color: '#ffffff',
+    fontSize: 18 * FONT_SCALE,
+    lineHeight: 1.1,
+    fontWeight: 800,
+    textAlign: 'center',
+  },
+  pageFiveTextPanel: {
+    position: 'absolute',
+    top: 92,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingTop: 24,
+    paddingRight: 44,
+    paddingBottom: 36,
+    paddingLeft: 44,
+    justifyContent: 'flex-start',
+  },
+  pageFiveText: {
+    color: '#ffffff',
+    fontSize: 15 * FONT_SCALE,
+    lineHeight: 1.7,
+    textAlign: 'center',
+  },
+  releasePage: {
+    width: '100%',
+    height: '100%',
+    flexDirection: 'column',
+  },
+  releaseHeader: {
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 16,
+    paddingBottom: 16,
+    flexShrink: 0,
+  },
+  releaseTitle: {
+    margin: 0,
+    color: '#67e8f9',
+    textTransform: 'uppercase',
+    letterSpacing: 2.4,
+    fontSize: 13 * FONT_SCALE,
+    fontWeight: 800,
+  },
+  releaseSubtitle: {
+    marginTop: 5,
+    color: 'rgba(255,255,255,0.55)',
+    fontSize: 9 * FONT_SCALE,
+    fontStyle: 'italic',
+    letterSpacing: 0.3,
+    textAlign: 'center',
+  },
+  releaseBody: {
+    flex: 1,
+    flexDirection: 'column',
+    paddingTop: 14,
+    paddingRight: 20,
+    paddingBottom: 20,
+    paddingLeft: 20,
+    gap: 10,
+  },
+  releaseItem: {
+    flex: 1,
+    flexDirection: 'row',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderStyle: 'solid',
+    borderColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    overflow: 'hidden',
+  },
+  releaseItemLast: {},
+  releaseThumbWrap: {
     position: 'relative',
     flex: 1,
-    minHeight: 0,
-    overflow: 'hidden',
-    paddingTop: 24,
-    paddingRight: 24,
-    paddingBottom: 24,
-    paddingLeft: 24,
+    paddingTop: 12,
+    paddingRight: 12,
+    paddingBottom: 12,
+    paddingLeft: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  pageFiveImageCard: {
-    position: 'absolute',
-    inset: 0,
-  },
-  pageFiveImage: {
+  releaseThumb: {
     width: '100%',
     height: '100%',
     objectFit: 'cover',
+    borderRadius: 12,
   },
-  pageFiveFallback: {
+  releaseThumbFallback: {
     width: '100%',
     height: '100%',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    borderRadius: 12,
     color: '#d4d4d8',
     backgroundColor: 'rgba(255,255,255,0.04)',
-    fontSize: 12,
+    fontSize: 12 * FONT_SCALE,
   },
-  pageFiveOverlay: {
+  releasePlay: {
     position: 'absolute',
-    inset: 0,
-    backgroundColor: 'rgba(10,10,18,0.18)',
+    top: 12,
+    right: 12,
+    bottom: 12,
+    left: 12,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    textDecoration: 'none',
   },
-  pageFiveTextPanel: {
+  releasePlayButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 999,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    color: '#0a0a12',
+    fontSize: 18,
+    fontWeight: 900,
+  },
+  releaseInfo: {
+    flex: 2,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    paddingTop: 14,
+    paddingRight: 16,
+    paddingBottom: 14,
+    paddingLeft: 16,
+  },
+  releaseName: {
+    margin: 0,
+    color: '#ffffff',
+    fontSize: 16 * FONT_SCALE,
+    lineHeight: 1.15,
+    fontWeight: 900,
+    display: '-webkit-box',
+    WebkitBoxOrient: 'vertical',
+    WebkitLineClamp: 2,
+    overflow: 'hidden',
+  },
+  releaseDescription: {
+    marginTop: 8,
+    marginRight: 0,
+    marginBottom: 0,
+    marginLeft: 0,
+    color: '#f4f4f5',
+    fontSize: 12 * FONT_SCALE,
+    lineHeight: 1.35,
+    display: '-webkit-box',
+    WebkitBoxOrient: 'vertical',
+    WebkitLineClamp: 3,
+    overflow: 'hidden',
+  },
+  releaseAuthor: {
+    margin: 0,
+    color: '#67e8f9',
+    fontSize: 13 * FONT_SCALE,
+    lineHeight: 1.2,
+    fontWeight: 700,
+  },
+  linksPage: {
+    position: 'relative',
+    width: '100%',
+    height: '100%',
+    overflow: 'hidden',
+  },
+  linksBackground: {
     position: 'absolute',
-    left: 24,
-    right: 24,
-    bottom: 24,
-    borderRadius: 20,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+  },
+  linksScrim: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+  },
+  linksTopArea: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    paddingTop: 34,
+    alignItems: 'center',
+  },
+  linksKicker: {
+    textTransform: 'uppercase',
+    letterSpacing: 2.5,
+    fontSize: 11 * FONT_SCALE,
+    fontWeight: 700,
+    color: '#67e8f9',
+    textAlign: 'center',
+  },
+  linksArtistName: {
+    marginTop: 6,
+    fontSize: 44 * FONT_SCALE,
+    fontWeight: 900,
+    color: '#ffffff',
+    textAlign: 'center',
+    lineHeight: 1.05,
+  },
+  linksCard: {
+    position: 'absolute',
+    left: 32,
+    right: 32,
+    top: 148,
+    bottom: 28,
+    borderRadius: 14,
     borderWidth: 1,
     borderStyle: 'solid',
-    borderColor: 'rgba(255,255,255,0.16)',
-    backgroundColor: 'rgba(10,10,18,0.74)',
-    paddingTop: 18,
-    paddingRight: 18,
-    paddingBottom: 18,
-    paddingLeft: 18,
+    borderColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(10,10,18,0.75)',
+    overflow: 'hidden',
+    flexDirection: 'column',
   },
-  pageFiveText: {
+  linkRow: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: 20,
+    paddingRight: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.10)',
+  },
+  linkRowLast: {
+    borderBottomWidth: 0,
+  },
+  linkIconWrap: {
+    marginRight: 16,
+    flexShrink: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  linkIconBorder: {
+    borderWidth: 2,
+    borderStyle: 'solid',
+    borderColor: '#ffffff',
+    borderRadius: 999,
+    padding: 4,
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  linkIcon: {
+    width: 28,
+    height: 28,
+    objectFit: 'contain',
+  },
+  linkPlatformName: {
+    flex: 1,
+    color: '#ffffff',
+    textTransform: 'uppercase',
+    letterSpacing: 1.8,
+    fontSize: 12 * FONT_SCALE,
+    fontWeight: 800,
+  },
+  linkMetricValue: {
+    color: '#ffffff',
+    fontSize: 13 * FONT_SCALE,
+    fontWeight: 900,
+    textAlign: 'right',
+    flexShrink: 0,
+  },
+  collagePage: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#0a0a12',
+    flexDirection: 'column',
+  },
+  collageHeader: {
+    height: 88,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  collageTitle: {
     margin: 0,
-    color: '#f4f4f5',
-    fontSize: 14,
-    lineHeight: 1.55,
-    whiteSpace: 'pre-line',
+    color: '#67e8f9',
+    textTransform: 'uppercase',
+    letterSpacing: 2.4,
+    fontSize: 13 * FONT_SCALE,
+    fontWeight: 800,
+  },
+  collageBody: {
+    flex: 1,
+    flexDirection: 'column',
+    paddingTop: 16,
+    paddingRight: 20,
+    paddingBottom: 20,
+    paddingLeft: 20,
+    gap: 10,
+  },
+  collageRow: {
+    flex: 1,
+    flexDirection: 'row',
+    gap: 10,
+  },
+  collageItem: {
+    flex: 1,
+    borderRadius: 14,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+  },
+  collageImage: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+  },
+  horizPage: {
+    width: '100%',
+    height: '100%',
+    flexDirection: 'column',
+  },
+  horizHeader: {
+    height: 88,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  horizTitle: {
+    margin: 0,
+    color: '#67e8f9',
+    textTransform: 'uppercase',
+    letterSpacing: 2.4,
+    fontSize: 13 * FONT_SCALE,
+    fontWeight: 800,
+  },
+  horizBody: {
+    flex: 1,
+    flexDirection: 'column',
+    paddingTop: 16,
+    paddingRight: 20,
+    paddingBottom: 20,
+    paddingLeft: 20,
+    gap: 12,
+  },
+  horizSlot: {
+    flex: 1,
+    borderRadius: 14,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(255,255,255,0.04)',
+  },
+  horizPhoto: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+  },
+  contactPage: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#0a0a12',
+    flexDirection: 'column',
+  },
+  contactHeader: {
+    minHeight: 130,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 18,
+    paddingRight: 24,
+    paddingBottom: 18,
+    paddingLeft: 24,
+  },
+  contactTitle: {
+    margin: 0,
+    color: '#67e8f9',
+    textTransform: 'uppercase',
+    letterSpacing: 2.4,
+    fontSize: 13 * FONT_SCALE,
+    fontWeight: 800,
+  },
+  contactArtist: {
+    marginTop: 8,
+    marginRight: 0,
+    marginBottom: 0,
+    marginLeft: 0,
+    color: '#ffffff',
+    fontSize: 26 * FONT_SCALE,
+    lineHeight: 1.05,
+    fontWeight: 900,
+    textAlign: 'center',
+  },
+  contactLogo: {
+    width: 160,
+    height: 80,
+    objectFit: 'contain',
+  },
+  contactFooter: {
+    paddingTop: 16,
+    paddingBottom: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  contactBody: {
+    flex: 1,
+    minHeight: 0,
+    paddingTop: 18,
+    paddingRight: 24,
+    paddingBottom: 24,
+    paddingLeft: 24,
+    gap: 12,
+  },
+  contactCard: {
+    borderRadius: 18,
+    borderWidth: 1,
+    borderStyle: 'solid',
+    borderColor: 'rgba(103,232,249,0.20)',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    paddingTop: 14,
+    paddingRight: 14,
+    paddingBottom: 14,
+    paddingLeft: 14,
+  },
+  contactLabel: {
+    margin: 0,
+    color: '#67e8f9',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+    fontSize: 10 * FONT_SCALE,
+    fontWeight: 800,
+    textAlign: 'center',
+  },
+  contactValue: {
+    marginTop: 8,
+    marginRight: 0,
+    marginBottom: 0,
+    marginLeft: 0,
+    color: '#ffffff',
+    fontSize: 20 * FONT_SCALE,
+    lineHeight: 1.15,
+    fontWeight: 800,
+    textAlign: 'center',
   },
 });
 
@@ -576,24 +976,90 @@ function getYoutubeThumbnailUrl(url) {
   return videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : '';
 }
 
-function getMilestonesByCategory(artistMilestones) {
-  const milestones = artistMilestones || {};
-  return [
-    { key: 'digital', label: 'Digital', items: Array.isArray(milestones.digital) ? milestones.digital : [] },
-    { key: 'live', label: 'Live', items: Array.isArray(milestones.live) ? milestones.live : [] },
-    { key: 'press', label: 'Press', items: Array.isArray(milestones.press) ? milestones.press : [] },
-    { key: 'collaborations', label: 'Colaboraciones', items: Array.isArray(milestones.collaborations) ? milestones.collaborations : [] },
-  ];
+function getAllMilestones(artistMilestones) {
+  const m = artistMilestones || {};
+  return ['digital', 'live', 'press', 'collaborations']
+    .flatMap((key) => (Array.isArray(m[key]) ? m[key] : []))
+    .filter(Boolean)
+    .slice(0, 12);
 }
+
+function chunkArray(items, size) {
+  const result = [];
+  for (let index = 0; index < items.length; index += size) {
+    result.push(items.slice(index, index + size));
+  }
+  return result;
+}
+
+function getImageSrc(url) {
+  if (!isValidPdfImage(url)) return null;
+  try {
+    const pathname = new URL(url).pathname;
+    if (url.includes('firebasestorage.googleapis.com') && !url.includes('alt=media')) {
+      return url.includes('?') ? `${url}&alt=media` : `${url}?alt=media`;
+    }
+    return url;
+  } catch {
+    return null;
+  }
+}
+
+function getImageSource(url) {
+  const sanitized = getImageSrc(url);
+  if (!sanitized) return null;
+  if (typeof sanitized === 'string') {
+    return { uri: sanitized, method: 'GET', headers: {} };
+  }
+  return null;
+}
+
+function truncateText(value, maxLength) {
+  const text = String(value || '');
+  if (text.length <= maxLength) return text;
+  return `${text.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`;
+}
+
+
+function hexToRgba(hex, alpha) {
+  const h = (hex || '#67e8f9').replace('#', '');
+  const r = parseInt(h.slice(0, 2), 16) || 0;
+  const g = parseInt(h.slice(2, 4), 16) || 0;
+  const b = parseInt(h.slice(4, 6), 16) || 0;
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+const ICON_BASE = typeof window !== 'undefined' ? `${window.location.origin}/icons/pdf-assets/` : '/icons/pdf-assets/';
+
+const PLATFORM_ICON_FILE = {
+  instagram: 'instagram.png',
+  spotify: 'spotify.png',
+  facebook: 'facebook.png',
+  youtube: 'youtube.png',
+  tiktok: 'tiktok.png',
+  appleMusic: 'applemusic.png',
+};
+
+const PLATFORM_LABELS = {
+  instagram: 'Instagram',
+  spotify: 'Spotify',
+  facebook: 'Facebook',
+  youtube: 'YouTube',
+  tiktok: 'TikTok',
+  appleMusic: 'Apple Music',
+  soundcloud: 'SoundCloud',
+};
 
 export default function PresskitPdfDocument({ data, variant = 'professional', colors = {} }) {
   const c = {
-    bg:     colors.bg     || '#0a0a12',
-    card:   colors.card   || 'rgba(255,255,255,0.05)',
-    title:  colors.title  || '#ffffff',
-    text:   colors.text   || '#f4f4f5',
-    accent: colors.accent || '#67e8f9',
-    border: colors.border || 'rgba(255,255,255,0.12)',
+    bg:       colors.bg       || '#0a0a12',
+    card:     colors.card     || 'rgba(255,255,255,0.05)',
+    title:    colors.title    || '#ffffff',
+    subtitle: colors.subtitle || 'rgba(255,255,255,0.55)',
+    text:     colors.text     || '#f4f4f5',
+    accent:   colors.accent   || '#67e8f9',
+    border:   colors.border   || 'rgba(255,255,255,0.12)',
+    overlay:  colors.overlay  || 'rgba(0,0,0,0.55)',
   };
 
   const safeData = data || {};
@@ -603,20 +1069,48 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
   const performanceLiveLink = safeData.performanceLiveLink || '';
   const performanceLiveThumbnail = getYoutubeThumbnailUrl(performanceLiveLink);
   const recognitionImage = safeData.recognitionImage || '';
-  const recognitions = safeData.recognitions || 'Añade reconocimientos, escenarios, playlists, becas, festivales o formación para completar esta sección.';
+  const recognitions = truncateText(
+    safeData.recognitions || 'Añade reconocimientos, escenarios, playlists, becas, festivales o formación para completar esta sección.',
+    360,
+  );
   const totalStreams = safeData.totalStreams || 'Sin dato';
   const totalVideoViews = safeData.totalVideoViews || 'Sin dato';
   const bio140Image = safeData.twitterBioImage || '';
-  const bio140 = safeData.twitterBio || 'Sin bio de 140 caracteres.';
+  const bio140 = truncateText(safeData.twitterBio || 'Sin bio de 140 caracteres.', 190);
   const longBio = safeData.longBio || safeData.bio || 'Sin biografía completa.';
   const longBioImage = safeData.longBioImage || '';
-  const milestoneCards = getMilestonesByCategory(safeData.artistMilestones);
+  const releases = Array.isArray(safeData.releases) ? safeData.releases.slice(0, 8) : [];
+  const releasePages = chunkArray(releases, 4);
+  const allMilestones = getAllMilestones(safeData.artistMilestones);
+  const filledLinks = Object.entries(safeData.links || {})
+    .filter(([key, value]) => key !== 'youtubeVideo' && isHttpUrl(value))
+    .slice(0, 6);
+  const linkScreenshots = safeData.linkScreenshots || {};
+  const collageImages = safeImages.slice(1, 5);
+  const pressArticles = Array.isArray(safeData.pressArticles) ? safeData.pressArticles.filter(isHttpUrl) : [];
+  const contactArtistName = safeData.contactArtistName || safeData.artistName || 'Nombre del artista';
+  const managerName = safeData.managerName || 'No especificado';
+  const roadManagerName = safeData.roadManagerName || 'No especificado';
+  const contactCountryCode = safeData.contactCountryCode || '+57';
+  const contactPhone = safeData.contactPhone || 'No especificado';
+  const contactLogo = safeData.contactLogo || '';
+  const shortBio = truncateText(safeData.shortBio || safeData.bio || 'Sin biografia corta.', 144);
+  const bioImage = safeData.bioImage || '';
+  const getLinkDomain = (rawUrl) => {
+    if (!rawUrl) return '';
+    try {
+      const normalized = rawUrl.startsWith('http') ? rawUrl : `https://${rawUrl}`;
+      return new URL(normalized).hostname.replace('www.', '');
+    } catch {
+      return rawUrl;
+    }
+  };
 
   return (
     <Document>
       <Page size={pdfxTheme.page.size} style={[styles.coverPage, { backgroundColor: c.bg }]} wrap={false}>
         <View style={styles.coverFrame}>
-          {coverImage ? <Image src={coverImage} style={styles.coverBackground} /> : null}
+          {coverImage ? <Image src={getImageSource(coverImage)} style={styles.coverBackground} /> : null}
           <View style={styles.coverScrim} />
           <View style={styles.coverTop}>
             <Text style={[styles.coverArtist, { color: c.title }]}>{safeData.artistName || 'Presskit sin nombre'}</Text>
@@ -627,53 +1121,58 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
         </View>
       </Page>
 
-      <Page size={pdfxTheme.page.size} style={styles.page} wrap={false}>
-        <View style={[styles.pageTwo, { backgroundColor: c.bg, color: c.title }]}>
+      <Page size={pdfxTheme.page.size} style={[styles.coverPage, { backgroundColor: c.bg }]} wrap={false}>
+        <View style={styles.pageTwo}>
+          {bioImage ? (
+            <Image src={getImageSource(bioImage)} style={styles.pageTwoBackground} />
+          ) : null}
+          <View style={[styles.pageTwoScrim, { backgroundColor: c.overlay }]} />
+
+          {/* Header: kicker + nombre arriba */}
           <View style={styles.pageTwoHeader}>
             <Text style={[styles.pageTwoKicker, { color: c.accent }]}>CONOCE A</Text>
-            <Text style={[styles.pageTwoArtist, { color: c.title }]}>{safeData.artistName || 'Presskit sin nombre'}</Text>
+            <Text style={[styles.pageTwoArtist, { color: c.title }]}>{safeData.artistName || 'Presskit'}</Text>
           </View>
 
-          <View style={styles.pageTwoBody}>
-            <View style={[styles.pageTwoBioCard, { borderColor: c.border, backgroundColor: c.card }]}>
+          {/* Bloque central: divider + género + bio */}
+          <View style={styles.pageTwoCenter}>
+            {[safeData.genre, safeData.city].filter(Boolean).length > 0 ? (
               <Text style={[styles.pageTwoInfo, { color: c.accent }]}>
-                {[safeData.genre, safeData.city].filter(Boolean).join(' • ') || 'SIN GENERO NI CIUDAD'}
+                {[safeData.genre, safeData.city].filter(Boolean).join(' • ')}
               </Text>
-              <Text style={[styles.pageTwoBio, { color: c.text }]}>{safeData.shortBio || safeData.bio || 'Sin biografia corta.'}</Text>
-            </View>
+            ) : null}
+            <Text style={[styles.pageTwoBio, { color: c.text }]}>{shortBio}</Text>
+          </View>
 
-            {performanceLiveLink ? (
-              <View style={[styles.pageTwoVideoCard, { borderColor: c.border, backgroundColor: c.card }]}>
+          {/* Video card anclado al fondo */}
+          {performanceLiveLink ? (
+            <View style={styles.pageTwoVideoWrap}>
+              <View style={[styles.pageTwoVideoCard, { borderColor: c.border }]}>
                 {performanceLiveThumbnail ? (
-                  <Image src={performanceLiveThumbnail} style={styles.pageTwoVideoImage} />
-                ) : (
-                  <View style={{ ...styles.pageTwoVideoImage, alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={{ color: c.text, fontSize: 12 }}>Sin thumbnail de video</Text>
-                  </View>
-                )}
-
+                  <Image src={getImageSource(performanceLiveThumbnail)} style={styles.pageTwoVideoThumb} />
+                ) : null}
                 <View style={styles.pageTwoVideoBody}>
                   <Text style={[styles.pageTwoVideoKicker, { color: c.accent }]}>LIVE PERFORMANCE</Text>
-                  <Text style={[styles.pageTwoVideoTitle, { color: c.title }]}>Mira mi performance en vivo</Text>
+                  <Text style={[styles.pageTwoVideoTitle, { color: c.title }]}>Performance en vivo</Text>
                   <Link src={performanceLiveLink} style={[styles.pageTwoVideoLink, { color: c.accent }]}>
-                    {performanceLiveLink}
+                    Ver video
                   </Link>
                 </View>
               </View>
-            ) : null}
-          </View>
+            </View>
+          ) : null}
         </View>
       </Page>
 
-      <Page size={pdfxTheme.page.size} style={styles.pageThree} wrap={false}>
+      <Page size={pdfxTheme.page.size} style={[styles.pageThree, { backgroundColor: c.bg }]} wrap={false}>
         <View style={styles.pageThreeHeader}>
-          <Text style={styles.pageThreeTitle}>Reconocimientos y Streams</Text>
+          <Text style={[styles.pageThreeTitle, { color: c.accent }]}>Reconocimientos y Streams</Text>
         </View>
 
         <View style={styles.pageThreeBody}>
-          <View style={styles.pageThreeImageCard}>
+          <View style={[styles.pageThreeImageCard, { borderColor: c.border, backgroundColor: c.card }]}>
             {recognitionImage ? (
-              <Image src={recognitionImage} style={styles.pageThreeImage} />
+              <Image src={getImageSource(recognitionImage)} style={styles.pageThreeImage} />
             ) : (
               <View style={styles.pageThreeFallback}>
                 <Text>Sin imagen de reconocimientos</Text>
@@ -681,82 +1180,269 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
             )}
           </View>
 
-          <View style={styles.pageThreeCard}>
-            <Text style={styles.pageThreeLabel}>Reconocimientos</Text>
-            <Text style={styles.pageThreeText}>{recognitions}</Text>
+          <View style={[styles.pageThreeCard, { borderColor: c.border, backgroundColor: c.card }]}>
+            <Text style={[styles.pageThreeLabel, { color: c.accent }]}>Reconocimientos</Text>
+            <Text style={[styles.pageThreeText, { color: c.text }]}>{recognitions}</Text>
           </View>
         </View>
 
         <View style={styles.pageThreeFooter}>
-          <View style={styles.pageThreeMetric}>
-            <Text style={styles.pageThreeMetricLabel}>Total streams</Text>
-            <Text style={styles.pageThreeMetricValue}>{totalStreams}</Text>
+          <View style={[styles.pageThreeMetric, { borderColor: hexToRgba(c.accent, 0.25), backgroundColor: hexToRgba(c.accent, 0.08) }]}>
+            <Text style={[styles.pageThreeMetricLabel, { color: c.accent }]}>Total streams</Text>
+            <Text style={[styles.pageThreeMetricValue, { color: c.title }]}>{totalStreams}</Text>
           </View>
-          <View style={styles.pageThreeMetric}>
-            <Text style={styles.pageThreeMetricLabel}>Total video views</Text>
-            <Text style={styles.pageThreeMetricValue}>{totalVideoViews}</Text>
+          <View style={[styles.pageThreeMetric, { borderColor: hexToRgba(c.accent, 0.25), backgroundColor: hexToRgba(c.accent, 0.08) }]}>
+            <Text style={[styles.pageThreeMetricLabel, { color: c.accent }]}>Total video views</Text>
+            <Text style={[styles.pageThreeMetricValue, { color: c.title }]}>{totalVideoViews}</Text>
           </View>
         </View>
       </Page>
 
-      <Page size={pdfxTheme.page.size} style={styles.pageFour} wrap={false}>
-        <View style={styles.pageFourHeader}>
-          <Text style={styles.pageFourTitle}>Biografía</Text>
-        </View>
-
-        <View style={styles.pageFourBody}>
-          <View style={styles.pageFourBioCard}>
-            <Text style={styles.pageFourBioText}>{bio140}</Text>
+      <Page size={pdfxTheme.page.size} style={[styles.coverPage, { backgroundColor: c.bg }]} wrap={false}>
+        <View style={styles.pageFour}>
+          <View style={styles.pageFourHeader}>
+            <Text style={[styles.pageFourTitle, { color: c.accent }]}>Biografía</Text>
           </View>
 
-          <View style={styles.pageFourVisualCard}>
-            <View style={styles.pageFourImageCard}>
-              {bio140Image ? (
-                <Image src={bio140Image} style={styles.pageFourImage} />
-              ) : (
-                <View style={styles.pageFourFallback}>
-                  <Text>Sin imagen de bio de 140 caracteres</Text>
-                </View>
-              )}
-            </View>
+          <View style={styles.pageFourBioSection}>
+            <Text style={[styles.pageFourBioText, { color: c.text }]}>{bio140}</Text>
+          </View>
+
+          <View style={styles.pageFourImageSection}>
+            {bio140Image ? (
+              <Image src={getImageSource(bio140Image)} style={styles.pageFourImage} />
+            ) : (
+              <View style={styles.pageFourFallback}>
+                <Text>Sin imagen de bio de 140 caracteres</Text>
+              </View>
+            )}
+            <View style={[styles.pageFourScrim, { backgroundColor: c.overlay }]} />
 
             <View style={styles.pageFourMilestoneOverlay}>
-              {milestoneCards.map((milestone) => (
-                <View key={milestone.key} style={styles.pageFourMilestoneCard}>
-                  <Text style={styles.pageFourMilestoneLabel}>{milestone.label}</Text>
-                  <Text style={styles.pageFourMilestoneList}>
-                    {milestone.items.length > 0
-                      ? milestone.items.slice(0, 3).map((item) => `• ${item}`).join('\n')
-                      : 'Sin hitos registrados.'}
-                  </Text>
-                </View>
-              ))}
+              {(() => {
+                const count = allMilestones.length;
+                const fontSize = count <= 4 ? 13 * FONT_SCALE : count <= 8 ? 11 * FONT_SCALE : 9 * FONT_SCALE;
+                const paddingV = count <= 4 ? 11 : count <= 8 ? 7 : 5;
+                const paddingH = count <= 4 ? 20 : count <= 8 ? 14 : 10;
+                return allMilestones.map((item, i) => (
+                  <View key={i} style={[styles.pageFourMilestoneItem, { paddingTop: paddingV, paddingBottom: paddingV, paddingLeft: paddingH, paddingRight: paddingH, borderColor: hexToRgba(c.accent, 0.28), backgroundColor: hexToRgba(c.bg, 0.72) }]}>
+                    <Text style={[styles.pageFourMilestoneText, { fontSize, color: c.text }]}>{item}</Text>
+                  </View>
+                ));
+              })()}
             </View>
           </View>
         </View>
       </Page>
 
-      <Page size={pdfxTheme.page.size} style={styles.pageFive} wrap={false}>
-        <View style={styles.pageFiveHeader}>
-          <Text style={styles.pageFiveTitle}>Biografía</Text>
+      <Page size={pdfxTheme.page.size} style={[styles.coverPage, { backgroundColor: c.bg }]} wrap={false}>
+        <View style={styles.pageFive}>
+          {longBioImage ? (
+            <Image src={getImageSource(longBioImage)} style={styles.pageFiveBackground} />
+          ) : null}
+          <View style={[styles.pageFiveScrim, { backgroundColor: c.overlay }]} />
+          <View style={styles.pageFiveHeader}>
+            <Text style={[styles.pageFiveTitle, { color: c.accent }]}>BIOGRAFÍA DE PRENSA</Text>
+          </View>
+          <View style={styles.pageFiveTextPanel}>
+            {safeData.artistName ? <Text style={[styles.pageFiveArtistSub, { color: c.title }]}>{safeData.artistName}</Text> : null}
+            <Text style={[styles.pageFiveText, { color: c.text }]}>{longBio}</Text>
+          </View>
         </View>
+      </Page>
 
-        <View style={styles.pageFiveBody}>
-          <View style={styles.pageFiveImageCard}>
-            {longBioImage ? (
-              <Image src={longBioImage} style={styles.pageFiveImage} />
+      {releasePages.map((releaseChunk, pageIndex) => (
+        <Page key={`release-page-${pageIndex}`} size={pdfxTheme.page.size} style={[styles.coverPage, { backgroundColor: c.bg }]} wrap={false}>
+          <View style={styles.releasePage}>
+          <View style={styles.releaseHeader}>
+            <Text style={[styles.releaseTitle, { color: c.accent }]}>
+              Video Releases {releasePages.length > 1 ? `(${pageIndex + 1}/${releasePages.length})` : ''}
+            </Text>
+            {pageIndex === 0 && safeData.releasesCtaText ? (
+              <Text style={[styles.releaseSubtitle, { color: c.subtitle }]}>{safeData.releasesCtaText}</Text>
+            ) : null}
+          </View>
+
+          <View style={styles.releaseBody}>
+            {releaseChunk.map((release, releaseIndex) => {
+              const videoId = String(release?.url || '').match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)?.[1];
+              const thumbnail = videoId ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` : '';
+              const isLast = releaseIndex === releaseChunk.length - 1;
+
+              return (
+                <View key={`${pageIndex}-${releaseIndex}-${release?.title || 'release'}`} style={{ ...styles.releaseItem, ...(isLast ? styles.releaseItemLast : {}), borderColor: c.border, backgroundColor: c.card }}>
+                  <View style={styles.releaseThumbWrap}>
+                    {thumbnail ? (
+                      <>
+                        <Image src={getImageSource(thumbnail)} style={styles.releaseThumb} />
+                        {release?.url ? (
+                          <Link src={release.url} style={styles.releasePlay}>
+                            <View style={styles.releasePlayButton}>
+                              <Text>▶</Text>
+                            </View>
+                          </Link>
+                        ) : null}
+                      </>
+                    ) : (
+                      <View style={styles.releaseThumbFallback}>
+                        <Text>Sin video</Text>
+                      </View>
+                    )}
+                  </View>
+
+                  <View style={styles.releaseInfo}>
+                    <View>
+                      <Text style={[styles.releaseName, { color: c.title }]}>{release?.title || 'Release sin titulo'}</Text>
+                      {release?.description ? <Text style={[styles.releaseDescription, { color: c.text }]}>{truncateText(release.description, 160)}</Text> : null}
+                    </View>
+                    {release?.author ? <Text style={[styles.releaseAuthor, { color: c.accent }]}>{release.author}</Text> : null}
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+          </View>
+        </Page>
+      ))}
+
+      {filledLinks.length > 0 ? (
+        <Page size={pdfxTheme.page.size} style={[styles.coverPage, { backgroundColor: c.bg }]} wrap={false}>
+          <View style={styles.linksPage}>
+            {(safeImages[1] || coverImage) ? (
+              <Image src={getImageSource(safeImages[1] || coverImage)} style={styles.linksBackground} />
+            ) : null}
+            <View style={[styles.linksScrim, { backgroundColor: c.overlay }]} />
+
+            <View style={styles.linksTopArea}>
+              <Text style={[styles.linksKicker, { color: c.accent }]}>CONECTA CON</Text>
+              <Text style={[styles.linksArtistName, { color: c.title }]}>{safeData.artistName || ''}</Text>
+            </View>
+
+            <View style={[styles.linksCard, { borderColor: c.border, backgroundColor: hexToRgba(c.bg, 0.75) }]}>
+              {filledLinks.map(([key, value], index) => {
+                const isLast = index === filledLinks.length - 1;
+                const iconFile = PLATFORM_ICON_FILE[key];
+                const iconUrl = iconFile ? `${ICON_BASE}${iconFile}` : null;
+                const label = PLATFORM_LABELS[key] || String(key).replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, (ch) => ch.toUpperCase());
+                const metric = (safeData.linkMetrics || {})[key] || '';
+                return (
+                  <Link key={`link-${key}-${index}`} src={value} style={[styles.linkRow, isLast ? styles.linkRowLast : {}]}>
+                    <View style={styles.linkIconWrap}>
+                      <View style={styles.linkIconBorder}>
+                        {iconUrl ? (
+                          <Image src={{ uri: iconUrl, method: 'GET', headers: {} }} style={styles.linkIcon} />
+                        ) : (
+                          <Text style={{ color: '#ffffff', fontSize: 9 * FONT_SCALE, fontWeight: 800 }}>{label.slice(0, 2).toUpperCase()}</Text>
+                        )}
+                      </View>
+                    </View>
+                    <Text style={[styles.linkPlatformName, { color: c.title }]}>{label}</Text>
+                    {metric ? <Text style={[styles.linkMetricValue, { color: c.title }]}>{metric}</Text> : null}
+                  </Link>
+                );
+              })}
+            </View>
+          </View>
+        </Page>
+      ) : null}
+
+      {collageImages.length > 0 ? (
+        <Page size={pdfxTheme.page.size} style={[styles.coverPage, { backgroundColor: c.bg }]} wrap={false}>
+          <View style={[styles.collagePage, { backgroundColor: c.bg }]}>
+            <View style={styles.collageHeader}>
+              <Text style={[styles.collageTitle, { color: c.accent }]}>Galería visual</Text>
+            </View>
+
+            <View style={styles.collageBody}>
+              <View style={styles.collageRow}>
+                {collageImages.slice(0, 2).map((image, i) => (
+                  <View key={`top-${i}`} style={styles.collageItem}>
+                    <Image src={getImageSource(image)} style={styles.collageImage} />
+                  </View>
+                ))}
+              </View>
+              <View style={styles.collageRow}>
+                {collageImages.slice(2, 4).map((image, i) => (
+                  <View key={`bot-${i}`} style={styles.collageItem}>
+                    <Image src={getImageSource(image)} style={styles.collageImage} />
+                  </View>
+                ))}
+              </View>
+            </View>
+          </View>
+        </Page>
+      ) : null}
+
+      {(safeImages[5] || safeImages[6]) ? (
+        <Page size={pdfxTheme.page.size} style={[styles.coverPage, { backgroundColor: c.bg }]} wrap={false}>
+          <View style={styles.horizPage}>
+            <View style={styles.horizHeader}>
+              <Text style={[styles.horizTitle, { color: c.accent }]}>Galería</Text>
+            </View>
+            <View style={styles.horizBody}>
+              {safeImages[5] ? (
+                <View style={styles.horizSlot}>
+                  <Image src={getImageSource(safeImages[5])} style={styles.horizPhoto} />
+                </View>
+              ) : null}
+              {safeImages[6] ? (
+                <View style={styles.horizSlot}>
+                  <Image src={getImageSource(safeImages[6])} style={styles.horizPhoto} />
+                </View>
+              ) : null}
+            </View>
+          </View>
+        </Page>
+      ) : null}
+
+      {pressArticles.map((article, index) => (
+        <Page key={`press-article-${index}`} size={pdfxTheme.page.size} style={[styles.coverPage, { backgroundColor: '#ffffff' }]} wrap={false}>
+          <View style={{ width: '100%', height: '100%', padding: 20 }}>
+            {article ? (
+              <Image src={getImageSource(article)} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8 }} />
             ) : (
-              <View style={styles.pageFiveFallback}>
-                <Text>Sin imagen de biografía completa</Text>
+              <View style={{ width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ color: '#999999', fontSize: 12 }}>Sin imagen de artículo de prensa</Text>
               </View>
             )}
           </View>
+        </Page>
+      ))}
 
-          <View style={styles.pageFiveOverlay} />
-
-          <View style={styles.pageFiveTextPanel}>
-            <Text style={styles.pageFiveText}>{longBio}</Text>
+      <Page size={pdfxTheme.page.size} style={[styles.coverPage, { backgroundColor: c.bg }]} wrap={false}>
+        <View style={[styles.contactPage, { backgroundColor: c.bg }]}>
+          <View style={styles.contactHeader}>
+            <Text style={[styles.contactTitle, { color: c.accent }]}>Contacto</Text>
+            <Text style={[styles.contactArtist, { color: c.title }]}>{contactArtistName}</Text>
           </View>
+
+          <View style={styles.contactBody}>
+            <View style={[styles.contactCard, { borderColor: hexToRgba(c.accent, 0.25), backgroundColor: c.card }]}>
+              <Text style={[styles.contactLabel, { color: c.accent }]}>Manager</Text>
+              <Text style={[styles.contactValue, { color: c.title }]}>{managerName}</Text>
+            </View>
+
+            <View style={[styles.contactCard, { borderColor: hexToRgba(c.accent, 0.25), backgroundColor: c.card }]}>
+              <Text style={[styles.contactLabel, { color: c.accent }]}>Road Manager</Text>
+              <Text style={[styles.contactValue, { color: c.title }]}>{roadManagerName}</Text>
+            </View>
+
+            <View style={[styles.contactCard, { borderColor: hexToRgba(c.accent, 0.25), backgroundColor: c.card }]}>
+              <Text style={[styles.contactLabel, { color: c.accent }]}>Contacto</Text>
+              <Text style={[styles.contactValue, { color: c.title }]}>{contactCountryCode} {contactPhone}</Text>
+            </View>
+
+            <View style={[styles.contactCard, { borderColor: hexToRgba(c.accent, 0.25), backgroundColor: c.card }]}>
+              <Text style={[styles.contactLabel, { color: c.accent }]}>Artista</Text>
+              <Text style={[styles.contactValue, { color: c.title }]}>{safeData.artistName || 'Nombre del artista'}</Text>
+            </View>
+          </View>
+
+          {contactLogo ? (
+            <View style={styles.contactFooter}>
+              <Image src={getImageSource(contactLogo)} style={styles.contactLogo} />
+            </View>
+          ) : null}
         </View>
       </Page>
     </Document>

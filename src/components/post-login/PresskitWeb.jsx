@@ -1,5 +1,5 @@
 // Componente para manejar el botón de descarga con touch en móvil y hover en desktop
-function GalleryImage({ image, title, gridClass, artistName, index }) {
+function GalleryImage({ image, title, gridClass, artistName, index, onOpenImage }) {
   const [showDownload, setShowDownload] = useState(false);
 
   // Detecta si es móvil
@@ -30,6 +30,15 @@ function GalleryImage({ image, title, gridClass, artistName, index }) {
       onTouchEnd={handleTouchEnd}
       onMouseEnter={() => !isMobile && setShowDownload(true)}
       onMouseLeave={() => !isMobile && setShowDownload(false)}
+      onClick={() => onOpenImage?.(image, title)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onOpenImage?.(image, title);
+        }
+      }}
     >
       <img
         src={image}
@@ -54,6 +63,7 @@ function GalleryImage({ image, title, gridClass, artistName, index }) {
             title="Descargar imagen"
             onClick={async (e) => {
               e.preventDefault();
+              e.stopPropagation();
               try {
                 const response = await fetch(image, { mode: 'cors' });
                 const blob = await response.blob();
@@ -73,6 +83,142 @@ function GalleryImage({ image, title, gridClass, artistName, index }) {
             Descargar
           </a>
         )}
+      </div>
+    </div>
+  );
+}
+
+function HorizontalGalleryImage({ image, artistName, index, onOpenImage }) {
+  const [showDownload, setShowDownload] = useState(false);
+  const isMobile = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 640px)').matches;
+
+  const handleTouchStart = () => {
+    if (isMobile) setShowDownload(true);
+  };
+  const handleTouchEnd = () => {
+    if (isMobile) setTimeout(() => setShowDownload(false), 2000);
+  };
+
+  const fileName = `epk-horizontal-${index + 1}-${artistName}.jpg`;
+
+  return (
+    <div
+      className="group relative flex min-h-0 flex-1 overflow-hidden rounded-2xl border border-white/15 bg-zinc-900"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onMouseEnter={() => !isMobile && setShowDownload(true)}
+      onMouseLeave={() => !isMobile && setShowDownload(false)}
+      onClick={() => onOpenImage?.(image, `Foto horizontal ${index + 1}`)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onOpenImage?.(image, `Foto horizontal ${index + 1}`);
+        }
+      }}
+    >
+      <img
+        src={image}
+        alt={`Foto horizontal ${index + 1}`}
+        className="h-full w-full object-cover"
+      />
+      {(showDownload || !isMobile) && (
+        <button
+          type="button"
+          className={`absolute bottom-3 right-3 rounded-full border border-white/30 bg-linear-to-r from-transparent via-white/20 to-transparent backdrop-blur-sm px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-white shadow-lg transition-all duration-300 hover:bg-white/30 hover:shadow-xl hover:scale-105 hover:tracking-[0.2em] focus:opacity-100 ${showDownload || !isMobile ? 'opacity-100 scale-105' : 'opacity-0 group-hover:opacity-100'}`}
+          title="Descargar imagen"
+          onClick={async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            try {
+              const response = await fetch(image, { mode: 'cors' });
+              const blob = await response.blob();
+              const url = window.URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = fileName.replace(/\s+/g, '-').toLowerCase();
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              window.URL.revokeObjectURL(url);
+            } catch (err) {
+              console.error('Error descargando foto horizontal:', err);
+            }
+          }}
+        >
+          Descargar
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ImageLightbox({ image, title, artistName, onClose }) {
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') onClose();
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  if (!image) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-60 flex items-center justify-center bg-black/85 px-4 py-6 backdrop-blur-md"
+      onClick={onClose}
+      role="presentation"
+    >
+      <div
+        className="relative flex h-full w-full max-w-6xl items-center justify-center"
+        onClick={(event) => event.stopPropagation()}
+        role="presentation"
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-2 top-2 z-10 rounded-full border border-white/20 bg-black/60 px-3 py-2 text-sm font-bold text-white transition hover:bg-black/80"
+        >
+          Cerrar
+        </button>
+        <button
+          type="button"
+          onClick={async (e) => {
+            e.stopPropagation();
+            try {
+              const response = await fetch(image, { mode: 'cors' });
+              const blob = await response.blob();
+              const extMatch = /(\.(jpg|jpeg|png|gif|webp|svg))(?:\?|$)/i.exec(image);
+              const ext = extMatch ? extMatch[2] : 'jpg';
+              const base = (title || artistName || 'image').replace(/[^a-z0-9\-_\.]/gi, '-').toLowerCase();
+              const filename = `${base}.${ext}`;
+              const url = window.URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = filename;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              window.URL.revokeObjectURL(url);
+            } catch (err) {
+              console.error('Error descargando imagen desde lightbox:', err);
+            }
+          }}
+          aria-label="Descargar imagen"
+          className="absolute right-20 top-2 z-10 rounded-full border border-white/20 bg-black/60 px-3 py-2 text-sm font-bold text-white transition hover:bg-black/80"
+        >
+          Descargar
+        </button>
+        <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-3xl border border-white/10 bg-zinc-950/90 p-3 shadow-[0_30px_90px_rgba(0,0,0,0.6)]">
+          <img
+            src={image}
+            alt={title}
+            className="max-h-[88vh] max-w-full object-contain"
+          />
+        </div>
       </div>
     </div>
   );
@@ -242,6 +388,10 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
   const [pageIndex, setPageIndex] = useState(0);
   const [isTurning, setIsTurning] = useState(false);
   const [turnDirection, setTurnDirection] = useState(1);
+  const [lightboxImage, setLightboxImage] = useState('');
+  const [lightboxTitle, setLightboxTitle] = useState('');
+  const [lightboxArtistName, setLightboxArtistName] = useState('');
+  const [hoveredIndex, setHoveredIndex] = useState(null);
   const jumpIntervalRef = useRef(null);
   const isCompact = mode === 'compact';
   const isEmbedded = mode === 'embedded';
@@ -254,7 +404,8 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
   const theme = getTheme(presskitData.theme || 'neon');
 
   const cover = presskitData.images?.[0] || '';
-  const gallery = Array.isArray(presskitData.images) ? presskitData.images.slice(1, 6).filter(Boolean) : [];
+  const gallery = Array.isArray(presskitData.images) ? presskitData.images.slice(1, 5).filter(Boolean) : [];
+  const horizontalImages = [presskitData.images?.[5], presskitData.images?.[6]].filter(Boolean);
   const artistName = presskitData.artistName || 'Nombre del artista';
   const genre = presskitData.genre || 'Genero';
   const city = presskitData.city || 'Ciudad';
@@ -380,6 +531,14 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
       });
     }
 
+    if (horizontalImages.length > 0) {
+      pages.push({
+        type: 'gallery-horizontal',
+        title: 'Fotos Horizontales',
+        payload: horizontalImages,
+      });
+    }
+
     // Agregar páginas de artículos de prensa (una por imagen)
     const pressArticles = Array.isArray(presskitData.pressArticles) ? presskitData.pressArticles.filter(Boolean) : [];
     if (pressArticles.length > 0) {
@@ -405,6 +564,7 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
     contactLogo,
     contactPhone,
     gallery,
+    horizontalImages,
     links,
     artistMilestones,
     longBio,
@@ -439,6 +599,18 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
   }, []);
 
   const currentPage = webPages[pageIndex] || webPages[0];
+
+  const openImageLightbox = (image, title) => {
+    setLightboxImage(image || '');
+    setLightboxTitle(title || 'Imagen');
+    setLightboxArtistName(artistName || '');
+  };
+
+  const closeImageLightbox = () => {
+    setLightboxImage('');
+    setLightboxTitle('');
+    setLightboxArtistName('');
+  };
 
   const triggerTurnEffect = (direction) => {
     setTurnDirection(direction);
@@ -940,7 +1112,7 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
             <p className="mt-2 text-center text-sm sm:text-base text-zinc-200 font-medium max-w-2xl mx-auto bg-none drop-shadow-none">Activos oficiales curados para medios y promotores, optimizados para uso digital e impreso.</p>
           </div>
 
-          <div className="grid h-auto max-h-none grid-cols-6 md:grid-cols-12 auto-rows-[64px] md:auto-rows-[52px] gap-3 overflow-x-hidden rounded-2xl overflow-y-auto min-h-0 flex-1">
+          <div className="grid h-auto max-h-none grid-cols-6 md:grid-cols-12 auto-rows-[minmax(140px,auto)] md:auto-rows-[minmax(160px,auto)] gap-3 overflow-x-hidden rounded-2xl overflow-y-auto min-h-0 flex-1">
             {page.payload.map((image, index) => (
               <GalleryImage
                 key={`${image}-${index}`}
@@ -949,6 +1121,29 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
                 gridClass={galleryGrid[index] || ''}
                 artistName={artistName}
                 index={index}
+                onOpenImage={openImageLightbox}
+              />
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (page.type === 'gallery-horizontal') {
+      return (
+        <div className="relative flex h-full min-h-0 w-full flex-col gap-3 overflow-y-auto p-4 sm:p-5" style={{ backgroundColor: uiTheme.bgColor }}>
+          <div className="shrink-0">
+            <h2 className="text-center text-xl font-black uppercase tracking-[0.13em] text-white sm:text-2xl">GALERÍA</h2>
+            <p className="mt-1 text-center text-xs text-zinc-400 sm:text-sm">Fotos en formato horizontal</p>
+          </div>
+          <div className="flex min-h-0 flex-1 flex-col gap-3">
+            {page.payload.map((image, index) => (
+              <HorizontalGalleryImage
+                key={`horiz-${index}`}
+                image={image}
+                artistName={artistName}
+                index={index}
+                onOpenImage={openImageLightbox}
               />
             ))}
           </div>
@@ -959,28 +1154,39 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
     if (page.type === 'contact') {
       return (
         <div className="h-full p-5" style={{ backgroundColor: uiTheme.bgColor }}>
-          <div className="grid gap-4 lg:grid-cols-[34%_66%]">
+          <div className="flex h-full flex-col gap-4">
             <div
-              className="overflow-hidden rounded-2xl p-4"
+              className="flex flex-1 items-center justify-center rounded-2xl p-4 text-center"
               style={{ backgroundColor: uiTheme.cardBg, border: `1px solid ${uiTheme.borderColor}` }}
             >
-              {contactLogo ? (
-                <ContactLogo image={contactLogo} artistName={artistName} />
-              ) : (
-                <div className="flex h-full min-h-56 items-center justify-center text-sm" style={{ color: uiTheme.subtitleColor }}>Sin logo</div>
-              )}
-            </div>
-            <div
-              className="rounded-2xl p-4"
-              style={{ backgroundColor: uiTheme.cardBg, border: `1px solid ${uiTheme.borderColor}` }}
-            >
-              <p className="text-xs uppercase tracking-wider" style={{ color: uiTheme.accentColor }}>Contacto</p>
-              <h3 className="mt-2 text-2xl font-black" style={{ color: uiTheme.titleColor }}>{contactArtistName || 'Nombre del artista'}</h3>
-              <div className="mt-4 space-y-2 text-sm" style={{ color: uiTheme.textColor }}>
-                <p><span style={{ color: uiTheme.subtitleColor }}>Manager:</span> {managerName || 'No especificado'}</p>
-                <p><span style={{ color: uiTheme.subtitleColor }}>Road manager:</span> {roadManagerName || 'No especificado'}</p>
-                <p><span style={{ color: uiTheme.subtitleColor }}>Telefono:</span> {contactPhone || 'No especificado'}</p>
+              <div className="max-w-xl space-y-4">
+                <h3 className="text-2xl font-black sm:text-3xl" style={{ color: uiTheme.titleColor }}>
+                  {contactArtistName || 'Nombre del artista'}
+                </h3>
+                <div className="space-y-2 text-sm sm:text-base" style={{ color: uiTheme.textColor }}>
+                  <p>
+                    <span style={{ color: uiTheme.subtitleColor }}>Manager:</span> {managerName || 'No especificado'}
+                  </p>
+                  <p>
+                    <span style={{ color: uiTheme.subtitleColor }}>Road manager:</span> {roadManagerName || 'No especificado'}
+                  </p>
+                  <p>
+                    <span style={{ color: uiTheme.subtitleColor }}>Telefono:</span> {contactPhone || 'No especificado'}
+                  </p>
+                </div>
               </div>
+            </div>
+
+            <div className="flex flex-1 items-center justify-center">
+              {contactLogo ? (
+                <div className="flex w-full items-center justify-center">
+                  <ContactLogo image={contactLogo} artistName={artistName} />
+                </div>
+              ) : (
+                <div className="flex h-full min-h-56 w-full items-center justify-center text-sm" style={{ color: uiTheme.subtitleColor }}>
+                  Sin logo
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1007,11 +1213,14 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
                     key={`${page.title}-${index}`}
                     type="button"
                     onClick={() => jumpToPage(index)}
-                    className="w-full rounded-xl px-3 py-2 text-left text-xs font-semibold transition"
-                    style={active
-                      ? { backgroundColor: `${uiTheme.accentColor}22`, border: `1px solid ${uiTheme.accentColor}66`, color: uiTheme.accentColor }
-                      : { backgroundColor: 'transparent', border: `1px solid ${uiTheme.borderColor}`, color: uiTheme.subtitleColor }
-                    }
+                    onMouseEnter={() => setHoveredIndex(index)}
+                    onMouseLeave={() => setHoveredIndex(null)}
+                    className="w-full rounded-xl px-3 py-2 text-left text-xs font-semibold transform transition-all duration-150 cursor-pointer"
+                    style={(() => {
+                      if (active) return { backgroundColor: `${uiTheme.accentColor}22`, border: `1px solid ${uiTheme.accentColor}66`, color: uiTheme.accentColor };
+                      if (hoveredIndex === index) return { backgroundColor: `${uiTheme.accentColor}12`, border: `1px solid ${uiTheme.accentColor}44`, color: uiTheme.accentColor, transform: 'scale(1.03)' };
+                      return { backgroundColor: 'transparent', border: `1px solid ${uiTheme.borderColor}`, color: uiTheme.subtitleColor };
+                    })()}
                   >
                     {index + 1}. {page.title}
                   </button>
@@ -1031,7 +1240,17 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
           style={{ borderBottom: `1px solid ${uiTheme.borderColor}` }}
         >
           <p className="text-xs uppercase tracking-wider" style={{ color: uiTheme.accentColor }}>{currentPage?.title || 'Preview'}</p>
-          <p className="text-xs" style={{ color: uiTheme.subtitleColor }}>Pagina {pageIndex + 1} de {webPages.length}</p>
+          <div className="flex items-center gap-3">
+            <p className="text-xs" style={{ color: uiTheme.subtitleColor }}>Pagina {pageIndex + 1} de {webPages.length}</p>
+            <button
+              type="button"
+              onClick={() => window.open('/presskitPDF', '_blank')}
+              className="inline-flex items-center rounded-lg border border-amber-300/40 px-3 py-1 text-xs font-semibold text-amber-300 transition hover:bg-amber-300/10"
+              aria-label="Abrir vista y descargar PDF"
+            >
+              Descargar PDF
+            </button>
+          </div>
         </div>
 
         <div className="relative">
@@ -1044,7 +1263,7 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
             {'<'}
           </button>
 
-          <div className={`relative ${(isCompact || currentPage?.type === 'gallery') ? 'overflow-y-auto overflow-x-hidden' : 'overflow-hidden'} ${pageViewportClass}`}>
+          <div className={`relative ${(isCompact || currentPage?.type === 'gallery' || currentPage?.type === 'gallery-horizontal') ? 'overflow-y-auto overflow-x-hidden' : 'overflow-hidden'} ${pageViewportClass}`}>
             <div
               className="h-full transition-all duration-500 ease-in-out"
               style={{
@@ -1066,6 +1285,10 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
           </button>
         </div>
       </article>
+
+      {lightboxImage ? (
+        <ImageLightbox image={lightboxImage} title={lightboxTitle} artistName={lightboxArtistName} onClose={closeImageLightbox} />
+      ) : null}
     </div>
   );
 }

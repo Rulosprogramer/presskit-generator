@@ -1,0 +1,36 @@
+export const fontOptions = [
+  // Display / Impact
+  { family: 'Anton', category: 'Display', preview: 'NOMBRE DEL ARTISTA' },
+  { family: 'Bebas Neue', category: 'Display', preview: 'NOMBRE DEL ARTISTA' },
+  { family: 'Archivo Black', category: 'Display', preview: 'NOMBRE DEL ARTISTA' },
+  { family: 'Abril Fatface', category: 'Display', preview: 'NOMBRE DEL ARTISTA' },
+  { family: 'Oswald', category: 'Display', preview: 'NOMBRE DEL ARTISTA' },
+  { family: 'Syne', category: 'Display', preview: 'NOMBRE DEL ARTISTA' },
+  { family: 'Space Grotesk', category: 'Display', preview: 'NOMBRE DEL ARTISTA' },
+  { family: 'Clash Display', category: 'Display', preview: 'NOMBRE DEL ARTISTA' },
+  // Serif elegante
+  { family: 'Cormorant Garamond', category: 'Serif', preview: 'Nombre del Artista' },
+  { family: 'Playfair Display', category: 'Serif', preview: 'Nombre del Artista' },
+  { family: 'Cinzel', category: 'Serif', preview: 'Nombre del Artista' },
+  { family: 'EB Garamond', category: 'Serif', preview: 'Nombre del Artista' },
+  { family: 'Libre Baskerville', category: 'Serif', preview: 'Nombre del Artista' },
+  { family: 'Lora', category: 'Serif', preview: 'Nombre del Artista' },
+  { family: 'Merriweather', category: 'Serif', preview: 'Nombre del Artista' },
+  { family: 'Yeseva One', category: 'Serif', preview: 'Nombre del Artista' },
+  // Sans moderno
+  { family: 'Inter', category: 'Sans', preview: 'Nombre del artista' },
+  { family: 'Poppins', category: 'Sans', preview: 'Nombre del artista' },
+  { family: 'Montserrat', category: 'Sans', preview: 'Nombre del artista' },
+  { family: 'DM Sans', category: 'Sans', preview: 'Nombre del artista' },
+  { family: 'Manrope', category: 'Sans', preview: 'Nombre del artista' },
+  { family: 'Nunito', category: 'Sans', preview: 'Nombre del artista' },
+  { family: 'Plus Jakarta Sans', category: 'Sans', preview: 'Nombre del artista' },
+  { family: 'IBM Plex Sans', category: 'Sans', preview: 'Nombre del artista' },
+  // Expresivas / especiales
+  { family: 'Special Elite', category: 'Expresiva', preview: 'Nombre del artista' },
+  { family: 'Permanent Marker', category: 'Expresiva', preview: 'Nombre del artista' },
+  { family: 'Lobster', category: 'Expresiva', preview: 'Nombre del artista' },
+  { family: 'Pacifico', category: 'Expresiva', preview: 'Nombre del artista' },
+  { family: 'Orbitron', category: 'Expresiva', preview: 'NOMBRE DEL ARTISTA' },
+  { family: 'Bangers', category: 'Expresiva', preview: 'NOMBRE DEL ARTISTA' },
+];
