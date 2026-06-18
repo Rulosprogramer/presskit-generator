@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { generateArtistMilestoneWithAI } from '../lib/aiBio';
 
 const categoryLabels = {
@@ -152,8 +153,8 @@ function MilestoneAIModal({ isOpen, onClose, onUseMilestone, category, artistDat
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur">
+  return createPortal(
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 p-4 backdrop-blur">
       <div className="relative flex h-[80vh] w-full max-w-2xl flex-col rounded-3xl border border-white/10 bg-zinc-950 p-6 shadow-xl">
         <div className="mb-4 border-b border-white/10 pb-4">
           <h2 className="text-2xl font-bold text-white">Crear hito con IA</h2>
@@ -233,7 +234,8 @@ function MilestoneAIModal({ isOpen, onClose, onUseMilestone, category, artistDat
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

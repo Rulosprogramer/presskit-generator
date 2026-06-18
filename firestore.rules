@@ -6,20 +6,60 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == userId;
     }
 
+    // Correos con acceso premium total (debe reflejar src/lib/premiumAccess.js).
+    // La pasarela de pagos usará el Admin SDK (ignora estas reglas) para marcar
+    // pagos reales; este whitelist es para accesos manuales/beta.
+    function premiumEmails() {
+      return [
+        'bandasietesas@gmail.com'
+      ];
+    }
+
+    function isPremiumUser() {
+      return request.auth != null
+        && request.auth.token.email != null
+        && (request.auth.token.email in premiumEmails());
+    }
+
+    // Flags premium del documento, con valores por defecto para writes parciales.
+    function premiumFlags(data) {
+      return {
+        'unlocked': data.get('downloadUnlocked', false),
+        'sub': data.get('subscriptionActive', false),
+        'pay': data.get('paymentStatus', '')
+      };
+    }
+
+    // ¿El write intenta ACTIVAR algún flag premium?
+    function setsPremiumFlags() {
+      return premiumFlags(request.resource.data).unlocked == true
+        || premiumFlags(request.resource.data).sub == true
+        || premiumFlags(request.resource.data).pay == 'paid';
+    }
+
+    // ¿El write deja los flags premium IGUAL a como ya estaban?
+    function keepsPremiumFlags() {
+      return premiumFlags(request.resource.data).unlocked == premiumFlags(resource.data).unlocked
+        && premiumFlags(request.resource.data).sub == premiumFlags(resource.data).sub
+        && premiumFlags(request.resource.data).pay == premiumFlags(resource.data).pay;
+    }
+
     match /presskits/{userId} {
       allow read, delete: if isOwner(userId);
 
       allow create: if isOwner(userId)
-        && request.resource.data.userId == request.auth.uid;
+        && request.resource.data.userId == request.auth.uid
+        && (isPremiumUser() || !setsPremiumFlags());
 
       allow update: if isOwner(userId)
         && resource.data.userId == request.auth.uid
-        && request.resource.data.userId == request.auth.uid;
+        && request.resource.data.userId == request.auth.uid
+        && (isPremiumUser() || keepsPremiumFlags());
     }
 
     match /users/{userId} {
       allow create, read: if isOwner(userId);
-      
+
       match /imageLibrary/{imageId} {
         allow read, write, delete: if isOwner(userId);
       }

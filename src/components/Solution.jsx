@@ -54,14 +54,28 @@ const testimonials = [
 function Solution() {
   const [startIndex, setStartIndex] = useState(0);
   const [isSliding, setIsSliding] = useState(false);
+  const [perView, setPerView] = useState(4);
 
+  // En celular se muestra 1 reseña a la vez; en desktop 4.
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return undefined;
+    const mq = window.matchMedia('(max-width: 768px)');
+    const update = () => setPerView(mq.matches ? 1 : 4);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+
+  // Construimos perView + 1 elementos para que el siguiente entre al deslizar.
   const slideItems = useMemo(() => {
     const nextItems = [];
-    for (let i = 0; i < 4; i += 1) {
+    for (let i = 0; i < perView + 1; i += 1) {
       nextItems.push(testimonials[(startIndex + i) % testimonials.length]);
     }
     return nextItems;
-  }, [startIndex]);
+  }, [startIndex, perView]);
+
+  const cardWidthPct = 100 / perView;
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -100,10 +114,10 @@ function Solution() {
       <div className="mt-10 overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-3 backdrop-blur sm:p-4">
         <div
           className={`flex ${isSliding ? 'transition-transform duration-700 ease-out' : ''}`}
-          style={{ transform: isSliding ? 'translateX(-25%)' : 'translateX(0%)' }}
+          style={{ transform: isSliding ? `translateX(-${cardWidthPct}%)` : 'translateX(0%)' }}
         >
           {slideItems.map((item, index) => (
-            <article key={`${item.name}-${index}`} className="w-1/4 flex-none px-2">
+            <article key={`${item.name}-${index}`} className="flex-none px-2" style={{ width: `${cardWidthPct}%` }}>
               <div className="h-full rounded-2xl border border-white/15 bg-zinc-900/70 p-5">
                 <div className="flex items-center gap-3">
                   <img

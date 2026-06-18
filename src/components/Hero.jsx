@@ -1,8 +1,19 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import HTMLFlipBook from 'react-pageflip';
 
 function Hero() {
   const bookRef = useRef(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // En celular el libro debe pasar de a 1 página (modo retrato), en desktop spread de 2.
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return undefined;
+    const mq = window.matchMedia('(max-width: 768px)');
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -21,7 +32,7 @@ function Hero() {
     }, 4000);
 
     return () => window.clearInterval(timer);
-  }, []);
+  }, [isMobile]);
 
   return (
     <section id="inicio" className="relative overflow-hidden bg-zinc-950 text-zinc-100">
@@ -79,16 +90,17 @@ function Hero() {
                 Visualizador de Portafolio Dinámico
               </p>
 
-              <div className="mt-5 flex justify-center">
+              <div className="mt-5 flex justify-center overflow-hidden">
                 <HTMLFlipBook
+                  key={isMobile ? 'portrait' : 'landscape'}
                   ref={bookRef}
-                  width={560}
-                  height={520}
+                  width={isMobile ? 300 : 560}
+                  height={isMobile ? 460 : 520}
                   size="stretch"
-                  minWidth={290}
-                  maxWidth={680}
-                  minHeight={420}
-                  maxHeight={620}
+                  minWidth={isMobile ? 240 : 290}
+                  maxWidth={isMobile ? 420 : 680}
+                  minHeight={isMobile ? 380 : 420}
+                  maxHeight={isMobile ? 560 : 620}
                   maxShadowOpacity={0.45}
                   showCover={false}
                   mobileScrollSupport
@@ -96,7 +108,7 @@ function Hero() {
                   flippingTime={950}
                   className="mx-auto"
                   startPage={0}
-                  usePortrait={false}
+                  usePortrait={isMobile}
                 >
                     <div className="h-full w-full overflow-hidden rounded-xl border border-white/20 bg-zinc-900">
                       <div className="relative h-full">

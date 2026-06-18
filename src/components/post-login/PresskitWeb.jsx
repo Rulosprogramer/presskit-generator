@@ -245,7 +245,7 @@ function ContactLogo({ image, artistName }) {
       onMouseEnter={() => !isMobile && setShowDownload(true)}
       onMouseLeave={() => !isMobile && setShowDownload(false)}
     >
-      <img src={image} alt="Logo de contacto" className="h-full w-full object-contain" />
+      <img src={image} alt="Logo de contacto" className="h-48 w-auto max-w-full object-contain sm:h-64" />
       {showDownload && (
         <button
           type="button"
@@ -277,6 +277,7 @@ function ContactLogo({ image, artistName }) {
 }
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getTheme } from '../../lib/themeColors.js';
+import { getTextEffectStyle } from '../../lib/textEffects.js';
 import { useTheme } from '../../context/ThemeContext.tsx';
 import {
   SiApplemusic,
@@ -297,6 +298,25 @@ function chunkArray(list, size) {
   return chunks;
 }
 
+// Reparto de releases por página según la cantidad total (máx 8)
+const RELEASE_PAGE_SPLITS = {
+  1: [1], 2: [1, 1], 3: [1, 2], 4: [2, 2],
+  5: [2, 3], 6: [3, 3], 7: [4, 3], 8: [4, 4],
+};
+
+function splitReleasesIntoPages(releases) {
+  const list = Array.isArray(releases) ? releases.filter((r) => r && (r.url || r.title)) : [];
+  const sizes = RELEASE_PAGE_SPLITS[list.length];
+  if (!sizes) return chunkArray(list, 4);
+  const pages = [];
+  let idx = 0;
+  for (const size of sizes) {
+    pages.push(list.slice(idx, idx + size));
+    idx += size;
+  }
+  return pages;
+}
+
 function getYoutubeThumbnailUrl(url) {
   if (!url) return '';
   const match = String(url).match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
@@ -305,22 +325,11 @@ function getYoutubeThumbnailUrl(url) {
 }
 
 function getCollageSpanClass(index, total) {
-  if (total <= 1) return 'col-span-4 row-span-4';
-  if (total === 2) return index === 0 ? 'col-span-2 row-span-4' : 'col-span-2 row-span-4';
-  if (total === 3) return ['col-span-2 row-span-2', 'col-span-2 row-span-2', 'col-span-4 row-span-2'][index] || 'col-span-2 row-span-2';
-
-  const pattern = [
-    'col-span-2 row-span-2',
-    'col-span-2 row-span-1',
-    'col-span-1 row-span-2',
-    'col-span-1 row-span-1',
-    'col-span-2 row-span-1',
-    'col-span-1 row-span-1',
-    'col-span-1 row-span-1',
-    'col-span-2 row-span-1',
-  ];
-
-  return pattern[index % pattern.length];
+  // Grid base 2x2 (4 celdas) — siempre se llena por completo, sin huecos.
+  if (total <= 1) return 'col-span-2 row-span-2';
+  if (total === 2) return 'col-span-1 row-span-2';
+  if (total === 3) return index === 0 ? 'col-span-2 row-span-1' : 'col-span-1 row-span-1';
+  return 'col-span-1 row-span-1';
 }
 
 function getGalleryEditorialSpanClass(index) {
@@ -400,8 +409,22 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
     : isEmbedded
       ? 'aspect-[9/16] w-full sm:aspect-auto sm:h-[clamp(19rem,44vw,30rem)]'
       : 'aspect-[9/16] w-full sm:aspect-auto sm:h-[62vh] lg:h-[86vh]';
-  const { theme: uiTheme } = useTheme();
+  const { theme: uiTheme, typography } = useTheme();
+  const pkFonts = {
+    title: typography.titleFont    ? `'${typography.titleFont}', sans-serif`    : undefined,
+    sub:   typography.subtitleFont ? `'${typography.subtitleFont}', sans-serif` : undefined,
+    body:  typography.bodyFont     ? `'${typography.bodyFont}', sans-serif`     : undefined,
+    label: typography.labelFont    ? `'${typography.labelFont}', sans-serif`    : undefined,
+  };
+  const pkCss = [
+    pkFonts.title && `[data-pk-web] h2,[data-pk-web] h3{font-family:${pkFonts.title}}`,
+  ].filter(Boolean).join('');
   const theme = getTheme(presskitData.theme || 'neon');
+  // Efectos de texto/subtítulo del paso 11
+  const textEffectStyle = getTextEffectStyle(uiTheme.textEffect, uiTheme.textColor);
+  const subtitleEffectStyle = getTextEffectStyle(uiTheme.subtitleEffect, uiTheme.subtitleColor);
+  // Overlay unificado de todas las páginas, controlado por el slider del paso 11
+  const PAGE_OVERLAY = uiTheme.overlayColor;
 
   const cover = presskitData.images?.[0] || '';
   const gallery = Array.isArray(presskitData.images) ? presskitData.images.slice(1, 5).filter(Boolean) : [];
@@ -413,7 +436,9 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
   const performanceLiveThumbnail = getYoutubeThumbnailUrl(performanceLiveLink);
   const totalStreams = presskitData.totalStreams || 'Sin dato';
   const totalVideoViews = presskitData.totalVideoViews || 'Sin dato';
-  const recognitions = presskitData.recognitions || '';
+  const recognitions = Array.isArray(presskitData.recognitions)
+    ? presskitData.recognitions.filter(Boolean)
+    : (presskitData.recognitions || '').split('\n').map(s => s.trim()).filter(Boolean);
   const recognitionImage = presskitData.useRecognitionImage ? presskitData.recognitionImage : '';
   const twitterBio = presskitData.twitterBio || '';
   const twitterBioImage = presskitData.twitterBioImage || '';
@@ -427,7 +452,7 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
     ...(artistMilestones.live || []),
     ...(artistMilestones.press || []),
     ...(artistMilestones.collaborations || []),
-  ].slice(0, 8);
+  ].slice(0, 12);
   const milestoneTextSizeClass = isEmbedded
     ? 'text-[clamp(0.68rem,0.9vw,0.88rem)] leading-[clamp(1rem,1.35vw,1.3rem)]'
     : 'text-[clamp(0.82rem,1.15vw,1.05rem)] leading-[clamp(1.15rem,1.6vw,1.55rem)]';
@@ -507,7 +532,7 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
       });
     });
 
-    chunkArray(releases, 4).forEach((releaseChunk, index) => {
+    splitReleasesIntoPages(releases).forEach((releaseChunk, index) => {
       pages.push({
         type: 'releases',
         title: `Video Releases ${index + 1}`,
@@ -691,15 +716,16 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
           {cover ? (
             <img src={cover} alt={artistName} className="absolute inset-0 h-full w-full object-cover" />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center bg-zinc-800 text-sm text-zinc-400">
+            <div className="absolute inset-0 flex items-center justify-center text-sm" style={{ backgroundColor: uiTheme.cardBg, color: uiTheme.subtitleColor }}>
               Sube una portada para ver tu cover
             </div>
           )}
+          <div className="pointer-events-none absolute inset-0" style={{ backgroundColor: PAGE_OVERLAY }} />
           <div className="absolute inset-x-0 top-6 flex justify-center">
-            <h3 className="text-center text-3xl font-black text-white">{artistName}</h3>
+            <h3 className="text-center text-3xl font-black" style={{ color: uiTheme.titleColor }}>{artistName}</h3>
           </div>
           <div className="absolute inset-x-0 bottom-6 flex justify-center">
-            <button type="button" className="bg-transparent p-0 text-sm font-black uppercase tracking-[0.28em] text-white">
+            <button type="button" className="bg-transparent p-0 text-sm font-black uppercase tracking-[0.28em]" style={{ color: uiTheme.titleColor, ...(pkFonts.title && { fontFamily: pkFonts.title }) }}>
               PRESSKIT
             </button>
           </div>
@@ -711,16 +737,16 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
       return (
         <div className="flex h-full flex-col p-4 sm:p-5">
           <div className="shrink-0 text-center">
-            <p className="text-[11px] uppercase tracking-[0.18em] sm:text-xs" style={{ color: uiTheme.accentColor }}>Conoce A</p>
-            <h3 className="mt-2 text-[clamp(1.55rem,3.2vw,2.25rem)] font-black" style={{ color: uiTheme.titleColor }}>{artistName}</h3>
+            <p className="text-[11px] uppercase tracking-[0.18em] sm:text-xs" style={{ color: uiTheme.subtitleColor, ...(pkFonts.sub && { fontFamily: pkFonts.sub }), ...subtitleEffectStyle }}>Conoce A</p>
+            <h3 className="mt-2 text-[clamp(1.55rem,3.2vw,2.25rem)] font-black" style={{ color: uiTheme.titleColor, ...(pkFonts.title && { fontFamily: pkFonts.title }) }}>{artistName}</h3>
           </div>
 
             <div className="mt-4 grid min-h-0 flex-1 gap-3 lg:grid-cols-[38%_62%]">
-            <div className="min-h-0 overflow-hidden rounded-2xl border border-white/10 bg-zinc-800">
+            <div className="min-h-0 overflow-hidden rounded-2xl" style={{ backgroundColor: uiTheme.cardBg, border: `1px solid ${uiTheme.borderColor}` }}>
               {bioImage ? (
                 <img src={bioImage} alt={`Bio corta de ${artistName}`} className="h-full w-full object-cover" />
               ) : (
-                <div className="flex h-full items-center justify-center px-3 text-center text-xs text-zinc-400 sm:text-sm">Sin imagen de bio corta</div>
+                <div className="flex h-full items-center justify-center px-3 text-center text-xs sm:text-sm" style={{ color: uiTheme.subtitleColor }}>Sin imagen de bio corta</div>
               )}
             </div>
             <div
@@ -728,11 +754,11 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
               style={{ backgroundColor: uiTheme.cardBg, border: `1px solid ${uiTheme.borderColor}` }}
             >
               <div className="flex flex-col gap-2">
-                <div className="text-xs sm:text-sm" style={{ color: uiTheme.subtitleColor }}>{genre} · {city}</div>
+                <div className="text-xs sm:text-sm" style={{ color: uiTheme.subtitleColor, ...(pkFonts.sub && { fontFamily: pkFonts.sub }), ...subtitleEffectStyle }}>{genre} · {city}</div>
               </div>
 
               <div className="mt-3 flex-1 min-h-0 overflow-y-auto">
-                <p className="text-xs leading-5 sm:text-sm sm:leading-6" style={{ color: uiTheme.textColor }}>{shortBio || 'Completa la biografia para mostrar informacion del artista en esta pagina.'}</p>
+                <p className="text-xs leading-5 sm:text-sm sm:leading-6" style={{ color: uiTheme.textColor, ...(pkFonts.body && { fontFamily: pkFonts.body }), ...textEffectStyle }}>{shortBio || 'Completa la biografia para mostrar informacion del artista en esta pagina.'}</p>
               </div>
 
               {performanceLiveLink ? (
@@ -741,21 +767,22 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
                     href={performanceLiveLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full flex-none flex flex-col overflow-hidden rounded-xl border border-cyan-300/35 bg-cyan-300/10 transition hover:border-cyan-300/55 hover:bg-cyan-300/15"
+                    className="w-full flex-none flex flex-col overflow-hidden rounded-xl transition"
+                    style={{ border: `1px solid ${uiTheme.borderColor}` }}
                   >
-                    <div className="w-full aspect-video overflow-hidden">
+                    <div className="relative w-full aspect-video overflow-hidden">
                       {performanceLiveThumbnail ? (
                         <img src={performanceLiveThumbnail} alt="Performance en vivo" className="w-full h-full object-cover" />
                       ) : (
-                        <div className="flex h-full items-center justify-center bg-zinc-900 text-[11px] text-zinc-300">Sin thumbnail</div>
+                        <div className="flex h-full items-center justify-center text-[11px]" style={{ backgroundColor: uiTheme.cardBg, color: uiTheme.subtitleColor }}>Sin thumbnail</div>
                       )}
                     </div>
 
-                    <div className="p-3 bg-emerald-500/90">
-                      <p className="text-[11px] uppercase tracking-[0.14em] text-cyan-200">Live Performance</p>
-                      <p className="mt-1 text-sm font-semibold text-white">Mira mi performance en vivo</p>
-                      <p className="mt-1 text-[11px] text-zinc-300">Ver en YouTube</p>
-                      <p className="mt-2 text-xs text-zinc-100 whitespace-pre-line">{presskitData.performanceDescription || ''}</p>
+                    <div className="p-3" style={{ backgroundColor: uiTheme.overlayColor }}>
+                      <p className="text-[11px] uppercase tracking-[0.14em]" style={{ color: uiTheme.subtitleColor, ...(pkFonts.sub && { fontFamily: pkFonts.sub }) }}>Live Performance</p>
+                      <p className="mt-1 text-sm font-semibold" style={{ color: uiTheme.subtitleColor, ...(pkFonts.sub && { fontFamily: pkFonts.sub }) }}>Mira mi performance en vivo</p>
+                      <p className="mt-1 text-[11px]" style={{ color: uiTheme.textColor, ...(pkFonts.body && { fontFamily: pkFonts.body }) }}>Ver en YouTube</p>
+                      <p className="mt-2 text-xs whitespace-pre-line" style={{ color: uiTheme.textColor, ...(pkFonts.body && { fontFamily: pkFonts.body }) }}>{presskitData.performanceDescription || ''}</p>
                     </div>
                   </a>
                 </div>
@@ -770,28 +797,32 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
       return (
         <div className="flex h-full min-h-0 flex-col gap-4 p-5">
           <div className="shrink-0 grid gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl border border-cyan-300/35 bg-cyan-300/10 p-4">
-              <p className="text-xs uppercase tracking-wider text-cyan-200">Total streams</p>
-              <p className="mt-2 text-3xl font-black text-white">{totalStreams}</p>
+            <div className="rounded-2xl p-4" style={{ border: `1px solid ${uiTheme.borderColor}`, backgroundColor: uiTheme.cardBg }}>
+              <p className="text-xs uppercase tracking-wider" style={{ color: uiTheme.subtitleColor, ...(pkFonts.sub && { fontFamily: pkFonts.sub }) }}>Total streams</p>
+              <p className="mt-2 text-3xl font-black" style={{ color: uiTheme.titleColor, ...(pkFonts.title && { fontFamily: pkFonts.title }) }}>{totalStreams}</p>
             </div>
-            <div className="rounded-2xl border border-fuchsia-300/35 bg-fuchsia-300/10 p-4">
-              <p className="text-xs uppercase tracking-wider text-fuchsia-200">Total video views</p>
-              <p className="mt-2 text-3xl font-black text-white">{totalVideoViews}</p>
+            <div className="rounded-2xl p-4" style={{ border: `1px solid ${uiTheme.borderColor}`, backgroundColor: uiTheme.cardBg }}>
+              <p className="text-xs uppercase tracking-wider" style={{ color: uiTheme.subtitleColor, ...(pkFonts.sub && { fontFamily: pkFonts.sub }) }}>Total video views</p>
+              <p className="mt-2 text-3xl font-black" style={{ color: uiTheme.titleColor, ...(pkFonts.title && { fontFamily: pkFonts.title }) }}>{totalVideoViews}</p>
             </div>
           </div>
           <div className="min-h-0 flex-1 grid gap-4 lg:grid-cols-[40%_60%]">
-            <div className="min-h-0 overflow-hidden rounded-2xl border border-white/10 bg-zinc-800">
+            <div className="min-h-0 overflow-hidden rounded-2xl" style={{ border: `1px solid ${uiTheme.borderColor}`, backgroundColor: uiTheme.cardBg }}>
               {recognitionImage ? (
                 <img src={recognitionImage} alt="Reconocimientos" className="h-full w-full object-cover" />
               ) : (
-                <div className="flex h-full items-center justify-center text-sm text-zinc-400">Sin imagen de reconocimientos</div>
+                <div className="flex h-full items-center justify-center text-sm" style={{ color: uiTheme.subtitleColor }}>Sin imagen de reconocimientos</div>
               )}
             </div>
-            <div className="min-h-0 overflow-y-auto rounded-2xl border border-white/10 bg-white/5 p-4">
-              <p className="text-xs uppercase tracking-wider text-fuchsia-300">Reconocimientos</p>
-              <p className="mt-2 whitespace-pre-line text-sm leading-6 text-zinc-200">
-                {recognitions || 'Agrega reconocimientos para completar esta seccion.'}
-              </p>
+            <div className="min-h-0 overflow-y-auto rounded-2xl p-4" style={{ border: `1px solid ${uiTheme.borderColor}`, backgroundColor: uiTheme.cardBg }}>
+              <p className="text-xs uppercase tracking-wider" style={{ color: uiTheme.subtitleColor, ...(pkFonts.sub && { fontFamily: pkFonts.sub }) }}>Reconocimientos</p>
+              <div className="mt-2 space-y-1.5">
+                {recognitions.length > 0 ? recognitions.map((r, i) => (
+                  <p key={i} className="text-sm leading-6" style={{ color: uiTheme.textColor, ...(pkFonts.body && { fontFamily: pkFonts.body }) }}>{r}</p>
+                )) : (
+                  <p className="text-sm" style={{ color: uiTheme.subtitleColor }}>Agrega reconocimientos para completar esta seccion.</p>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -802,40 +833,46 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
       if (page.payload.key === 'twitter') {
         return (
           <div className="h-full p-5">
-            <div className="mx-auto flex h-full min-h-0 max-w-3xl flex-col gap-4">
-              <div className="relative shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-zinc-950/65 p-5 shadow-[0_16px_40px_rgba(0,0,0,0.35)] backdrop-blur-md">
-                <div className="pointer-events-none absolute inset-0 rounded-2xl bg-linear-to-br from-cyan-400/10 via-fuchsia-400/5 to-transparent" />
-                <p className="relative whitespace-pre-line text-sm leading-7 text-zinc-50">{page.payload.content}</p>
-              </div>
+            <div className="relative h-full overflow-hidden rounded-2xl border border-white/15">
+              {twitterBioImage ? (
+                <img src={twitterBioImage} alt="Bio 140" className="absolute inset-0 h-full w-full object-cover" />
+              ) : (
+                <div className="absolute inset-0 bg-zinc-800" />
+              )}
 
-              <div className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-white/15 bg-linear-to-br from-cyan-400/20 via-fuchsia-400/18 to-zinc-900">
-                {twitterBioImage ? (
-                  <div className="relative h-full w-full">
-                    <img src={twitterBioImage} alt="Bio 140" className="h-full w-full object-cover" />
+              <div className="absolute inset-0" style={{ backgroundColor: PAGE_OVERLAY }} />
 
-                    <div
-                      className="pointer-events-none absolute inset-0 z-10"
-                      style={{ backgroundColor: uiTheme.overlayColor }}
-                    />
+              <div className="relative z-10 flex h-full flex-col overflow-y-auto p-5 sm:p-6">
+                {/* Header: kicker + nombre */}
+                <div className="shrink-0 text-center">
+                  <p className="text-xs font-bold uppercase tracking-[0.22em]" style={{ color: uiTheme.subtitleColor, ...(pkFonts.label && { fontFamily: pkFonts.label }), ...subtitleEffectStyle }}>CONOCE A</p>
+                  <h3 className="mt-1 text-2xl font-black sm:text-3xl" style={{ color: uiTheme.titleColor, ...(pkFonts.title && { fontFamily: pkFonts.title }) }}>{artistName}</h3>
+                </div>
 
-                    {milestoneItems.length > 0 ? (
-                      <div className="absolute inset-x-3 top-3 z-20 space-y-2">
-                        {milestoneItems.map((item, index) => (
-                          <p
-                            key={`milestone-overlay-${index}`}
-                            className={`text-center font-semibold ${milestoneTextSizeClass}`}
-                            style={{ color: uiTheme.accentColor }}
-                          >
-                            {item}
-                          </p>
-                        ))}
-                      </div>
-                    ) : null}
-
-                  </div>
-                ) : (
-                  <div className="flex h-full items-center justify-center text-sm text-zinc-400">Agrega una foto para la Bio 140</div>
-                )}
+                {/* Bloque central: genero/ciudad + bio */}
+                <div className="flex flex-1 flex-col items-center justify-center gap-3 py-4 text-center">
+                  {[presskitData.genre, presskitData.city].filter(Boolean).length > 0 ? (
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: uiTheme.subtitleColor, ...(pkFonts.label && { fontFamily: pkFonts.label }), ...subtitleEffectStyle }}>
+                      {[presskitData.genre, presskitData.city].filter(Boolean).join(' • ')}
+                    </p>
+                  ) : null}
+                  <p className="mx-auto max-w-2xl whitespace-pre-line text-sm leading-7 sm:text-base" style={{ color: uiTheme.textColor, ...(pkFonts.body && { fontFamily: pkFonts.body }), ...textEffectStyle }}>
+                    {page.payload.content}
+                  </p>
+                  {milestoneItems.length > 0 ? (
+                    <div className="mt-2 flex w-full max-w-2xl flex-col gap-2">
+                      {milestoneItems.map((item, index) => (
+                        <div
+                          key={`milestone-overlay-${index}`}
+                          className={`rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-center font-semibold backdrop-blur-sm ${milestoneTextSizeClass}`}
+                          style={{ color: uiTheme.textColor, ...(pkFonts.body && { fontFamily: pkFonts.body }) }}
+                        >
+                          {item}
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
               </div>
             </div>
           </div>
@@ -856,10 +893,13 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
                 <div className="absolute inset-0 bg-zinc-800" />
               )}
 
-              <div className="absolute inset-0 bg-linear-to-b from-black/45 via-black/55 to-black/78" />
+              <div className="absolute inset-0" style={{ backgroundColor: PAGE_OVERLAY }} />
 
               <div className="relative z-10 h-full overflow-y-auto p-5 sm:p-6">
-                <p className="mx-auto max-w-3xl whitespace-pre-line text-xs leading-6 text-zinc-100 sm:text-sm sm:leading-7">
+                <div className="mb-4 text-center">
+                  <h3 className="text-2xl font-black" style={{ color: uiTheme.titleColor, ...(pkFonts.title && { fontFamily: pkFonts.title }) }}>{artistName}</h3>
+                </div>
+                <p className="mx-auto max-w-3xl whitespace-pre-line text-xs leading-6 sm:text-sm sm:leading-7" style={{ color: uiTheme.textColor, ...(pkFonts.body && { fontFamily: pkFonts.body }), ...textEffectStyle }}>
                   {page.payload.content}
                 </p>
               </div>
@@ -879,61 +919,106 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
     }
 
     if (page.type === 'releases') {
+      const items = page.payload;
+      const count = items.length;
+
+      const cardClass = 'group overflow-hidden rounded-lg border border-fuchsia-300/25 bg-[#0b0b0f] shadow-[0_7px_14px_rgba(0,0,0,0.28)] transition hover:-translate-y-0.5 hover:shadow-[0_10px_18px_rgba(34,211,238,0.1)]';
+
+      const renderThumb = (release, big = false) => {
+        const thumbnail = getYoutubeThumbnailUrl(release.url);
+        return (
+          <div className="relative h-full min-h-0 overflow-hidden rounded-lg border border-white/10 bg-zinc-900">
+            {thumbnail ? (
+              <img src={thumbnail} alt={release.title || 'Release'} className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full items-center justify-center bg-linear-to-br from-zinc-800 via-zinc-900 to-black px-2 text-center">
+                <span className="rounded-full border border-white/25 bg-white/10 px-2 py-1 text-[9px] font-semibold uppercase tracking-wider text-zinc-200 backdrop-blur-sm sm:text-[10px]">
+                  Video no disponible
+                </span>
+              </div>
+            )}
+            <div className="absolute inset-0 bg-linear-to-b from-black/10 via-black/25 to-black/65" />
+            <div className={`absolute left-1.5 top-1.5 inline-flex items-center justify-center rounded-full border border-white/30 bg-black/35 text-white backdrop-blur-sm ${big ? 'h-9 w-9 text-base' : 'h-6 w-6 text-[10px]'}`}>
+              ▶
+            </div>
+          </div>
+        );
+      };
+
+      const renderInfo = (release, big = false) => (
+        <div className="flex min-h-0 flex-col overflow-y-auto">
+          <p className={`font-black uppercase leading-[0.95] tracking-[0.01em] text-fuchsia-400 ${big ? 'text-[clamp(1.05rem,2.6vw,1.7rem)]' : 'text-[clamp(0.7rem,1.35vw,0.98rem)]'}`}>
+            {release.title || 'Release sin titulo'}
+          </p>
+          {release.description ? (
+            <p className={`mt-1.5 text-zinc-100/90 ${big ? 'text-[clamp(0.8rem,1.3vw,0.98rem)] leading-snug' : 'text-[clamp(0.58rem,0.95vw,0.8rem)] leading-[1.1]'}`}>
+              {release.description}
+            </p>
+          ) : null}
+          {release.author ? <p className={`mt-1.5 font-semibold leading-tight text-cyan-200 ${big ? 'text-[clamp(0.72rem,1.1vw,0.92rem)]' : 'text-[clamp(0.6rem,0.9vw,0.76rem)]'}`}>{release.author}</p> : null}
+          {release.url ? <p className="mt-1.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-zinc-400">Ver video</p> : null}
+        </div>
+      );
+
+      // Tarjeta vertical: miniatura arriba, info abajo
+      // Tarjeta horizontal: miniatura a la izquierda, info a la derecha
+      const horizontalCard = (release, index) => (
+        <a
+          key={`${release.title}-${index}`}
+          href={release.url || '#'}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`grid min-h-0 grid-cols-[44%_56%] gap-2 p-1.5 sm:gap-3 sm:p-2 ${cardClass}`}
+        >
+          {renderThumb(release)}
+          <div className="min-h-0 py-0.5 pr-1">{renderInfo(release)}</div>
+        </a>
+      );
+
+      // Tarjeta destacada (1 release): miniatura arriba, texto abajo
+      const featuredCard = (release, index) => (
+        <a
+          key={`${release.title}-${index}`}
+          href={release.url || '#'}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`grid min-h-0 grid-rows-[1fr_auto] gap-2 p-1.5 sm:gap-3 sm:p-2 ${cardClass}`}
+        >
+          {renderThumb(release, true)}
+          <div className="flex min-h-0 flex-col items-center justify-center px-1 pb-1 text-center">{renderInfo(release, true)}</div>
+        </a>
+      );
+
+      let grid;
+      if (count === 1) {
+        grid = (
+          <div className="grid min-h-0 flex-1 grid-rows-1">
+            {featuredCard(items[0], 0)}
+          </div>
+        );
+      } else if (count === 2) {
+        grid = (
+          <div className="grid min-h-0 flex-1 grid-rows-2 gap-2 sm:gap-3">
+            {items.map((release, index) => horizontalCard(release, index))}
+          </div>
+        );
+      } else if (count === 3) {
+        grid = (
+          <div className="grid min-h-0 flex-1 grid-rows-3 gap-2 sm:gap-3">
+            {items.map((release, index) => horizontalCard(release, index))}
+          </div>
+        );
+      } else {
+        grid = (
+          <div className="grid min-h-0 flex-1 grid-cols-1 grid-rows-4 gap-1 sm:grid-cols-2 sm:grid-rows-2 sm:gap-3">
+            {items.map((release, index) => horizontalCard(release, index))}
+          </div>
+        );
+      }
+
       return (
         <div className="flex h-full flex-col p-1.5 sm:p-4">
-          <div className="grid flex-1 grid-cols-1 grid-rows-4 gap-1 sm:grid-cols-2 sm:grid-rows-2 sm:gap-3">
-            {page.payload.map((release, index) => {
-              const thumbnail = getYoutubeThumbnailUrl(release.url);
-
-              return (
-                <a
-                  key={`${release.title}-${index}`}
-                  href={release.url || '#'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group grid min-h-0 grid-cols-[50%_50%] grid-rows-1 gap-1 overflow-hidden rounded-lg border border-fuchsia-300/25 bg-[#0b0b0f] p-0.5 shadow-[0_7px_14px_rgba(0,0,0,0.28)] transition hover:-translate-y-0.5 hover:shadow-[0_10px_18px_rgba(34,211,238,0.1)] sm:grid-cols-[50%_50%] sm:gap-1.5 sm:p-2"
-                >
-                  <div className="relative min-h-0 overflow-hidden rounded-lg border border-white/10 bg-zinc-900">
-                    {thumbnail ? (
-                      <img
-                        src={thumbnail}
-                        alt={release.title || 'Release'}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center bg-linear-to-br from-zinc-800 via-zinc-900 to-black px-2 text-center">
-                        <span className="rounded-full border border-white/25 bg-white/10 px-2 py-1 text-[9px] font-semibold uppercase tracking-wider text-zinc-200 backdrop-blur-sm sm:text-[10px]">
-                          Video no disponible
-                        </span>
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-linear-to-b from-black/10 via-black/25 to-black/65" />
-                    <div className="absolute left-1 top-1 inline-flex h-4 w-4 items-center justify-center rounded-full border border-white/30 bg-black/35 text-[7px] text-white backdrop-blur-sm sm:left-1.5 sm:top-1.5 sm:h-6 sm:w-6 sm:text-[10px]">
-                      ▶
-                    </div>
-                  </div>
-
-                  <div className="flex min-h-0 flex-col overflow-y-auto py-0.5 pr-1 sm:py-0.5 sm:pr-0.5">
-                    <p className="text-[clamp(0.66rem,1.45vw,0.82rem)] font-black uppercase leading-[0.9] tracking-[0.01em] text-fuchsia-400 sm:text-[clamp(0.7rem,1.35vw,0.98rem)]">
-                      {release.title || 'Release sin titulo'}
-                    </p>
-                    {release.description ? (
-                      <p className="mt-0.5 text-[clamp(0.52rem,1.1vw,0.68rem)] leading-[1.05] text-zinc-100/90 sm:mt-1.5 sm:text-[clamp(0.58rem,0.95vw,0.8rem)]">
-                        {release.description}
-                      </p>
-                    ) : null}
-                    {release.author ? <p className="mt-0.5 text-[clamp(0.52rem,1.05vw,0.66rem)] font-semibold leading-tight text-cyan-200 sm:mt-1.5 sm:text-[clamp(0.6rem,0.9vw,0.76rem)]">{release.author}</p> : null}
-                    {release.url ? (
-                      <p className="mt-0.5 text-[8px] font-semibold uppercase tracking-[0.12em] text-zinc-400 sm:mt-1.5 sm:text-[9px]">
-                        Ver video
-                      </p>
-                    ) : null}
-                    </div>
-                </a>
-              );
-            })}
-          </div>
-
+          {grid}
           <p className="mt-1 text-center text-[8px] font-semibold tracking-[0.07em] text-zinc-200 sm:mt-3 sm:text-xs whitespace-pre-line">
             {releasesCtaText}
           </p>
@@ -950,25 +1035,25 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
               '--color-background': theme.colorBackground,
             }}
           >
-            <div className="absolute inset-0 flex items-center justify-center p-3 sm:p-4">
-              <div className="grid h-full w-full max-w-5xl grid-cols-2 gap-0 overflow-hidden rounded-2xl md:grid-cols-4 md:grid-rows-4">
+            <div className="absolute inset-0">
+              <div className="grid h-full w-full grid-cols-2 grid-rows-2 gap-0 overflow-hidden">
                 {linksCollageImages.length > 0 ? (
-                  linksCollageImages.map((image, index) => (
-                    <div key={`${image}-${index}`} className={getCollageSpanClass(index, linksCollageImages.length)}>
+                  linksCollageImages.slice(0, 4).map((image, index, arr) => (
+                    <div key={`${image}-${index}`} className={getCollageSpanClass(index, arr.length)}>
                       <img src={image} alt={`Fondo ${index + 1}`} className="h-full w-full object-cover object-center" />
                     </div>
                   ))
                 ) : (
-                  <div className="col-span-4 row-span-4 bg-zinc-900" />
+                  <div className="col-span-2 row-span-2 bg-zinc-900" />
                 )}
               </div>
             </div>
 
-            <div className="absolute inset-0" style={{ backgroundColor: uiTheme.overlayColor }} />
+            <div className="absolute inset-0" style={{ backgroundColor: PAGE_OVERLAY }} />
 
             <div className="relative z-10 p-5">
               <div className="text-center">
-                <p className="text-xs uppercase tracking-[0.18em] text-emerald-300">Conecta Con</p>
+                <p className="text-xs uppercase tracking-[0.18em]" style={{ color: uiTheme.subtitleColor, ...(pkFonts.label && { fontFamily: pkFonts.label }), ...subtitleEffectStyle }}>Conecta Con</p>
                 <h3 className="mt-2 text-3xl font-black text-white sm:text-4xl">{artistName}</h3>
               </div>
 
@@ -1093,17 +1178,6 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
         'Live Performance',
         'Esencia del artista',
       ];
-      // Definir clases de jerarquía visual (ajustado a 4 slots)
-      const galleryGrid = [
-        // Hero: grande, centrado
-        'md:col-span-6 md:row-span-6 col-span-6 row-span-4',
-        // Flyer Ready: alta
-        'md:col-span-6 md:row-span-6 col-span-6 row-span-4',
-        // Live Performance: alta
-        'md:col-span-6 md:row-span-6 col-span-6 row-span-4',
-        // Esencia del artista: más grande
-        'md:col-span-6 md:row-span-6 col-span-6 row-span-3',
-      ];
       return (
         <div className="relative flex-1 min-h-0 w-full p-5 overflow-y-auto">
           {/* Título y subtítulo para desktop y móvil, sin fondo ni sombra en móvil */}
@@ -1112,13 +1186,13 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
             <p className="mt-2 text-center text-sm sm:text-base text-zinc-200 font-medium max-w-2xl mx-auto bg-none drop-shadow-none">Activos oficiales curados para medios y promotores, optimizados para uso digital e impreso.</p>
           </div>
 
-          <div className="grid h-auto max-h-none grid-cols-6 md:grid-cols-12 auto-rows-[minmax(140px,auto)] md:auto-rows-[minmax(160px,auto)] gap-3 overflow-x-hidden rounded-2xl overflow-y-auto min-h-0 flex-1">
+          <div className="grid grid-cols-2 gap-3 overflow-x-hidden rounded-2xl">
             {page.payload.map((image, index) => (
               <GalleryImage
                 key={`${image}-${index}`}
                 image={image}
                 title={galleryTitles[index]}
-                gridClass={galleryGrid[index] || ''}
+                gridClass="aspect-[3/4]"
                 artistName={artistName}
                 index={index}
                 onOpenImage={openImageLightbox}
@@ -1160,18 +1234,18 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
               style={{ backgroundColor: uiTheme.cardBg, border: `1px solid ${uiTheme.borderColor}` }}
             >
               <div className="max-w-xl space-y-4">
-                <h3 className="text-2xl font-black sm:text-3xl" style={{ color: uiTheme.titleColor }}>
+                <h3 className="text-2xl font-black sm:text-3xl" style={{ color: uiTheme.titleColor, ...(pkFonts.title && { fontFamily: pkFonts.title }) }}>
                   {contactArtistName || 'Nombre del artista'}
                 </h3>
-                <div className="space-y-2 text-sm sm:text-base" style={{ color: uiTheme.textColor }}>
+                <div className="space-y-2 text-sm sm:text-base" style={{ color: uiTheme.textColor, ...(pkFonts.body && { fontFamily: pkFonts.body }) }}>
                   <p>
-                    <span style={{ color: uiTheme.subtitleColor }}>Manager:</span> {managerName || 'No especificado'}
+                    <span style={{ color: uiTheme.subtitleColor, ...(pkFonts.sub && { fontFamily: pkFonts.sub }) }}>Manager:</span> {managerName || 'No especificado'}
                   </p>
                   <p>
-                    <span style={{ color: uiTheme.subtitleColor }}>Road manager:</span> {roadManagerName || 'No especificado'}
+                    <span style={{ color: uiTheme.subtitleColor, ...(pkFonts.sub && { fontFamily: pkFonts.sub }) }}>Road manager:</span> {roadManagerName || 'No especificado'}
                   </p>
                   <p>
-                    <span style={{ color: uiTheme.subtitleColor }}>Telefono:</span> {contactPhone || 'No especificado'}
+                    <span style={{ color: uiTheme.subtitleColor, ...(pkFonts.sub && { fontFamily: pkFonts.sub }) }}>Telefono:</span> {contactPhone || 'No especificado'}
                   </p>
                 </div>
               </div>
@@ -1197,7 +1271,11 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
   };
 
   return (
-    <div className={isCompact || isEmbedded ? '' : 'lg:grid lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-4'}>
+    <div
+      data-pk-web=""
+      className={isCompact || isEmbedded ? '' : 'lg:grid lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-4'}
+    >
+      {pkCss && <style>{pkCss}</style>}
       {!isCompact && !isEmbedded ? (
         <aside className="hidden lg:block">
           <div
@@ -1241,7 +1319,7 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
         >
           <p className="text-xs uppercase tracking-wider" style={{ color: uiTheme.accentColor }}>{currentPage?.title || 'Preview'}</p>
           <div className="flex items-center gap-3">
-            <p className="text-xs" style={{ color: uiTheme.subtitleColor }}>Pagina {pageIndex + 1} de {webPages.length}</p>
+            <p className="text-xs" style={{ color: uiTheme.accentColor }}>Pagina {pageIndex + 1} de {webPages.length}</p>
             <button
               type="button"
               onClick={() => window.open('/presskitPDF', '_blank')}

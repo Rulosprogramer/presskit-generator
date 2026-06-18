@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { generateBioSectionWithAI } from '../lib/aiBio';
 
 function BiographyAIModal({ isOpen, onClose, onUseBio, section, artistData, currentValue }) {
@@ -156,8 +157,8 @@ function BiographyAIModal({ isOpen, onClose, onUseBio, section, artistData, curr
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur">
+  return createPortal(
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 p-4 backdrop-blur">
       <div className="relative w-full max-w-2xl rounded-3xl border border-white/10 bg-zinc-950 p-6 shadow-xl flex flex-col h-[80vh]">
         {/* Header */}
         <div className="mb-4 border-b border-white/10 pb-4">
@@ -240,7 +241,8 @@ function BiographyAIModal({ isOpen, onClose, onUseBio, section, artistData, curr
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

@@ -22,6 +22,13 @@ function createEmptyArtistMilestones() {
   };
 }
 
+function normalizeRecognitions(value) {
+  if (Array.isArray(value)) return value.slice(0, 10);
+  if (typeof value === 'string' && value.trim())
+    return value.split('\n').map(s => s.trim()).filter(Boolean).slice(0, 10);
+  return [];
+}
+
 function normalizeArtistMilestones(value) {
   const empty = createEmptyArtistMilestones();
 
@@ -71,7 +78,7 @@ const initialPresskitData = {
   performanceLiveLink: '',
   totalStreams: '',
   totalVideoViews: '',
-  recognitions: '',
+  recognitions: [],
   useRecognitionImage: false,
   recognitionImage: '',
   bioStyle: 'prensa',
@@ -288,7 +295,7 @@ function CreatePresskit({ user, onSignOut }) {
         performanceLiveLink: localData.performanceLiveLink || current.performanceLiveLink,
         totalStreams: localData.totalStreams || current.totalStreams,
         totalVideoViews: localData.totalVideoViews || current.totalVideoViews,
-        recognitions: localData.recognitions || current.recognitions,
+        recognitions: normalizeRecognitions(localData.recognitions ?? current.recognitions),
         useRecognitionImage: typeof localData.useRecognitionImage === 'boolean' ? localData.useRecognitionImage : current.useRecognitionImage,
         recognitionImage: localData.recognitionImage || current.recognitionImage,
         bioStyle: localData.bioStyle || current.bioStyle,
@@ -357,7 +364,7 @@ function CreatePresskit({ user, onSignOut }) {
             performanceLiveLink: data.performanceLiveLink || current.performanceLiveLink,
             totalStreams: data.totalStreams || current.totalStreams,
             totalVideoViews: data.totalVideoViews || current.totalVideoViews,
-            recognitions: data.recognitions || current.recognitions,
+            recognitions: normalizeRecognitions(data.recognitions ?? current.recognitions),
             useRecognitionImage: typeof data.useRecognitionImage === 'boolean' ? data.useRecognitionImage : current.useRecognitionImage,
             recognitionImage: data.recognitionImage || current.recognitionImage,
             bioStyle: data.bioStyle || current.bioStyle,
@@ -577,6 +584,16 @@ function CreatePresskit({ user, onSignOut }) {
       ...current,
       releases: (current.releases || []).map((r, i) => (i === index ? releaseData : r)),
     }));
+  };
+
+  const handleMoveRelease = (index, direction) => {
+    setPresskitData((current) => {
+      const list = [...(current.releases || [])];
+      const target = index + direction;
+      if (target < 0 || target >= list.length) return current;
+      [list[index], list[target]] = [list[target], list[index]];
+      return { ...current, releases: list };
+    });
   };
 
   const handleDeletePressArticle = (index) => {
@@ -1283,6 +1300,7 @@ function CreatePresskit({ user, onSignOut }) {
             onAddRelease={handleAddRelease}
             onDeleteRelease={handleDeleteRelease}
             onUpdateRelease={handleUpdateRelease}
+            onMoveRelease={handleMoveRelease}
             onOpenPublish={() => setPublishOpen(true)}
             onOpenImageLibrary={handleOpenImageLibrary}
             onPressArticleUpload={handlePressArticleUpload}

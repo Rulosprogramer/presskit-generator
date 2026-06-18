@@ -108,6 +108,7 @@ function Stepform({
   onAddRelease,
   onDeleteRelease,
   onUpdateRelease,
+  onMoveRelease,
   onOpenPublish,
   onOpenImageLibrary,
   onPressArticleUpload,
@@ -236,17 +237,42 @@ function Stepform({
               />
             </label>
 
-            <label className="space-y-2 sm:col-span-2">
-              <span className="text-xs uppercase tracking-[0.12em] text-zinc-400">Reconocimientos</span>
-              <textarea
-                id="recognitions"
-                value={data.recognitions || ''}
-                onChange={(event) => onFieldChange('recognitions', event.target.value)}
-                rows={3}
-                placeholder="Escribe reconocimientos, escenarios, playlists, becas, festivales o formación."
-                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-zinc-100 outline-none transition focus:border-cyan-300"
-              />
-            </label>
+            <div className="space-y-3 sm:col-span-2">
+              <div>
+                <span className="text-xs uppercase tracking-[0.12em] text-zinc-400">Reconocimientos</span>
+                <p className="mt-1 text-xs text-zinc-500">Agrega hasta 10 reconocimientos del más actual al más antiguo</p>
+              </div>
+              {(data.recognitions || []).map((item, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <input
+                    value={item}
+                    onChange={(e) => {
+                      const next = [...(data.recognitions || [])];
+                      next[i] = e.target.value;
+                      onFieldChange('recognitions', next);
+                    }}
+                    placeholder={`Reconocimiento ${i + 1}`}
+                    className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-zinc-100 outline-none transition focus:border-fuchsia-300"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => onFieldChange('recognitions', (data.recognitions || []).filter((_, idx) => idx !== i))}
+                    className="shrink-0 rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-xs text-zinc-400 transition hover:border-red-400/40 hover:text-red-400"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+              {(data.recognitions || []).length < 10 && (
+                <button
+                  type="button"
+                  onClick={() => onFieldChange('recognitions', [...(data.recognitions || []), ''])}
+                  className="flex items-center gap-2 rounded-xl border border-dashed border-fuchsia-300/40 px-4 py-2.5 text-xs font-semibold text-fuchsia-300 transition hover:border-fuchsia-300/70 hover:bg-fuchsia-300/5"
+                >
+                  + Agregar reconocimiento
+                </button>
+              )}
+            </div>
 
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:col-span-2">
               <label className="inline-flex cursor-pointer items-center gap-3">
@@ -324,7 +350,7 @@ function Stepform({
                   type="file"
                   accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
                   onChange={(e) => onBioImageUpload?.(e, 'twitterBio')}
-                  className="w-full text-xs text-zinc-400 file:rounded-lg file:border file:border-cyan-300/40 file:bg-cyan-300/10 file:px-3 file:py-1 file:text-xs file:font-semibold file:text-cyan-300"
+                  className="w-full cursor-pointer text-xs text-zinc-400 transition file:mr-3 file:cursor-pointer file:rounded-lg file:border file:border-cyan-300/40 file:bg-cyan-300/10 file:px-3 file:py-1 file:text-xs file:font-semibold file:text-cyan-300 file:transition file:duration-200 hover:file:-translate-y-px hover:file:border-cyan-300/70 hover:file:bg-cyan-300/25 hover:file:shadow-[0_4px_12px_rgba(34,211,238,0.25)]"
                 />
               </div>
               <button
@@ -354,7 +380,7 @@ function Stepform({
                   type="file"
                   accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
                   onChange={(e) => onBioImageUpload?.(e, 'shortBio')}
-                  className="w-full text-xs text-zinc-400 file:rounded-lg file:border file:border-cyan-300/40 file:bg-cyan-300/10 file:px-3 file:py-1 file:text-xs file:font-semibold file:text-cyan-300"
+                  className="w-full cursor-pointer text-xs text-zinc-400 transition file:mr-3 file:cursor-pointer file:rounded-lg file:border file:border-cyan-300/40 file:bg-cyan-300/10 file:px-3 file:py-1 file:text-xs file:font-semibold file:text-cyan-300 file:transition file:duration-200 hover:file:-translate-y-px hover:file:border-cyan-300/70 hover:file:bg-cyan-300/25 hover:file:shadow-[0_4px_12px_rgba(34,211,238,0.25)]"
                 />
               </div>
               <button
@@ -384,7 +410,7 @@ function Stepform({
                   type="file"
                   accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
                   onChange={(e) => onBioImageUpload?.(e, 'longBio')}
-                  className="w-full text-xs text-zinc-400 file:rounded-lg file:border file:border-cyan-300/40 file:bg-cyan-300/10 file:px-3 file:py-1 file:text-xs file:font-semibold file:text-cyan-300"
+                  className="w-full cursor-pointer text-xs text-zinc-400 transition file:mr-3 file:cursor-pointer file:rounded-lg file:border file:border-cyan-300/40 file:bg-cyan-300/10 file:px-3 file:py-1 file:text-xs file:font-semibold file:text-cyan-300 file:transition file:duration-200 hover:file:-translate-y-px hover:file:border-cyan-300/70 hover:file:bg-cyan-300/25 hover:file:shadow-[0_4px_12px_rgba(34,211,238,0.25)]"
                 />
               </div>
               <button
@@ -439,6 +465,7 @@ function Stepform({
             onAddRelease={onAddRelease}
             onDeleteRelease={onDeleteRelease}
             onUpdateRelease={onUpdateRelease}
+            onMoveRelease={onMoveRelease}
           />
         </div>
 

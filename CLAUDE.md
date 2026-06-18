@@ -23,7 +23,7 @@ Copy `.env` and set `VITE_GEMINI_API_KEY` with a Gemini API key to enable AI bio
 
 **Routing**: Manual SPA routing via `window.location.pathname` in [src/App.tsx](src/App.tsx) — no React Router. Routes: `/` (landing), `/auth`, `/dashboard`, `/createPresskit`, `/checkout`, `/presskitPDF` (lazy-loaded), `/presskit/:id` (public, unauthenticated).
 
-**File mix**: Most components are `.jsx`; entry point and lib utilities use `.tsx`/`.ts`. Both coexist without issue.
+**File mix**: Most components are `.jsx`; entry point and lib utilities use `.tsx`/`.ts`. Both coexist without issue. `src/lib/firebase.js` and `src/lib/firebase.ts` both exist — `.js` is the authoritative one used by the app; `.ts` is a stub.
 
 ### Data model
 
@@ -44,14 +44,21 @@ Images upload to Firebase Storage at `presskits/{userId}/{folder}/`. The image l
 [src/pages/CreatePresskit.jsx](src/pages/CreatePresskit.jsx) owns all state and handles Firestore/Storage I/O. It passes everything down as props to:
 
 - **[src/components/post-login/Stepform.jsx](src/components/post-login/Stepform.jsx)** — 13-step form (Portada → Tipografía → Preview), renders one card per step, all handlers come from CreatePresskit
-- **[src/components/post-login/livePreview.jsx](src/components/post-login/livePreview.jsx)** — mini live preview in the right column
+- **[src/components/post-login/livePreview.jsx](src/components/post-login/livePreview.jsx)** — right-column live preview; renders `PresskitWeb` ("preview para la web") and `HTMLPreview` ("preview para descargar")
 - **[src/components/post-login/PresskitWeb.jsx](src/components/post-login/PresskitWeb.jsx)** — full web EPK render, shared between the live preview and the public `/presskit/:id` page
+- **[src/components/preview/HTMLPreview.jsx](src/components/preview/HTMLPreview.jsx)** — the "pdfhtml" HTML mock of the PDF shown inside the editor as the downloadable preview. When the user says "PDF", this must be kept in sync alongside the real react-pdf document.
+- **[src/components/post-login/Sidebar.jsx](src/components/post-login/Sidebar.jsx)** / **[Topbar.jsx](src/components/post-login/Topbar.jsx)** — editor shell chrome
+- **[src/components/post-login/PublishModal.jsx](src/components/post-login/PublishModal.jsx)** — handles publish/unpublish flow
 
 **Auto-save**: 1200ms debounce on every `presskitData` change writes to Firestore. A 250ms debounce also writes a compact draft (remote URLs only, no blobs) to `localStorage` keyed by `presskit_local_draft_{uid}`. On load, localStorage is hydrated first, then overwritten by Firestore.
 
 ### PDF generation
 
-[src/pages/PresskitPDF.jsx](src/pages/PresskitPDF.jsx) is lazy-loaded. It renders [src/components/pdfx/PresskitPdfDocument.jsx](src/components/pdfx/PresskitPdfDocument.jsx) using `@react-pdf/renderer`. Theme tokens for the PDF are in [src/lib/pdfx-theme.ts](src/lib/pdfx-theme.ts) and context in [src/lib/pdfx-theme-context.tsx](src/lib/pdfx-theme-context.tsx).
+There are **two PDF renderers and you must keep them in sync** — whenever the user says "PDF", changes apply to both:
+1. **[src/components/preview/HTMLPreview.jsx](src/components/preview/HTMLPreview.jsx)** ("pdfhtml") — an HTML/CSS mock of the PDF shown live inside the editor (the "preview para descargar"). Full CSS support.
+2. **[src/pages/PresskitPDF.jsx](src/pages/PresskitPDF.jsx)** (lazy-loaded `/presskitPDF`) — the real downloadable PDF, renders [src/components/pdfx/PresskitPdfDocument.jsx](src/components/pdfx/PresskitPdfDocument.jsx) via `@react-pdf/renderer`. Limited styling (no text-shadow/stroke). Theme tokens in [src/lib/pdfx-theme.ts](src/lib/pdfx-theme.ts).
+
+The real PDF is cached by a versioned `blobKey` in `PresskitPDF.jsx`; bump its prefix (e.g. `v11-…` → `v12-…`) after any layout/style change to force regeneration. There is **no** `PDFPreview.jsx` (removed — it was a dead, unused react-pdf BlobProvider component).
 
 ### AI features
 
@@ -64,6 +71,12 @@ Both call Gemini 2.5 Flash with up to 4 retries using exponential backoff. The m
 ### Firestore rules
 
 Presskits are owner-only read/write. Public presskit pages (`/presskit/:id`) read via `onSnapshot` in [src/pages/PublicPresskit.jsx](src/pages/PublicPresskit.jsx) — note that the Firestore rules require auth for reads, so the public page must either be opened by the owner or the rules must allow public reads for published presskits. Check [firestore.rules](firestore.rules) before changing publish logic.
+
+### Premium access
+
+A premium-email whitelist gives full access (clean PDF download, no protected view, publish/share). It is enforced in **two places that must stay in sync**:
+- **Client**: [src/lib/premiumAccess.js](src/lib/premiumAccess.js) `isPremiumWhitelisted(email)` — used in [src/pages/PresskitPDF.jsx](src/pages/PresskitPDF.jsx) to force `hasCleanDownloadAccess` and skip the protected-view listeners.
+- **Rules**: `premiumEmails()` in [firestore.rules](firestore.rules) — non-premium owners cannot set the premium flags (`downloadUnlocked`/`subscriptionActive`/`paymentStatus='paid'`); only whitelisted users (or the payment gateway via Admin SDK, which bypasses rules) can. Add new premium emails to **both** lists.
 
 ## Key conventions
 

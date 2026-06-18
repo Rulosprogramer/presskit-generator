@@ -1,6 +1,7 @@
 import { Document, Image, Link, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
 import { theme as pdfxTheme } from '../../lib/pdfx-theme';
 import { isValidPdfImage } from '../../lib/pdfImageResolver';
+import { getPdfTextEffectStyle } from '../../lib/textEffects.js';
 
 const FONT_SCALE = 0.88;
 
@@ -36,7 +37,12 @@ const styles = StyleSheet.create({
   },
   coverScrim: {
     position: 'absolute',
-    inset: 0,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
     backgroundColor: 'rgba(0, 0, 0, 0.36)',
   },
   coverTop: {
@@ -150,7 +156,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     textTransform: 'uppercase',
     letterSpacing: 2.5,
-    fontSize: 10 * FONT_SCALE,
+    fontSize: 13 * FONT_SCALE,
     fontWeight: 600,
   },
   pageTwoArtist: {
@@ -166,7 +172,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     textTransform: 'uppercase',
     letterSpacing: 1.6,
-    fontSize: 13 * FONT_SCALE,
+    fontSize: 16 * FONT_SCALE,
     fontWeight: 600,
   },
   pageTwoBio: {
@@ -213,7 +219,7 @@ const styles = StyleSheet.create({
     margin: 0,
     textAlign: 'center',
     color: '#67e8f9',
-    fontSize: 7 * FONT_SCALE,
+    fontSize: 10 * FONT_SCALE,
     letterSpacing: 1.2,
     textTransform: 'uppercase',
     fontWeight: 600,
@@ -313,7 +319,7 @@ const styles = StyleSheet.create({
     color: '#f472b6',
     textTransform: 'uppercase',
     letterSpacing: 2.2,
-    fontSize: 12 * FONT_SCALE,
+    fontSize: 15 * FONT_SCALE,
     fontWeight: 800,
   },
   pageThreeText: {
@@ -344,24 +350,21 @@ const styles = StyleSheet.create({
     borderStyle: 'solid',
     borderColor: 'rgba(244,114,182,0.18)',
     backgroundColor: 'rgba(244,114,182,0.08)',
-    paddingTop: 16,
-    paddingRight: 16,
-    paddingBottom: 16,
     paddingLeft: 16,
+    paddingRight: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   pageThreeMetricLabel: {
     margin: 0,
     color: '#f472b6',
     textTransform: 'uppercase',
     letterSpacing: 2,
-    fontSize: 11 * FONT_SCALE,
+    fontSize: 14 * FONT_SCALE,
     fontWeight: 800,
   },
   pageThreeMetricValue: {
-    marginTop: 8,
-    marginRight: 0,
-    marginBottom: 0,
-    marginLeft: 0,
     color: '#ffffff',
     fontSize: 28 * FONT_SCALE,
     lineHeight: 1,
@@ -554,7 +557,7 @@ const styles = StyleSheet.create({
   releaseSubtitle: {
     marginTop: 5,
     color: 'rgba(255,255,255,0.55)',
-    fontSize: 9 * FONT_SCALE,
+    fontSize: 12 * FONT_SCALE,
     fontStyle: 'italic',
     letterSpacing: 0.3,
     textAlign: 'center',
@@ -608,10 +611,10 @@ const styles = StyleSheet.create({
   },
   releasePlay: {
     position: 'absolute',
-    top: 12,
-    right: 12,
-    bottom: 12,
-    left: 12,
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -670,6 +673,75 @@ const styles = StyleSheet.create({
     lineHeight: 1.2,
     fontWeight: 700,
   },
+  releaseRow: {
+    flex: 1,
+    flexDirection: 'row',
+    gap: 12,
+    minHeight: 0,
+  },
+  releaseVCard: {
+    flex: 1,
+    flexDirection: 'column',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderStyle: 'solid',
+    borderColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    overflow: 'hidden',
+    minHeight: 0,
+  },
+  releaseVThumbWrap: {
+    position: 'relative',
+    width: '100%',
+    flex: 3,
+    minHeight: 0,
+  },
+  releaseVThumb: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+  },
+  releaseVInfo: {
+    flex: 2,
+    paddingTop: 12,
+    paddingRight: 14,
+    paddingBottom: 14,
+    paddingLeft: 14,
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    minHeight: 0,
+  },
+  releaseFeaturedCard: {
+    flex: 1,
+    flexDirection: 'column',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderStyle: 'solid',
+    borderColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    overflow: 'hidden',
+    minHeight: 0,
+  },
+  releaseFeaturedThumbWrap: {
+    position: 'relative',
+    width: '100%',
+    flex: 3,
+    minHeight: 0,
+  },
+  releaseFeaturedInfo: {
+    flex: 2,
+    paddingTop: 18,
+    paddingRight: 24,
+    paddingBottom: 20,
+    paddingLeft: 24,
+    flexDirection: 'column',
+    justifyContent: 'center',
+  },
   linksPage: {
     position: 'relative',
     width: '100%',
@@ -705,7 +777,7 @@ const styles = StyleSheet.create({
   linksKicker: {
     textTransform: 'uppercase',
     letterSpacing: 2.5,
-    fontSize: 11 * FONT_SCALE,
+    fontSize: 14 * FONT_SCALE,
     fontWeight: 700,
     color: '#67e8f9',
     textAlign: 'center',
@@ -905,8 +977,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   contactLogo: {
-    width: 160,
-    height: 80,
+    width: 320,
+    height: 160,
     objectFit: 'contain',
   },
   contactFooter: {
@@ -941,7 +1013,7 @@ const styles = StyleSheet.create({
     color: '#67e8f9',
     textTransform: 'uppercase',
     letterSpacing: 2,
-    fontSize: 10 * FONT_SCALE,
+    fontSize: 13 * FONT_SCALE,
     fontWeight: 800,
     textAlign: 'center',
   },
@@ -990,6 +1062,25 @@ function chunkArray(items, size) {
     result.push(items.slice(index, index + size));
   }
   return result;
+}
+
+// Reparto de releases por página según la cantidad total (máx 8)
+const RELEASE_PAGE_SPLITS = {
+  1: [1], 2: [1, 1], 3: [1, 2], 4: [2, 2],
+  5: [2, 3], 6: [3, 3], 7: [4, 3], 8: [4, 4],
+};
+
+function splitReleasesIntoPages(releases) {
+  const list = Array.isArray(releases) ? releases.filter((r) => r && (r.url || r.title)) : [];
+  const sizes = RELEASE_PAGE_SPLITS[list.length];
+  if (!sizes) return chunkArray(list, 4);
+  const pages = [];
+  let idx = 0;
+  for (const size of sizes) {
+    pages.push(list.slice(idx, idx + size));
+    idx += size;
+  }
+  return pages;
 }
 
 function getImageSrc(url) {
@@ -1050,7 +1141,9 @@ const PLATFORM_LABELS = {
   soundcloud: 'SoundCloud',
 };
 
-export default function PresskitPdfDocument({ data, variant = 'professional', colors = {} }) {
+export default function PresskitPdfDocument({ data, variant = 'professional', colors = {}, textEffect = 'none', subtitleEffect = 'none' }) {
+  const txtFx = getPdfTextEffectStyle(textEffect);
+  const subFx = getPdfTextEffectStyle(subtitleEffect);
   const c = {
     bg:       colors.bg       || '#0a0a12',
     card:     colors.card     || 'rgba(255,255,255,0.05)',
@@ -1059,7 +1152,7 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
     text:     colors.text     || '#f4f4f5',
     accent:   colors.accent   || '#67e8f9',
     border:   colors.border   || 'rgba(255,255,255,0.12)',
-    overlay:  colors.overlay  || 'rgba(0,0,0,0.55)',
+    overlay:  colors.overlay  || 'rgba(0,0,0,0.36)',
   };
 
   const safeData = data || {};
@@ -1069,6 +1162,9 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
   const performanceLiveLink = safeData.performanceLiveLink || '';
   const performanceLiveThumbnail = getYoutubeThumbnailUrl(performanceLiveLink);
   const recognitionImage = safeData.recognitionImage || '';
+  const recognitionsList = Array.isArray(safeData.recognitions)
+    ? safeData.recognitions.filter(Boolean)
+    : (safeData.recognitions || '').split('\n').map(s => s.trim()).filter(Boolean);
   const recognitions = truncateText(
     safeData.recognitions || 'Añade reconocimientos, escenarios, playlists, becas, festivales o formación para completar esta sección.',
     360,
@@ -1080,7 +1176,7 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
   const longBio = safeData.longBio || safeData.bio || 'Sin biografía completa.';
   const longBioImage = safeData.longBioImage || '';
   const releases = Array.isArray(safeData.releases) ? safeData.releases.slice(0, 8) : [];
-  const releasePages = chunkArray(releases, 4);
+  const releasePages = splitReleasesIntoPages(releases);
   const allMilestones = getAllMilestones(safeData.artistMilestones);
   const filledLinks = Object.entries(safeData.links || {})
     .filter(([key, value]) => key !== 'youtubeVideo' && isHttpUrl(value))
@@ -1106,12 +1202,92 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
     }
   };
 
+  const renderSingleReleaseFeatured = (release) => {
+    const videoId = String(release?.url || '').match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)?.[1];
+    const thumbnail = videoId ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` : '';
+    return (
+      <View style={[styles.releaseBody, { gap: 0 }]}>
+        <View style={{ flex: 1, flexDirection: 'column', borderRadius: 14, borderWidth: 1, borderStyle: 'solid', borderColor: c.border, backgroundColor: c.card, overflow: 'hidden' }}>
+          {/* Thumbnail arriba - ocupa la mayor parte de la página */}
+          <View style={{ position: 'relative', flex: 3 }}>
+            {thumbnail ? (
+              <>
+                <Image src={getImageSource(thumbnail)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                {release?.url ? (
+                  <Link src={release.url} style={styles.releasePlay}>
+                    <View style={styles.releasePlayButton}>
+                      <Text>▶</Text>
+                    </View>
+                  </Link>
+                ) : null}
+              </>
+            ) : (
+              <View style={[styles.releaseThumbFallback, { width: '100%', height: '100%' }]}>
+                <Text>Sin video</Text>
+              </View>
+            )}
+          </View>
+          {/* Texto debajo del thumbnail, centrado */}
+          <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', paddingTop: 20, paddingRight: 24, paddingBottom: 20, paddingLeft: 24 }}>
+            <Text style={[styles.releaseName, { color: c.title, fontSize: 20 * FONT_SCALE, textAlign: 'center' }]}>{release?.title || 'Release sin titulo'}</Text>
+            {release?.author ? <Text style={[styles.releaseAuthor, { color: c.accent, marginTop: 8, textAlign: 'center' }]}>{release.author}</Text> : null}
+            {release?.description ? <Text style={[styles.releaseDescription, { color: c.text, marginTop: 8, textAlign: 'center' }]}>{truncateText(release.description, 240)}</Text> : null}
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  const renderPdfReleaseBody = (releaseChunk) => {
+    if (releaseChunk.length === 1) {
+      return renderSingleReleaseFeatured(releaseChunk[0]);
+    }
+    return (
+      <View style={styles.releaseBody}>
+        {releaseChunk.map((release, releaseIndex) => {
+          const videoId = String(release?.url || '').match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)?.[1];
+          const thumbnail = videoId ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` : '';
+          const isLast = releaseIndex === releaseChunk.length - 1;
+          return (
+            <View key={`${releaseIndex}-${release?.title || 'release'}`} style={{ ...styles.releaseItem, ...(isLast ? styles.releaseItemLast : {}), borderColor: c.border, backgroundColor: c.card }}>
+              <View style={styles.releaseThumbWrap}>
+                {thumbnail ? (
+                  <>
+                    <Image src={getImageSource(thumbnail)} style={styles.releaseThumb} />
+                    {release?.url ? (
+                      <Link src={release.url} style={styles.releasePlay}>
+                        <View style={styles.releasePlayButton}>
+                          <Text>▶</Text>
+                        </View>
+                      </Link>
+                    ) : null}
+                  </>
+                ) : (
+                  <View style={styles.releaseThumbFallback}>
+                    <Text>Sin video</Text>
+                  </View>
+                )}
+              </View>
+              <View style={styles.releaseInfo}>
+                <View>
+                  <Text style={[styles.releaseName, { color: c.title }]}>{release?.title || 'Release sin titulo'}</Text>
+                  {release?.description ? <Text style={[styles.releaseDescription, { color: c.text }]}>{truncateText(release.description, 160)}</Text> : null}
+                </View>
+                {release?.author ? <Text style={[styles.releaseAuthor, { color: c.accent }]}>{release.author}</Text> : null}
+              </View>
+            </View>
+          );
+        })}
+      </View>
+    );
+  };
+
   return (
     <Document>
       <Page size={pdfxTheme.page.size} style={[styles.coverPage, { backgroundColor: c.bg }]} wrap={false}>
         <View style={styles.coverFrame}>
           {coverImage ? <Image src={getImageSource(coverImage)} style={styles.coverBackground} /> : null}
-          <View style={styles.coverScrim} />
+          <View style={[styles.coverScrim, { backgroundColor: c.overlay }]} />
           <View style={styles.coverTop}>
             <Text style={[styles.coverArtist, { color: c.title }]}>{safeData.artistName || 'Presskit sin nombre'}</Text>
           </View>
@@ -1130,18 +1306,18 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
 
           {/* Header: kicker + nombre arriba */}
           <View style={styles.pageTwoHeader}>
-            <Text style={[styles.pageTwoKicker, { color: c.accent }]}>CONOCE A</Text>
+            <Text style={[styles.pageTwoKicker, { color: c.accent }, subFx]}>CONOCE A</Text>
             <Text style={[styles.pageTwoArtist, { color: c.title }]}>{safeData.artistName || 'Presskit'}</Text>
           </View>
 
           {/* Bloque central: divider + género + bio */}
           <View style={styles.pageTwoCenter}>
             {[safeData.genre, safeData.city].filter(Boolean).length > 0 ? (
-              <Text style={[styles.pageTwoInfo, { color: c.accent }]}>
+              <Text style={[styles.pageTwoInfo, { color: c.accent }, subFx]}>
                 {[safeData.genre, safeData.city].filter(Boolean).join(' • ')}
               </Text>
             ) : null}
-            <Text style={[styles.pageTwoBio, { color: c.text }]}>{shortBio}</Text>
+            <Text style={[styles.pageTwoBio, { color: c.text }, txtFx]}>{shortBio}</Text>
           </View>
 
           {/* Video card anclado al fondo */}
@@ -1181,8 +1357,16 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
           </View>
 
           <View style={[styles.pageThreeCard, { borderColor: c.border, backgroundColor: c.card }]}>
-            <Text style={[styles.pageThreeLabel, { color: c.accent }]}>Reconocimientos</Text>
-            <Text style={[styles.pageThreeText, { color: c.text }]}>{recognitions}</Text>
+            <Text style={[styles.pageThreeLabel, { color: c.subtitle }]}>Reconocimientos</Text>
+            <View style={{ marginTop: 10, gap: 5 }}>
+              {recognitionsList.length > 0 ? recognitionsList.map((r, i) => (
+                <Text key={i} style={[styles.pageThreeText, { color: c.text, marginTop: 0 }]}>{r}</Text>
+              )) : (
+                <Text style={[styles.pageThreeText, { color: c.subtitle, marginTop: 0 }]}>
+                  Añade reconocimientos para completar esta sección.
+                </Text>
+              )}
+            </View>
           </View>
         </View>
 
@@ -1246,7 +1430,7 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
           </View>
           <View style={styles.pageFiveTextPanel}>
             {safeData.artistName ? <Text style={[styles.pageFiveArtistSub, { color: c.title }]}>{safeData.artistName}</Text> : null}
-            <Text style={[styles.pageFiveText, { color: c.text }]}>{longBio}</Text>
+            <Text style={[styles.pageFiveText, { color: c.text }, txtFx]}>{longBio}</Text>
           </View>
         </View>
       </Page>
@@ -1263,44 +1447,7 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
             ) : null}
           </View>
 
-          <View style={styles.releaseBody}>
-            {releaseChunk.map((release, releaseIndex) => {
-              const videoId = String(release?.url || '').match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)?.[1];
-              const thumbnail = videoId ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` : '';
-              const isLast = releaseIndex === releaseChunk.length - 1;
-
-              return (
-                <View key={`${pageIndex}-${releaseIndex}-${release?.title || 'release'}`} style={{ ...styles.releaseItem, ...(isLast ? styles.releaseItemLast : {}), borderColor: c.border, backgroundColor: c.card }}>
-                  <View style={styles.releaseThumbWrap}>
-                    {thumbnail ? (
-                      <>
-                        <Image src={getImageSource(thumbnail)} style={styles.releaseThumb} />
-                        {release?.url ? (
-                          <Link src={release.url} style={styles.releasePlay}>
-                            <View style={styles.releasePlayButton}>
-                              <Text>▶</Text>
-                            </View>
-                          </Link>
-                        ) : null}
-                      </>
-                    ) : (
-                      <View style={styles.releaseThumbFallback}>
-                        <Text>Sin video</Text>
-                      </View>
-                    )}
-                  </View>
-
-                  <View style={styles.releaseInfo}>
-                    <View>
-                      <Text style={[styles.releaseName, { color: c.title }]}>{release?.title || 'Release sin titulo'}</Text>
-                      {release?.description ? <Text style={[styles.releaseDescription, { color: c.text }]}>{truncateText(release.description, 160)}</Text> : null}
-                    </View>
-                    {release?.author ? <Text style={[styles.releaseAuthor, { color: c.accent }]}>{release.author}</Text> : null}
-                  </View>
-                </View>
-              );
-            })}
-          </View>
+          {renderPdfReleaseBody(releaseChunk)}
           </View>
         </Page>
       ))}
@@ -1314,7 +1461,7 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
             <View style={[styles.linksScrim, { backgroundColor: c.overlay }]} />
 
             <View style={styles.linksTopArea}>
-              <Text style={[styles.linksKicker, { color: c.accent }]}>CONECTA CON</Text>
+              <Text style={[styles.linksKicker, { color: c.subtitle }, subFx]}>CONECTA CON</Text>
               <Text style={[styles.linksArtistName, { color: c.title }]}>{safeData.artistName || ''}</Text>
             </View>
 

@@ -14,6 +14,10 @@ export interface Theme {
   accentColor: string;
   borderColor: string;
   overlayColor: string;
+  textEffect: string;
+  subtitleEffect: string;
+  textEffectPdf: string;
+  subtitleEffectPdf: string;
 }
 
 export interface Typography {
@@ -34,7 +38,11 @@ const DEFAULTS: Theme = {
   textColor: '#FFFFFF',
   accentColor: '#FF6B6B',
   borderColor: 'rgba(255,255,255,0.08)',
-  overlayColor: 'rgba(0,0,0,0.3)',
+  overlayColor: 'rgba(0,0,0,0.36)',
+  textEffect: 'none',
+  subtitleEffect: 'none',
+  textEffectPdf: 'none',
+  subtitleEffectPdf: 'none',
 };
 
 const DEFAULT_TYPOGRAPHY: Typography = {
@@ -118,6 +126,17 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     if (!genreId) return;
     const found = genreIdentities.find(g => g.id === genreId);
     if (found) injectGoogleFonts(found.googleFonts);
+  }, []);
+
+  // Sync theme/typography across tabs (e.g. editor → preview tab) when localStorage changes
+  useEffect(() => {
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === STORAGE_KEY) setThemeState(loadTheme());
+      else if (event.key === TYPOGRAPHY_KEY) setTypographyState(loadTypography());
+      else if (event.key === GENRE_KEY) setActiveGenre(loadGenre());
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
   const setThemeValue = useCallback((key: keyof Theme, value: string) => {

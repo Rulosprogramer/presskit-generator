@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useTheme } from '../../context/ThemeContext.tsx';
+import { TEXT_EFFECT_OPTIONS, getTextEffectStyle } from '../../lib/textEffects.js';
 
 // ── Color math ───────────────────────────────────────────────────────────────
 
@@ -453,8 +454,12 @@ function PresetCard({ preset, isActive, onClick }) {
 
 // ── Color picker row (accordion) ──────────────────────────────────────────────
 
-function ColorPickerRow({ varKey, label, options, currentValue, isNeutralBg, isOpen, onToggle, onSelect, onOpenAdvanced }) {
+function ColorPickerRow({ varKey, label, options, currentValue, isNeutralBg, isOpen, onToggle, onSelect, onAdjust, onOpenAdvanced, effectValue, onEffectChange, effectPdfValue, onEffectPdfChange }) {
   const moreRef = useRef(null);
+  const isOverlay = varKey === 'overlayColor';
+  const overlayParsed = isOverlay ? parseColorStr(currentValue) : null;
+  const overlayPct = overlayParsed ? Math.round(overlayParsed.a * 100) : 0;
+  const supportsEffect = varKey === 'textColor' || varKey === 'subtitleColor';
 
   return (
     <div className="overflow-hidden rounded-xl border border-white/6" style={{ backgroundColor: 'rgba(255,255,255,0.02)' }}>
@@ -482,6 +487,26 @@ function ColorPickerRow({ varKey, label, options, currentValue, isNeutralBg, isO
       <div className="transition-[grid-template-rows] duration-300" style={{ display: 'grid', gridTemplateRows: isOpen ? '1fr' : '0fr' }}>
         <div className="overflow-hidden">
           <div className="px-3 pb-3 pt-1" style={isNeutralBg ? { backgroundColor: 'rgba(26,26,26,0.6)' } : undefined}>
+            {isOverlay && (
+              <div className="mb-3">
+                <div className="mb-1.5 flex items-center justify-between">
+                  <span className="text-[10px] uppercase tracking-wider text-zinc-500">Intensidad del overlay</span>
+                  <span className="text-[10px] font-medium text-zinc-300">{overlayPct}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={overlayPct}
+                  onChange={e => {
+                    const { r, g, b } = overlayParsed;
+                    onAdjust(toColorStr(r, g, b, Number(e.target.value) / 100));
+                  }}
+                  className="w-full cursor-pointer accent-white"
+                />
+                <p className="mt-1 text-[9px] text-zinc-600">0% = sin overlay (imagen sin oscurecer)</p>
+              </div>
+            )}
             <div className="flex flex-wrap items-center gap-1.5">
               {options.map(color => {
                 const isActive = currentValue === color;
@@ -510,6 +535,50 @@ function ColorPickerRow({ varKey, label, options, currentValue, isNeutralBg, isO
                 Más colores
               </button>
             </div>
+
+            {supportsEffect && (
+              <div className="mt-3 space-y-3 border-t border-white/6 pt-3">
+                <div>
+                  <p className="mb-2 text-[10px] uppercase tracking-wider text-cyan-400/80">Efecto Web</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {TEXT_EFFECT_OPTIONS.map(opt => {
+                      const isActive = (effectValue || 'none') === opt.id;
+                      const preview = opt.id === 'none' ? {} : getTextEffectStyle(opt.id, currentValue);
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => onEffectChange(opt.id)}
+                          className={`rounded-lg border px-2.5 py-1 text-[11px] transition cursor-pointer ${isActive ? 'border-cyan-300/60 bg-cyan-300/10 text-cyan-200' : 'border-white/10 bg-white/5 text-zinc-300 hover:bg-white/10'}`}
+                        >
+                          <span style={{ color: currentValue, ...preview }}>{opt.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div>
+                  <p className="mb-2 text-[10px] uppercase tracking-wider text-fuchsia-400/80">Efectos PDF</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {TEXT_EFFECT_OPTIONS.map(opt => {
+                      const isActive = (effectPdfValue || 'none') === opt.id;
+                      const preview = opt.id === 'none' ? {} : getTextEffectStyle(opt.id, currentValue);
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => onEffectPdfChange(opt.id)}
+                          className={`rounded-lg border px-2.5 py-1 text-[11px] transition cursor-pointer ${isActive ? 'border-fuchsia-300/60 bg-fuchsia-300/10 text-fuchsia-200' : 'border-white/10 bg-white/5 text-zinc-300 hover:bg-white/10'}`}
+                        >
+                          <span style={{ color: currentValue, ...preview }}>{opt.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="mt-1.5 text-[9px] text-zinc-600">En el PDF descargable solo "Fondo" se replica fielmente; el resto se ve en la vista previa.</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -579,7 +648,12 @@ function ThemePickerStep({ data, onFieldChange }) {
               isOpen={openVarKey === key}
               onToggle={() => handleToggle(key)}
               onSelect={color => handleSelectColor(key, color)}
+              onAdjust={color => setThemeValue(key, color)}
               onOpenAdvanced={rect => handleOpenAdvanced(key, rect)}
+              effectValue={key === 'textColor' ? uiTheme.textEffect : key === 'subtitleColor' ? uiTheme.subtitleEffect : undefined}
+              onEffectChange={effect => setThemeValue(key === 'textColor' ? 'textEffect' : 'subtitleEffect', effect)}
+              effectPdfValue={key === 'textColor' ? uiTheme.textEffectPdf : key === 'subtitleColor' ? uiTheme.subtitleEffectPdf : undefined}
+              onEffectPdfChange={effect => setThemeValue(key === 'textColor' ? 'textEffectPdf' : 'subtitleEffectPdf', effect)}
             />
           ))}
         </div>

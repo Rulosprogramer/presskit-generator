@@ -13,6 +13,7 @@ function ReleaseStep({
   onAddRelease,
   onUpdateRelease,
   onDeleteRelease,
+  onMoveRelease,
 }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [editingIndex, setEditingIndex] = useState(null);
@@ -190,6 +191,26 @@ function ReleaseStep({
                   {release.author && <p className="text-xs text-zinc-400 truncate mt-0.5">{release.author}</p>}
                   {release.description && <p className="text-xs text-zinc-500 mt-1 line-clamp-1">{release.description}</p>}
                   <p className="text-[10px] text-zinc-600 mt-1 truncate">{release.url}</p>
+                </div>
+                <div className="flex flex-col justify-center gap-1 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => onMoveRelease?.(index, -1)}
+                    disabled={index === 0 || editingIndex !== null}
+                    title="Subir"
+                    className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-xs text-zinc-300 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onMoveRelease?.(index, 1)}
+                    disabled={index === releases.length - 1 || editingIndex !== null}
+                    title="Bajar"
+                    className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-xs text-zinc-300 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    ▼
+                  </button>
                 </div>
                 <div className="flex flex-col gap-1 shrink-0">
                   <button

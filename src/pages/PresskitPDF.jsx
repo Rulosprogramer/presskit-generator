@@ -6,6 +6,7 @@ import { resolvePdfPresskitData } from '../lib/pdfImageResolver';
 import { useTheme } from '../context/ThemeContext.tsx';
 import PresskitPdfDocument from '../components/pdfx/PresskitPdfDocument.jsx';
 import Topbar from '../components/post-login/Topbar.jsx';
+import { isPremiumWhitelisted } from '../lib/premiumAccess.js';
 
 function hexify(color) {
   if (!color) return '#000000';
@@ -79,10 +80,12 @@ function PresskitPDF({ user, onSignOut, presskitId = '' }) {
   const [error, setError] = useState('');
   const [isProtectedVisible, setIsProtectedVisible] = useState(true);
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+  const [pdfZoom, setPdfZoom] = useState(100);
   const { theme: uiTheme } = useTheme();
   const searchParams = useMemo(() => new URLSearchParams(window.location.search), []);
   const pdfVariant = searchParams.get('variant') === 'essential' || presskitData.planTier === 'essential' ? 'essential' : 'professional';
-  const hasCleanDownloadAccess = Boolean(presskitData.downloadUnlocked || presskitData.subscriptionActive || presskitData.paymentStatus === 'paid');
+  const isWhitelisted = isPremiumWhitelisted(user?.email);
+  const hasCleanDownloadAccess = isWhitelisted || Boolean(presskitData.downloadUnlocked || presskitData.subscriptionActive || presskitData.paymentStatus === 'paid');
   const previewNeedsWatermark = !hasCleanDownloadAccess;
   const watermarkLabel = presskitData.artistName || 'PRESSKIT';
 
@@ -169,6 +172,12 @@ function PresskitPDF({ user, onSignOut, presskitId = '' }) {
   }, [presskitData]);
 
   useEffect(() => {
+    // Usuarios premium/whitelisted: sin vista protegida ni bloqueos.
+    if (isWhitelisted) {
+      setIsProtectedVisible(true);
+      return;
+    }
+
     const handleVisibilityChange = () => {
       setIsProtectedVisible(document.visibilityState === 'visible');
     };
@@ -216,7 +225,7 @@ function PresskitPDF({ user, onSignOut, presskitId = '' }) {
       window.removeEventListener('blur', handleWindowBlur);
       window.removeEventListener('focus', handleWindowFocus);
     };
-  }, []);
+  }, [isWhitelisted]);
 
   const pdfColors = {
     bg:       hexify(uiTheme.bgColor),
@@ -228,6 +237,31 @@ function PresskitPDF({ user, onSignOut, presskitId = '' }) {
     border:   uiTheme.borderColor,
     overlay:  uiTheme.overlayColor,
   };
+
+  const pdfTextEffect = uiTheme.textEffectPdf || 'none';
+  const pdfSubtitleEffect = uiTheme.subtitleEffectPdf || 'none';
+
+  // Clave estable de datos + colores: evita regenerar el PDF en re-renders
+  // que no cambian el contenido (p. ej. focus/blur al hacer clic en el iframe).
+  const docKey = JSON.stringify(pdfPresskitData || {});
+  const colorsKey = JSON.stringify(pdfColors) + pdfTextEffect + pdfSubtitleEffect;
+  const blobKey = 'v12-logo-' + docKey + pdfVariant + (previewNeedsWatermark ? '-wm' : '-clean') + colorsKey;
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const pdfDocNode = useMemo(
+    () => (
+      <PresskitPdfDocument
+        data={pdfPresskitData}
+        variant={pdfVariant}
+        colors={pdfColors}
+        textEffect={pdfTextEffect}
+        subtitleEffect={pdfSubtitleEffect}
+        watermark={previewNeedsWatermark}
+        watermarkLabel={watermarkLabel}
+      />
+    ),
+    [blobKey, watermarkLabel],
+  );
 
   const openDownloadModal = () => {
     setIsDownloadModalOpen(true);
@@ -255,6 +289,8 @@ function PresskitPDF({ user, onSignOut, presskitId = '' }) {
         data={pdfPresskitData}
         variant={pdfVariant}
         colors={pdfColors}
+        textEffect={pdfTextEffect}
+        subtitleEffect={pdfSubtitleEffect}
         watermark={useWatermark}
         watermarkLabel={watermarkLabel}
       />
@@ -299,33 +335,42 @@ function PresskitPDF({ user, onSignOut, presskitId = '' }) {
           Vista protegida: atajos de impresión y menú contextual bloqueados. La captura de pantalla del sistema no se puede impedir por completo en web.
         </p>
         {(() => {
-          const docKey = JSON.stringify(pdfPresskitData || {});
           return (
             <BlobProvider
-              key={docKey + pdfVariant + (previewNeedsWatermark ? '-wm' : '-clean')}
-              document={(
-                <PresskitPdfDocument
-                  data={pdfPresskitData}
-                  variant={pdfVariant}
-                  colors={pdfColors}
-                  watermark={previewNeedsWatermark}
-                  watermarkLabel={watermarkLabel}
-                />
-              )}
+              key={blobKey}
+              document={pdfDocNode}
             >
               {({ url, loading: pdfLoading }) => (
                 <div className="relative mt-3 space-y-3">
-                  <button
-                    type="button"
-                    onClick={openDownloadModal}
-                    className="inline-flex rounded-lg border border-amber-300/40 px-3 py-2 text-xs font-semibold text-amber-300 transition hover:bg-amber-300/10"
-                  >
-                    {pdfLoading ? 'Generando PDF...' : 'Descargar PDF'}
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <div className="inline-flex items-center gap-3 rounded-lg border border-white/10 bg-transparent px-3 py-1 text-xs text-zinc-300">
+                      <label htmlFor="pdf-zoom" className="text-[11px] text-zinc-300">Zoom</label>
+                      <input
+                        id="pdf-zoom"
+                        type="range"
+                        min="50"
+                        max="200"
+                        step="5"
+                        value={pdfZoom}
+                        onChange={(e) => setPdfZoom(Number(e.target.value))}
+                        className="h-2 w-40 accent-amber-300"
+                        aria-label="Control de zoom del PDF"
+                      />
+                      <div className="text-xs font-semibold text-amber-300" aria-hidden>{pdfZoom}%</div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={openDownloadModal}
+                      className="inline-flex rounded-lg border border-amber-300/40 px-3 py-2 text-xs font-semibold text-amber-300 transition hover:bg-amber-300/10"
+                    >
+                      {pdfLoading ? 'Generando PDF...' : 'Descargar PDF'}
+                    </button>
+                  </div>
 
                   <div
                     className="relative overflow-hidden rounded-2xl border border-white/15 bg-zinc-950 mx-auto"
-                    style={{ height: '640px', maxWidth: '880px', margin: '0 auto' }}
+                    style={{ height: 'min(90vh, 1000px)', maxWidth: '960px', margin: '0 auto' }}
                   >
                     {!isProtectedVisible ? (
                       <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/80 px-6 text-center backdrop-blur-md">
@@ -342,7 +387,7 @@ function PresskitPDF({ user, onSignOut, presskitId = '' }) {
                       ) : (
                       <iframe
                         title="Preview PDF"
-                        src={`${url}#toolbar=0&zoom=page-fit`}
+                        src={`${url}#toolbar=0&zoom=${pdfZoom}`}
                         onContextMenu={(event) => event.preventDefault()}
                         style={{
                           width: '100%',
