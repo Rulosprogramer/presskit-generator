@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import ReleaseStep from './ReleaseStep.jsx';
 import ArtistMilestonesStep from './ArtistMilestonesStep.jsx';
 import ThemePickerStep from './ThemePickerStep.jsx';
@@ -121,6 +122,7 @@ function Stepform({
   imageUploadError,
   generatedBios = {},
 }) {
+  const [showWhatsapp, setShowWhatsapp] = useState(Boolean(data.whatsappPhone));
   return (
     <section className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -796,6 +798,40 @@ function Stepform({
               />
               <p className="text-xs text-zinc-500">Solo números.</p>
             </label>
+
+            {!showWhatsapp ? (
+              <button
+                type="button"
+                onClick={() => setShowWhatsapp(true)}
+                className="flex items-center gap-2 self-start rounded-xl border border-emerald-400/40 bg-emerald-400/10 px-4 py-2 text-sm font-semibold text-emerald-300 transition hover:bg-emerald-400/20"
+              >
+                <span className="text-base">＋</span> Agregar número de WhatsApp
+              </button>
+            ) : (
+              <label className="space-y-2">
+                <span className="flex items-center justify-between text-xs uppercase tracking-[0.12em] text-zinc-400">
+                  WhatsApp
+                  <button
+                    type="button"
+                    onClick={() => { setShowWhatsapp(false); onFieldChange('whatsappPhone', ''); }}
+                    className="text-[10px] font-semibold text-zinc-500 transition hover:text-red-400"
+                  >
+                    Quitar
+                  </button>
+                </span>
+                <input
+                  id="contact-whatsapp"
+                  value={data.whatsappPhone || ''}
+                  onChange={(event) => onFieldChange('whatsappPhone', event.target.value.replace(/\D/g, ''))}
+                  placeholder="Número de WhatsApp"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={15}
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-zinc-100 outline-none transition focus:border-emerald-300"
+                />
+                <p className="text-xs text-zinc-500">Usa el mismo indicativo de país de arriba. Solo números.</p>
+              </label>
+            )}
           </div>
         </div>
 

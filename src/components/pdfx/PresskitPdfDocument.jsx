@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingLeft: 48,
     paddingRight: 48,
-    paddingBottom: 90,
+    paddingBottom: 130,
   },
   pageTwoKicker: {
     margin: 0,
@@ -198,19 +198,19 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.62)',
     display: 'flex',
     flexDirection: 'column',
-    width: 280,
+    width: 340,
   },
   pageTwoVideoThumb: {
     width: '100%',
-    height: 110,
+    height: 150,
     objectFit: 'cover',
     backgroundColor: '#111827',
   },
   pageTwoVideoBody: {
-    paddingTop: 10,
-    paddingRight: 14,
-    paddingBottom: 14,
-    paddingLeft: 14,
+    paddingTop: 12,
+    paddingRight: 16,
+    paddingBottom: 16,
+    paddingLeft: 16,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -219,24 +219,24 @@ const styles = StyleSheet.create({
     margin: 0,
     textAlign: 'center',
     color: '#67e8f9',
-    fontSize: 10 * FONT_SCALE,
+    fontSize: 12 * FONT_SCALE,
     letterSpacing: 1.2,
     textTransform: 'uppercase',
     fontWeight: 600,
   },
   pageTwoVideoTitle: {
-    marginTop: 3,
+    marginTop: 4,
     textAlign: 'center',
     color: '#ffffff',
-    fontSize: 10 * FONT_SCALE,
-    lineHeight: 1.1,
+    fontSize: 13 * FONT_SCALE,
+    lineHeight: 1.15,
     fontWeight: 700,
   },
   pageTwoVideoLink: {
-    marginTop: 6,
+    marginTop: 8,
     textAlign: 'center',
     color: '#a7f3d0',
-    fontSize: 13 * FONT_SCALE,
+    fontSize: 15 * FONT_SCALE,
     textDecoration: 'underline',
     fontWeight: 600,
   },
@@ -1189,8 +1189,11 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
   const roadManagerName = safeData.roadManagerName || 'No especificado';
   const contactCountryCode = safeData.contactCountryCode || '+57';
   const contactPhone = safeData.contactPhone || 'No especificado';
+  const whatsappPhone = safeData.whatsappPhone || '';
+  const telHref = safeData.contactPhone ? `tel:${`${contactCountryCode}${safeData.contactPhone}`.replace(/[^\d+]/g, '')}` : '';
+  const whatsappHref = whatsappPhone ? `https://wa.me/${`${contactCountryCode}${whatsappPhone}`.replace(/\D/g, '')}` : '';
   const contactLogo = safeData.contactLogo || '';
-  const shortBio = truncateText(safeData.shortBio || safeData.bio || 'Sin biografia corta.', 144);
+  const shortBio = safeData.shortBio || safeData.bio || 'Sin biografia corta.';
   const bioImage = safeData.bioImage || '';
   const getLinkDomain = (rawUrl) => {
     if (!rawUrl) return '';
@@ -1215,9 +1218,7 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
                 <Image src={getImageSource(thumbnail)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 {release?.url ? (
                   <Link src={release.url} style={styles.releasePlay}>
-                    <View style={styles.releasePlayButton}>
-                      <Text>▶</Text>
-                    </View>
+                    <View style={{ width: '100%', height: '100%' }} />
                   </Link>
                 ) : null}
               </>
@@ -1256,9 +1257,7 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
                     <Image src={getImageSource(thumbnail)} style={styles.releaseThumb} />
                     {release?.url ? (
                       <Link src={release.url} style={styles.releasePlay}>
-                        <View style={styles.releasePlayButton}>
-                          <Text>▶</Text>
-                        </View>
+                        <View style={{ width: '100%', height: '100%' }} />
                       </Link>
                     ) : null}
                   </>
@@ -1405,9 +1404,10 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
             <View style={styles.pageFourMilestoneOverlay}>
               {(() => {
                 const count = allMilestones.length;
-                const fontSize = count <= 4 ? 13 * FONT_SCALE : count <= 8 ? 11 * FONT_SCALE : 9 * FONT_SCALE;
-                const paddingV = count <= 4 ? 11 : count <= 8 ? 7 : 5;
-                const paddingH = count <= 4 ? 20 : count <= 8 ? 14 : 10;
+                // Menos hitos => texto más grande; solo con los 12 completos baja al mínimo.
+                const fontSize = (count <= 4 ? 17 : count <= 6 ? 15 : count <= 8 ? 13 : count <= 10 ? 12 : 10) * FONT_SCALE;
+                const paddingV = count <= 4 ? 14 : count <= 6 ? 11 : count <= 8 ? 8 : count <= 10 ? 6 : 5;
+                const paddingH = count <= 4 ? 22 : count <= 8 ? 16 : 11;
                 return allMilestones.map((item, i) => (
                   <View key={i} style={[styles.pageFourMilestoneItem, { paddingTop: paddingV, paddingBottom: paddingV, paddingLeft: paddingH, paddingRight: paddingH, borderColor: hexToRgba(c.accent, 0.28), backgroundColor: hexToRgba(c.bg, 0.72) }]}>
                     <Text style={[styles.pageFourMilestoneText, { fontSize, color: c.text }]}>{item}</Text>
@@ -1576,8 +1576,19 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
 
             <View style={[styles.contactCard, { borderColor: hexToRgba(c.accent, 0.25), backgroundColor: c.card }]}>
               <Text style={[styles.contactLabel, { color: c.accent }]}>Contacto</Text>
-              <Text style={[styles.contactValue, { color: c.title }]}>{contactCountryCode} {contactPhone}</Text>
+              {telHref ? (
+                <Link src={telHref} style={[styles.contactValue, { color: c.title, textDecoration: 'none' }]}>{contactCountryCode} {contactPhone}</Link>
+              ) : (
+                <Text style={[styles.contactValue, { color: c.title }]}>{contactCountryCode} {contactPhone}</Text>
+              )}
             </View>
+
+            {whatsappPhone ? (
+              <View style={[styles.contactCard, { borderColor: hexToRgba(c.accent, 0.25), backgroundColor: c.card }]}>
+                <Text style={[styles.contactLabel, { color: c.accent }]}>WhatsApp</Text>
+                <Link src={whatsappHref} style={[styles.contactValue, { color: c.title, textDecoration: 'none' }]}>{contactCountryCode} {whatsappPhone}</Link>
+              </View>
+            ) : null}
 
             <View style={[styles.contactCard, { borderColor: hexToRgba(c.accent, 0.25), backgroundColor: c.card }]}>
               <Text style={[styles.contactLabel, { color: c.accent }]}>Artista</Text>

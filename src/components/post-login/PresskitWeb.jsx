@@ -494,7 +494,12 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
   const contactArtistName = presskitData.contactArtistName || artistName;
   const managerName = presskitData.managerName || '';
   const roadManagerName = presskitData.roadManagerName || '';
-  const contactPhone = `${presskitData.contactCountryCode || '+57'} ${presskitData.contactPhone || ''}`.trim();
+  const contactCountryCode = presskitData.contactCountryCode || '+57';
+  const contactPhone = presskitData.contactPhone ? `${contactCountryCode} ${presskitData.contactPhone}`.trim() : '';
+  const whatsappPhone = presskitData.whatsappPhone ? `${contactCountryCode} ${presskitData.whatsappPhone}`.trim() : '';
+  // tel: conserva el "+"; wa.me solo dígitos
+  const telHref = presskitData.contactPhone ? `tel:${`${contactCountryCode}${presskitData.contactPhone}`.replace(/[^\d+]/g, '')}` : '';
+  const whatsappHref = presskitData.whatsappPhone ? `https://wa.me/${`${contactCountryCode}${presskitData.whatsappPhone}`.replace(/\D/g, '')}` : '';
   const contactLogo = presskitData.contactLogo || '';
 
   const webPages = useMemo(() => {
@@ -1245,8 +1250,17 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
                     <span style={{ color: uiTheme.subtitleColor, ...(pkFonts.sub && { fontFamily: pkFonts.sub }) }}>Road manager:</span> {roadManagerName || 'No especificado'}
                   </p>
                   <p>
-                    <span style={{ color: uiTheme.subtitleColor, ...(pkFonts.sub && { fontFamily: pkFonts.sub }) }}>Telefono:</span> {contactPhone || 'No especificado'}
+                    <span style={{ color: uiTheme.subtitleColor, ...(pkFonts.sub && { fontFamily: pkFonts.sub }) }}>Telefono:</span>{' '}
+                    {telHref ? (
+                      <a href={telHref} className="underline decoration-dotted underline-offset-2 transition hover:opacity-80">{contactPhone}</a>
+                    ) : 'No especificado'}
                   </p>
+                  {whatsappPhone ? (
+                    <p>
+                      <span style={{ color: uiTheme.subtitleColor, ...(pkFonts.sub && { fontFamily: pkFonts.sub }) }}>WhatsApp:</span>{' '}
+                      <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted underline-offset-2 transition hover:opacity-80">{whatsappPhone}</a>
+                    </p>
+                  ) : null}
                 </div>
               </div>
             </div>

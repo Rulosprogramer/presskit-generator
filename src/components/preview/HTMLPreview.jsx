@@ -104,7 +104,7 @@ function buildPages(d, tc = {}) {
         <div style={{ color: SUBTITLE, fontSize: 12, letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 700, fontFamily: FONT, ...SUB_FX }}>CONOCE A</div>
         <div style={{ fontSize: 40, fontWeight: 900, color: WHITE, lineHeight: 1.05, marginTop: 6, fontFamily: FONT }}>{d.artistName || ''}</div>
       </div>
-      <div style={{ position: 'absolute', inset: 0, zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: perfLink ? '0 40px 120px' : '0 40px 60px' }}>
+      <div style={{ position: 'absolute', inset: 0, zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: perfLink ? '0 40px 170px' : '0 40px 60px' }}>
         {(d.genre || d.city) && (
           <div style={{ color: SUBTITLE, fontSize: 14, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12, fontFamily: FONT, ...SUB_FX }}>
             {[d.genre, d.city].filter(Boolean).join(' • ')}
@@ -116,14 +116,14 @@ function buildPages(d, tc = {}) {
       </div>
       {perfLink && (
         <div style={{ position: 'absolute', bottom: 20, left: 0, right: 0, zIndex: 2, display: 'flex', justifyContent: 'center' }}>
-          <div style={{ width: 300, borderRadius: 12, overflow: 'hidden', border: `1px solid ${BORDER}`, backgroundColor: bgRgba(0.88), display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div style={{ width: 360, borderRadius: 12, overflow: 'hidden', border: `1px solid ${BORDER}`, backgroundColor: bgRgba(0.88), display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             {perfThumb && (
-              <img src={perfThumb} alt="" style={{ width: '100%', height: 140, objectFit: 'cover' }} />
+              <img src={perfThumb} alt="" style={{ width: '100%', height: 180, objectFit: 'cover' }} />
             )}
-            <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, textAlign: 'center' }}>
-              <div style={{ color: SUBTITLE, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.18em', fontFamily: FONT }}>Live Performance</div>
-              <div style={{ color: WHITE, fontSize: 12, fontWeight: 800, fontFamily: FONT }}>Performance en vivo</div>
-              <div style={{ color: ACCENT, fontSize: 9, fontFamily: FONT }}>Ver video →</div>
+            <div style={{ padding: '13px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, textAlign: 'center' }}>
+              <div style={{ color: SUBTITLE, fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.18em', fontFamily: FONT }}>Live Performance</div>
+              <div style={{ color: WHITE, fontSize: 15, fontWeight: 800, fontFamily: FONT }}>Performance en vivo</div>
+              <div style={{ color: ACCENT, fontSize: 11, fontFamily: FONT }}>Ver video →</div>
             </div>
           </div>
         </div>
@@ -179,11 +179,16 @@ function buildPages(d, tc = {}) {
         {d.twitterBioImage && <img src={d.twitterBioImage} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
         <div style={{ position: 'absolute', inset: 0, background: OVERLAY }} />
         <div style={{ position: 'absolute', inset: '10px 14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-around', alignItems: 'center', zIndex: 1 }}>
-          {milestones.map((m, i) => (
-            <div key={i} style={{ width: '100%', borderRadius: 8, border: `1px solid ${accentRgba(0.28)}`, background: bgRgba(0.72), padding: `${milestones.length <= 4 ? 7 : 5}px 12px`, textAlign: 'center' }}>
-              <span style={{ color: TEXT, fontSize: milestones.length <= 4 ? 11 : milestones.length <= 8 ? 9.5 : 8, fontWeight: 500 }}>{m}</span>
-            </div>
-          ))}
+          {milestones.map((m, i) => {
+            const n = milestones.length;
+            const fs = n <= 4 ? 15 : n <= 6 ? 13 : n <= 8 ? 11.5 : n <= 10 ? 10.5 : 9;
+            const py = n <= 4 ? 9 : n <= 8 ? 6 : 5;
+            return (
+              <div key={i} style={{ width: '100%', borderRadius: 8, border: `1px solid ${accentRgba(0.28)}`, background: bgRgba(0.72), padding: `${py}px 12px`, textAlign: 'center' }}>
+                <span style={{ color: TEXT, fontSize: fs, fontWeight: 500 }}>{m}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -374,10 +379,20 @@ function buildPages(d, tc = {}) {
         <span style={{ color: WHITE, fontSize: 22, fontWeight: 900, marginTop: 6, textAlign: 'center' }}>{d.contactArtistName || d.artistName || ''}</span>
       </div>
       <div style={{ flex: 1, padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {[['Manager', d.managerName], ['Road Manager', d.roadManagerName], ['Contacto', `${d.contactCountryCode || ''} ${d.contactPhone || ''}`.trim()], ['Artista', d.artistName]].map(([label, value]) => (
+        {[
+          ['Manager', d.managerName],
+          ['Road Manager', d.roadManagerName],
+          ['Contacto', `${d.contactCountryCode || ''} ${d.contactPhone || ''}`.trim(), d.contactPhone ? `tel:${`${d.contactCountryCode || ''}${d.contactPhone}`.replace(/[^\d+]/g, '')}` : ''],
+          ...(d.whatsappPhone ? [['WhatsApp', `${d.contactCountryCode || ''} ${d.whatsappPhone}`.trim(), `https://wa.me/${`${d.contactCountryCode || ''}${d.whatsappPhone}`.replace(/\D/g, '')}`]] : []),
+          ['Artista', d.artistName],
+        ].map(([label, value, href]) => (
           <div key={label} style={{ flex: 1, borderRadius: 14, border: `1px solid ${accentRgba(0.22)}`, background: CARD_BG, padding: '10px 14px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ color: ACCENT, fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.18em' }}>{label}</div>
-            <div style={{ color: WHITE, fontSize: 17, fontWeight: 800, marginTop: 5, textAlign: 'center' }}>{value || 'No especificado'}</div>
+            {href ? (
+              <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: WHITE, fontSize: 17, fontWeight: 800, marginTop: 5, textAlign: 'center', textDecoration: 'underline' }}>{value || 'No especificado'}</a>
+            ) : (
+              <div style={{ color: WHITE, fontSize: 17, fontWeight: 800, marginTop: 5, textAlign: 'center' }}>{value || 'No especificado'}</div>
+            )}
           </div>
         ))}
       </div>

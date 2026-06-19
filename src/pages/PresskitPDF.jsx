@@ -67,6 +67,7 @@ const initialPresskitData = {
   roadManagerName: '',
   contactCountryCode: '+57',
   contactPhone: '',
+  whatsappPhone: '',
   contactLogo: '',
   artistMilestones: { digital: [], live: [], press: [], collaborations: [] },
   planTier: '',
@@ -140,6 +141,7 @@ function PresskitPDF({ user, onSignOut, presskitId = '' }) {
             roadManagerName: data.roadManagerName || '',
             contactCountryCode: data.contactCountryCode || '+57',
             contactPhone: data.contactPhone || '',
+            whatsappPhone: data.whatsappPhone || '',
             contactLogo: data.contactLogo || '',
             artistMilestones: data.artistMilestones || { digital: [], live: [], press: [], collaborations: [] },
             planTier: data.planTier || '',
@@ -245,7 +247,7 @@ function PresskitPDF({ user, onSignOut, presskitId = '' }) {
   // que no cambian el contenido (p. ej. focus/blur al hacer clic en el iframe).
   const docKey = JSON.stringify(pdfPresskitData || {});
   const colorsKey = JSON.stringify(pdfColors) + pdfTextEffect + pdfSubtitleEffect;
-  const blobKey = 'v12-logo-' + docKey + pdfVariant + (previewNeedsWatermark ? '-wm' : '-clean') + colorsKey;
+  const blobKey = 'v17-card-hitos-' + docKey + pdfVariant + (previewNeedsWatermark ? '-wm' : '-clean') + colorsKey;
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const pdfDocNode = useMemo(
