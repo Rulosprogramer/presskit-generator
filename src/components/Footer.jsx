@@ -20,7 +20,7 @@ function Footer({ pathname = '/' }) {
           <div className="mx-auto flex w-full max-w-4xl flex-wrap items-center justify-center gap-x-6 gap-y-3 text-center text-sm text-[#d7dde6]">
             <a href={sectionHref('#inicio')} className="transition hover:text-white">Inicio</a>
             <a href={sectionHref('#precios')} className="transition hover:text-white">Precios</a>
-            <a href={sectionHref('#cta')} className="transition hover:text-white">Empezar</a>
+            <a href={sectionHref('#beneficios')} className="transition hover:text-white">Beneficios</a>
             <a href="/about" className="transition hover:text-white">Nosotros</a>
             <a href="/privacidad" className="transition hover:text-white">Privacidad</a>
             <a href="/terminos" className="transition hover:text-white">Términos</a>
