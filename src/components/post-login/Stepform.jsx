@@ -89,7 +89,7 @@ function ImagePreviewThumb({ src, alt, emptyLabel = 'Sin imagen seleccionada' })
   );
 }
 
-function CoverFrameEditor({ src, alt, positionX, positionY, zoom, onChange, onReset }) {
+function CoverFrameEditor({ src, alt, positionX, positionY, zoom, onChange, onReset, appliedToPDF, onTogglePDF }) {
   const previewRef = useRef(null);
   const dragStateRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -235,12 +235,34 @@ function CoverFrameEditor({ src, alt, positionX, positionY, zoom, onChange, onRe
           </button>
           <button
             type="button"
+            onClick={() => emitChange({ positionX: normalizedPositionX, positionY: normalizedPositionY, zoom: 1 })}
+            className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-zinc-300 transition hover:border-white/30 hover:bg-white/10 hover:text-white"
+          >
+            Sin zoom
+          </button>
+          <button
+            type="button"
             onClick={onReset}
             className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-zinc-300 transition hover:border-white/30 hover:bg-white/10 hover:text-white"
           >
             Revertir encuadre
           </button>
         </div>
+
+        <button
+          type="button"
+          onClick={onTogglePDF}
+          className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left text-xs transition ${
+            appliedToPDF
+              ? 'border-cyan-400/40 bg-cyan-400/10 text-cyan-200'
+              : 'border-white/10 bg-white/5 text-zinc-400 hover:border-white/20 hover:text-zinc-200'
+          }`}
+        >
+          <span className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border text-[9px] font-black ${
+            appliedToPDF ? 'border-cyan-400 bg-cyan-400 text-zinc-950' : 'border-zinc-600 bg-transparent text-transparent'
+          }`}>✓</span>
+          <span className="font-semibold uppercase tracking-[0.12em]">Aplicar encuadre al PDF</span>
+        </button>
       </div>
     </div>
   );
@@ -254,6 +276,7 @@ function Stepform({
   onCoverUpload,
   onCoverFrameChange,
   onResetCoverFrame,
+  onToggleCoverApplyToPDF,
   onGalleryUpload,
   onRecognitionImageUpload,
   onBioImageUpload,
@@ -323,6 +346,8 @@ function Stepform({
                 zoom={data.coverImageZoom}
                 onChange={onCoverFrameChange}
                 onReset={onResetCoverFrame}
+                appliedToPDF={data.coverApplyToPDF}
+                onTogglePDF={onToggleCoverApplyToPDF}
               />
               {selectedFileNames?.cover && (
                 <div className="flex items-center gap-2 rounded-lg bg-cyan-300/10 px-3 py-2">

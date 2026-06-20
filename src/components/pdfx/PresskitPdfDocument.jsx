@@ -1166,6 +1166,10 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
   const isEssential = variant === 'essential';
   const safeImages = (safeData.images || []).filter(isHttpUrl);
   const coverImage = safeImages[0] || '';
+  const coverApplyToPDF = Boolean(safeData.coverApplyToPDF);
+  const coverPosX = coverApplyToPDF ? (Number(safeData.coverImagePositionX) || 50) : 50;
+  const coverPosY = coverApplyToPDF ? (Number(safeData.coverImagePositionY) || 50) : 50;
+  const coverZoom = coverApplyToPDF ? Math.max(1, Number(safeData.coverImageZoom) || 1) : 1;
   const performanceLiveLink = safeData.performanceLiveLink || '';
   const performanceLiveThumbnail = getYoutubeThumbnailUrl(performanceLiveLink);
   const recognitionImage = safeData.recognitionImage || '';
@@ -1292,7 +1296,29 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
     <Document>
       <Page size={pdfxTheme.page.size} style={[styles.coverPage, { backgroundColor: c.bg }]} wrap={false}>
         <View style={styles.coverFrame}>
-          {coverImage ? <Image src={getImageSource(coverImage)} style={styles.coverBackground} /> : null}
+          {coverImage ? (
+            coverZoom > 1 ? (
+              <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' }}>
+                <Image
+                  src={getImageSource(coverImage)}
+                  style={{
+                    position: 'absolute',
+                    top: `${-(coverZoom - 1) / 2 * 100}%`,
+                    left: `${-(coverZoom - 1) / 2 * 100}%`,
+                    width: `${coverZoom * 100}%`,
+                    height: `${coverZoom * 100}%`,
+                    objectFit: 'cover',
+                    objectPosition: `${coverPosX}% ${coverPosY}%`,
+                  }}
+                />
+              </View>
+            ) : (
+              <Image
+                src={getImageSource(coverImage)}
+                style={{ ...styles.coverBackground, objectPosition: `${coverPosX}% ${coverPosY}%` }}
+              />
+            )
+          ) : null}
           <View style={[styles.coverScrim, { backgroundColor: c.overlay }]} />
           <View style={styles.coverTop}>
             <Text style={[styles.coverArtist, { color: c.title, fontFamily: pdfTitleFont }]}>{safeData.artistName || 'Presskit sin nombre'}</Text>

@@ -147,6 +147,7 @@ const initialPresskitData = {
   theme: 'neon',
   pressArticles: [],
   customFonts: { title: null, subtitle: null, body: null },
+  coverApplyToPDF: false,
 };
 
 const steps = [
@@ -544,6 +545,7 @@ function CreatePresskit({ user, onSignOut }) {
         coverImagePositionX: presskitData.coverImagePositionX,
         coverImagePositionY: presskitData.coverImagePositionY,
         coverImageZoom: presskitData.coverImageZoom,
+        coverApplyToPDF: presskitData.coverApplyToPDF ?? false,
         images: presskitData.images,
         links: presskitData.links,
         linkMetrics: presskitData.linkMetrics,
@@ -630,6 +632,7 @@ function CreatePresskit({ user, onSignOut }) {
               coverImagePositionX: presskitData.coverImagePositionX,
               coverImagePositionY: presskitData.coverImagePositionY,
               coverImageZoom: presskitData.coverImageZoom,
+              coverApplyToPDF: presskitData.coverApplyToPDF ?? false,
             };
             window.localStorage.setItem(getLocalDraftKey(user.uid), JSON.stringify(minimalDraft));
             return;
@@ -1455,6 +1458,7 @@ function CreatePresskit({ user, onSignOut }) {
             onCoverUpload={handleCoverUpload}
             onCoverFrameChange={handleCoverFrameChange}
             onResetCoverFrame={handleResetCoverFrame}
+            onToggleCoverApplyToPDF={() => setPresskitData(c => ({ ...c, coverApplyToPDF: !c.coverApplyToPDF }))}
             onGalleryUpload={handleGalleryUpload}
             onRecognitionImageUpload={handleRecognitionImageUpload}
             onBioImageUpload={handleBioImageUpload}

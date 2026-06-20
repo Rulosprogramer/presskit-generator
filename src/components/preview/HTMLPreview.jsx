@@ -80,10 +80,19 @@ function buildPages(d, tc = {}) {
 
   const pages = [];
 
+  const coverPosX = d.coverApplyToPDF ? (Number(d.coverImagePositionX) || 50) : 50;
+  const coverPosY = d.coverApplyToPDF ? (Number(d.coverImagePositionY) || 50) : 50;
+  const coverZoom = d.coverApplyToPDF ? Math.max(1, Number(d.coverImageZoom) || 1) : 1;
+
   // ── 1. Cover ──────────────────────────────────────────────────────────────
   pages.push(
     <div key="cover" style={{ width: PAGE_W, height: PAGE_H, position: 'relative', backgroundColor: BG, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between' }}>
-      <BgImage src={coverImg} scrim={OVERLAY} />
+      {coverImg ? (
+        <>
+          <img src={coverImg} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${coverPosX}% ${coverPosY}%`, transform: `scale(${coverZoom})`, transformOrigin: 'center center' }} />
+          <div style={{ position: 'absolute', inset: 0, background: OVERLAY }} />
+        </>
+      ) : <BgImage src={coverImg} scrim={OVERLAY} />}
       <div style={{ position: 'relative', zIndex: 1, paddingTop: 28, textAlign: 'center' }}>
         <div style={{ fontSize: 30, fontWeight: 900, color: WHITE, lineHeight: 1.1, fontFamily: FONT }}>{d.artistName || 'Presskit'}</div>
       </div>
