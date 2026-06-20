@@ -82,7 +82,7 @@ function buildPages(d, tc = {}) {
 
   const coverPosX = d.coverApplyToPDF ? (Number(d.coverImagePositionX) || 50) : 50;
   const coverPosY = d.coverApplyToPDF ? (Number(d.coverImagePositionY) || 50) : 50;
-  const coverZoom = d.coverApplyToPDF ? Math.max(1, Number(d.coverImageZoom) || 1) : 1;
+  const coverZoom = d.coverApplyToPDF ? Math.max(0.5, Number(d.coverImageZoom) || 1) : 1;
 
   // ── 1. Cover ──────────────────────────────────────────────────────────────
   pages.push(

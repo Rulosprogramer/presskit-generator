@@ -96,7 +96,7 @@ function CoverFrameEditor({ src, alt, positionX, positionY, zoom, onChange, onRe
 
   const normalizedPositionX = clampNumber(positionX, 0, 100, 50);
   const normalizedPositionY = clampNumber(positionY, 0, 100, 50);
-  const normalizedZoom = clampNumber(zoom, 1, 2.5, 1);
+  const normalizedZoom = clampNumber(zoom, 0.5, 2.5, 1);
 
   useEffect(() => {
     if (!dragStateRef.current) return;
@@ -109,7 +109,7 @@ function CoverFrameEditor({ src, alt, positionX, positionY, zoom, onChange, onRe
     onChange?.({
       positionX: clampNumber(nextValues.positionX, 0, 100, 50),
       positionY: clampNumber(nextValues.positionY, 0, 100, 50),
-      zoom: clampNumber(nextValues.zoom, 1, 2.5, 1),
+      zoom: clampNumber(nextValues.zoom, 0.5, 2.5, 1),
     });
   };
 
@@ -204,7 +204,7 @@ function CoverFrameEditor({ src, alt, positionX, positionY, zoom, onChange, onRe
           </div>
           <input
             type="range"
-            min="1"
+            min="0.5"
             max="2.5"
             step="0.01"
             value={normalizedZoom}

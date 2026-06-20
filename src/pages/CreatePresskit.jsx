@@ -675,7 +675,7 @@ function CreatePresskit({ user, onSignOut }) {
       ...current,
       coverImagePositionX: clampCoverFrameValue(nextFrame?.positionX, 0, 100, current.coverImagePositionX ?? 50),
       coverImagePositionY: clampCoverFrameValue(nextFrame?.positionY, 0, 100, current.coverImagePositionY ?? 50),
-      coverImageZoom: clampCoverFrameValue(nextFrame?.zoom, 1, 2.5, current.coverImageZoom ?? 1),
+      coverImageZoom: clampCoverFrameValue(nextFrame?.zoom, 0.5, 2.5, current.coverImageZoom ?? 1),
     }));
   };
 
