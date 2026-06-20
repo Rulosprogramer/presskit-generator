@@ -1,38 +1,39 @@
 import { useMemo, useState } from 'react';
 import { FaCreditCard, FaMoneyBillWave, FaPaypal } from 'react-icons/fa';
 
-const planContent = {
-  essential: {
-    name: 'Plan Esencial',
-    price: '$1',
-    accent: 'text-cyan-300',
-    border: 'border-cyan-300/40',
-    bg: 'bg-cyan-300/10',
-    features: [
-      'Acceso al flujo de compra',
-      'PDF esencial cuando se active la entrega',
-      'Ideal para iniciar rápido',
-    ],
-  },
-  professional: {
-    name: 'Plan Profesional',
-    price: '$5',
-    accent: 'text-fuchsia-300',
-    border: 'border-fuchsia-300/50',
-    bg: 'bg-fuchsia-300/10',
-    features: [
-      'Acceso al flujo de compra',
-      'PDF profesional cuando se active la entrega',
-      'Compartir link y vista completa luego del pago',
-    ],
+const PREMIUM = {
+  name: 'Acceso Premium',
+  accent: 'text-fuchsia-300',
+  border: 'border-fuchsia-300/50',
+  bg: 'bg-fuchsia-300/10',
+  byBilling: {
+    once: {
+      price: '$19.900 COP',
+      label: 'Una sola descarga',
+      features: [
+        'Descarga PDF profesional sin marca de agua',
+        'Enlace web público por 20 días',
+        'Válido para una actualización',
+      ],
+    },
+    annual: {
+      price: '$59.900 COP',
+      label: 'Plan anual',
+      features: [
+        'Descargas de PDF ilimitadas',
+        'Enlace del EPK online mientras esté activo',
+        'Galería de prensa en alta resolución',
+        'Actualiza cuando quieras, sin costo adicional',
+      ],
+    },
   },
 };
 
 const paymentMethods = [
   {
     id: 'card',
-    title: 'Tarjeta / checkout seguro',
-    description: 'Ideal para conectar una pasarela como Stripe o Mercado Pago.',
+    title: 'Mercado Pago (checkout seguro)',
+    description: 'Tarjeta, PSE, Nequi y más. Pago procesado por Mercado Pago.',
     icon: FaCreditCard,
   },
   {
@@ -68,11 +69,39 @@ function Checkout({ user, onSignOut }) {
   const searchParams = useMemo(() => new URLSearchParams(window.location.search), []);
   const plan = searchParams.get('plan') === 'professional' ? 'professional' : 'essential';
   const initialBilling = searchParams.get('billing') === 'annual' ? 'annual' : 'once';
-  const planInfo = planContent[plan];
+  const planInfo = PREMIUM;
   const [billing, setBilling] = useState(initialBilling);
+  const currentTier = PREMIUM.byBilling[billing] || PREMIUM.byBilling.once;
   const [selectedMethod, setSelectedMethod] = useState('card');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [checkoutError, setCheckoutError] = useState(searchParams.get('checkout') === 'cancel' ? 'Pago cancelado. Puedes intentarlo de nuevo cuando quieras.' : '');
   const selectedMethodInfo = paymentMethods.find((method) => method.id === selectedMethod) || paymentMethods[0];
   const billingInfo = billingOptions[billing] || billingOptions.once;
+
+  const startCheckout = async () => {
+    if (isProcessing) return;
+    if (!user?.uid) {
+      setCheckoutError('Debes iniciar sesión para completar la compra.');
+      return;
+    }
+    setIsProcessing(true);
+    setCheckoutError('');
+    try {
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan, billing, uid: user.uid, email: user.email || '', presskitId: user.uid }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.url) {
+        throw new Error(data.error || 'No se pudo iniciar el pago.');
+      }
+      window.location.assign(data.url);
+    } catch (err) {
+      setCheckoutError(err?.message || 'No se pudo iniciar el pago. Intenta de nuevo.');
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-400 px-6 py-8 lg:px-12">
@@ -102,11 +131,11 @@ function Checkout({ user, onSignOut }) {
                 <h2 className="text-2xl font-bold text-white">{planInfo.name}</h2>
                 <p className="mt-1 text-sm text-zinc-300">{billingInfo.title}</p>
               </div>
-              <p className={`text-5xl font-black ${planInfo.accent}`}>{planInfo.price}</p>
+              <p className={`text-5xl font-black ${planInfo.accent}`}>{currentTier.price}</p>
             </div>
 
             <ul className="mt-6 space-y-3 text-sm text-zinc-200">
-              {planInfo.features.map((feature) => (
+              {currentTier.features.map((feature) => (
                 <li key={feature} className="flex items-start gap-2">
                   <span className={planInfo.accent}>✓</span>
                   <span>{feature}</span>
@@ -187,12 +216,16 @@ function Checkout({ user, onSignOut }) {
             </div>
             <button
               type="button"
-              onClick={() => window.alert('Conecta aquí tu pasarela de pago para finalizar la compra.')}
-              className="rounded-xl bg-fuchsia-400 px-5 py-3 text-sm font-bold text-zinc-950 transition hover:bg-fuchsia-300"
+              onClick={startCheckout}
+              disabled={isProcessing}
+              className="rounded-xl bg-fuchsia-400 px-5 py-3 text-sm font-bold text-zinc-950 transition hover:bg-fuchsia-300 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {billingInfo.cta}
+              {isProcessing ? 'Redirigiendo a pago seguro…' : billingInfo.cta}
             </button>
           </div>
+          {checkoutError ? (
+            <p className="mt-4 rounded-xl border border-red-400/40 bg-red-400/10 px-4 py-3 text-sm text-red-200">{checkoutError}</p>
+          ) : null}
         </section>
       </section>
     </main>

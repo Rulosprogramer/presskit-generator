@@ -70,6 +70,7 @@ function PublicPresskit({ presskitId = '' }) {
   const [presskitData, setPresskitData] = useState(initialPresskitData);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [expired, setExpired] = useState(false);
 
   const presskitRef = useMemo(() => {
     if (!presskitId) return null;
@@ -89,6 +90,16 @@ function PublicPresskit({ presskitId = '' }) {
       (snapshot) => {
         if (snapshot.exists()) {
           const data = snapshot.data();
+          // Caducidad del enlace público: el pago único da acceso por 20 días
+          // (campo publicLinkExpiresAt). Una suscripción activa nunca caduca.
+          // Si no hay campo de caducidad, se comporta como antes (no rompe lo existente).
+          const expiresMs = data.publicLinkExpiresAt?.toMillis ? data.publicLinkExpiresAt.toMillis() : null;
+          const isExpired = !data.subscriptionActive && expiresMs != null && expiresMs < Date.now();
+          setExpired(isExpired);
+          if (isExpired) {
+            setLoading(false);
+            return;
+          }
           setPresskitData((current) => ({
             ...current,
             artistName: data.artistName || '',
@@ -152,6 +163,21 @@ function PublicPresskit({ presskitId = '' }) {
 
   if (loading) {
     return <div className="px-6 py-8 text-sm text-zinc-300">Cargando presskit publicado...</div>;
+  }
+
+  if (expired) {
+    return (
+      <div className="flex min-h-screen items-center justify-center px-6 py-8">
+        <div className="max-w-md rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
+          <p className="text-xs uppercase tracking-[0.18em] text-fuchsia-300">Enlace expirado</p>
+          <h1 className="mt-3 text-2xl font-bold text-white">Este presskit ya no está disponible</h1>
+          <p className="mt-3 text-sm text-zinc-300">
+            El enlace público de pago único tiene una vigencia de 20 días y ha caducado. El artista puede
+            renovarlo con una nueva descarga o activar el plan anual para mantenerlo siempre activo.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   if (error) {

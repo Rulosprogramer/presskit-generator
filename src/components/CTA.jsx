@@ -14,8 +14,8 @@ function CTA() {
         <div className="mt-10 grid gap-6 md:grid-cols-2">
           <article className="rounded-2xl border border-white/10 bg-white/5 p-8">
             <h3 className="text-2xl font-bold text-white">The Starter Beat</h3>
-            <p className="mt-3 text-6xl font-black text-cyan-300">$1</p>
-            <p className="mt-2 text-sm text-zinc-400">USD por descarga, una vez por cada actualización</p>
+            <p className="mt-3 text-6xl font-black text-cyan-300">$19.900</p>
+            <p className="mt-2 text-sm text-zinc-400">COP por descarga, una vez por cada actualización</p>
 
             <p className="mt-6 text-lg font-semibold italic text-fuchsia-300">
               Lanza con impacto sin complicaciones.
@@ -38,6 +38,10 @@ function CTA() {
                 <span className="text-cyan-400">✓</span>
                 <span>Descarga PDF Profesional: Diseño impecable, listo para compartir.</span>
               </li>
+              <li className="flex items-start gap-2">
+                <span className="text-cyan-400">✓</span>
+                <span>Enlace web público por 20 días: Comparte tu presskit online por tiempo limitado.</span>
+              </li>
             </ul>
 
             <p className="mt-6 text-sm italic text-zinc-300">
@@ -57,8 +61,8 @@ function CTA() {
             </div>
 
             <h3 className="text-2xl font-bold text-white">The Headliner Pro</h3>
-            <p className="mt-3 text-6xl font-black text-fuchsia-300">$15</p>
-            <p className="mt-2 text-sm text-zinc-400">USD, plan anual</p>
+            <p className="mt-3 text-6xl font-black text-fuchsia-300">$59.900</p>
+            <p className="mt-2 text-sm text-zinc-400">COP, plan anual</p>
 
             <p className="mt-6 text-lg font-semibold italic text-cyan-300">
               Tu carrera merece el estándar de la industria.

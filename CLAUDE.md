@@ -78,6 +78,16 @@ A premium-email whitelist gives full access (clean PDF download, no protected vi
 - **Client**: [src/lib/premiumAccess.js](src/lib/premiumAccess.js) `isPremiumWhitelisted(email)` — used in [src/pages/PresskitPDF.jsx](src/pages/PresskitPDF.jsx) to force `hasCleanDownloadAccess` and skip the protected-view listeners.
 - **Rules**: `premiumEmails()` in [firestore.rules](firestore.rules) — non-premium owners cannot set the premium flags (`downloadUnlocked`/`subscriptionActive`/`paymentStatus='paid'`); only whitelisted users (or the payment gateway via Admin SDK, which bypasses rules) can. Add new premium emails to **both** lists.
 
+### Payments (Mercado Pago)
+
+Mercado Pago with two billing modes — one-time **Checkout Pro** (preference) and annual **subscription** (preapproval). Single premium: $4.99 once (incl. 20-day public link) / $14.99 annual. Backend in **Vercel Serverless Functions** under `api/`:
+- [api/checkout.js](api/checkout.js) — `POST /api/checkout` creates a preference (`billing:'once'`) or preapproval (`billing:'annual'`) and returns its `init_point` URL. Amounts/currency from env (`MP_PRICE_ONCE`, `MP_PRICE_ANNUAL`, `MP_CURRENCY`). Called from [src/pages/Checkout.jsx](src/pages/Checkout.jsx) `startCheckout`.
+- [api/mp-webhook.js](api/mp-webhook.js) — `/api/mp-webhook` fetches the notified payment/preapproval and, via the Admin SDK ([api/_firebaseAdmin.js](api/_firebaseAdmin.js)), writes premium flags to `presskits/{uid}`. One-time → `downloadUnlocked`, `paymentStatus='paid'`, **`publicLinkExpiresAt` = now+20 days**. Subscription authorized → `subscriptionActive=true`. This bypasses Firestore rules (flags owner-locked client-side).
+
+**20-day public link**: one-time buyers get a `publicLinkExpiresAt` Timestamp. [src/pages/PublicPresskit.jsx](src/pages/PublicPresskit.jsx) hides the page (shows "enlace expirado") when `publicLinkExpiresAt` is past AND no active subscription. Missing field = no expiry (legacy/free published unaffected).
+
+`back_urls`/success return to `/presskitPDF`; that page's `onSnapshot` picks up the flags and unlocks. The SPA rewrite in [vercel.json](vercel.json) excludes `/api`. Env vars in [.env.example](.env.example); register the webhook URL (`/api/mp-webhook`) in the Mercado Pago dashboard. Functions run only on Vercel (or `vercel dev`), not under `npm run dev`.
+
 ## Key conventions
 
 - Gallery slot mapping is defined in two places — `gallerySlotToIndex` in CreatePresskit and `galleryPhotoSlots` in Stepform — keep them in sync.
