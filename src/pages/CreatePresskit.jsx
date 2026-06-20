@@ -63,6 +63,12 @@ const gallerySlotToIndex = {
   horizB: 6,
 };
 
+const defaultCoverFrame = {
+  coverImagePositionX: 50,
+  coverImagePositionY: 50,
+  coverImageZoom: 1,
+};
+
 function setGalleryImageForSlot(images, slot, imageUrl) {
   const nextImages = Array.isArray(images) ? [...images] : [];
   const index = gallerySlotToIndex[slot];
@@ -75,6 +81,7 @@ const initialPresskitData = {
   artistName: '',
   genre: '',
   city: '',
+  ...defaultCoverFrame,
   performanceLiveLink: '',
   totalStreams: '',
   totalVideoViews: '',
@@ -215,6 +222,12 @@ function getStorageSetupErrorMessage(error) {
   }
 
   return 'No se pudo subir la imagen. Intenta nuevamente en unos segundos.';
+}
+
+function clampCoverFrameValue(value, min, max, fallback) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) return fallback;
+  return Math.min(max, Math.max(min, numericValue));
 }
 
 function CreatePresskit({ user, onSignOut }) {
@@ -453,6 +466,9 @@ function CreatePresskit({ user, onSignOut }) {
         theme: presskitData.theme,
         genre: presskitData.genre,
         city: presskitData.city,
+        coverImagePositionX: presskitData.coverImagePositionX,
+        coverImagePositionY: presskitData.coverImagePositionY,
+        coverImageZoom: presskitData.coverImageZoom,
         images: presskitData.images,
         links: presskitData.links,
         linkMetrics: presskitData.linkMetrics,
@@ -536,6 +552,9 @@ function CreatePresskit({ user, onSignOut }) {
               ...presskitData,
               images: [],
               recognitionImage: '',
+              coverImagePositionX: presskitData.coverImagePositionX,
+              coverImagePositionY: presskitData.coverImagePositionY,
+              coverImageZoom: presskitData.coverImageZoom,
             };
             window.localStorage.setItem(getLocalDraftKey(user.uid), JSON.stringify(minimalDraft));
             return;
@@ -571,6 +590,35 @@ function CreatePresskit({ user, onSignOut }) {
         [field]: value,
       },
     }));
+  };
+
+  const handleCoverFrameChange = (nextFrame) => {
+    setPresskitData((current) => ({
+      ...current,
+      coverImagePositionX: clampCoverFrameValue(nextFrame?.positionX, 0, 100, current.coverImagePositionX ?? 50),
+      coverImagePositionY: clampCoverFrameValue(nextFrame?.positionY, 0, 100, current.coverImagePositionY ?? 50),
+      coverImageZoom: clampCoverFrameValue(nextFrame?.zoom, 1, 2.5, current.coverImageZoom ?? 1),
+    }));
+  };
+
+  const handleResetCoverFrame = () => {
+    setPresskitData((current) => ({
+      ...current,
+      ...defaultCoverFrame,
+    }));
+  };
+
+  const handleCoverImagePositionChange = (direction) => {
+    setPresskitData((current) => {
+      const currentPosition = Number(current.coverImagePositionY);
+      const basePosition = Number.isFinite(currentPosition) ? currentPosition : 50;
+      const nextPosition = Math.max(20, Math.min(80, basePosition + (direction > 0 ? 8 : -8)));
+
+      return {
+        ...current,
+        coverImagePositionY: nextPosition,
+      };
+    });
   };
 
   const handleAddRelease = (releaseData) => {
@@ -758,6 +806,7 @@ function CreatePresskit({ user, onSignOut }) {
       setPresskitData((current) => ({
         ...current,
         images: [imageUrl, ...current.images.slice(1)],
+        ...defaultCoverFrame,
       }));
 
       setSelectedFileNames((current) => ({ ...current, cover: file.name }));
@@ -1093,6 +1142,7 @@ function CreatePresskit({ user, onSignOut }) {
       setPresskitData((current) => ({
         ...current,
         images: [image.url, ...current.images.slice(1)],
+        ...defaultCoverFrame,
       }));
       setSelectedFileNames((current) => ({ ...current, cover: image.fileName }));
     } else if (currentImageType === 'recognition') {
@@ -1178,6 +1228,9 @@ function CreatePresskit({ user, onSignOut }) {
           theme: presskitData.theme,
           genre: presskitData.genre,
           city: presskitData.city,
+          coverImagePositionX: presskitData.coverImagePositionX,
+          coverImagePositionY: presskitData.coverImagePositionY,
+          coverImageZoom: presskitData.coverImageZoom,
           images: presskitData.images,
           links: presskitData.links,
           linkMetrics: presskitData.linkMetrics,
@@ -1247,6 +1300,9 @@ function CreatePresskit({ user, onSignOut }) {
       theme: presskitData.theme,
       genre: presskitData.genre,
       city: presskitData.city,
+      coverImagePositionX: presskitData.coverImagePositionX,
+      coverImagePositionY: presskitData.coverImagePositionY,
+      coverImageZoom: presskitData.coverImageZoom,
       images: presskitData.images,
       links: presskitData.links,
       linkMetrics: presskitData.linkMetrics,
@@ -1316,6 +1372,8 @@ function CreatePresskit({ user, onSignOut }) {
             onLinkChange={updateLink}
             onLinkMetricChange={updateLinkMetric}
             onCoverUpload={handleCoverUpload}
+            onCoverFrameChange={handleCoverFrameChange}
+            onResetCoverFrame={handleResetCoverFrame}
             onGalleryUpload={handleGalleryUpload}
             onRecognitionImageUpload={handleRecognitionImageUpload}
             onBioImageUpload={handleBioImageUpload}
@@ -1404,7 +1462,7 @@ function CreatePresskit({ user, onSignOut }) {
             </button>
           </div>
 
-          <LivePreview data={presskitData} />
+          <LivePreview data={presskitData} onCoverImagePositionChange={handleCoverImagePositionChange} />
           <PublishModal
             isOpen={publishOpen}
             onClose={() => setPublishOpen(false)}
