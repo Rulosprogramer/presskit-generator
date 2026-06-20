@@ -425,10 +425,16 @@ export default function HTMLPreview({ presskitData }) {
   }, []);
 
   const toFamily = (name) => name ? `'${name}', sans-serif` : null;
-  const fontFamily     = toFamily(typography?.titleFont)    || 'system-ui, sans-serif';
-  const bodyFontFamily = toFamily(typography?.bodyFont)     || fontFamily;
-  const subFontFamily  = toFamily(typography?.subtitleFont) || fontFamily;
-  const labelFontFamily= toFamily(typography?.labelFont)    || fontFamily;
+  const cf = (presskitData || {}).customFonts || {};
+  const fontFamily     = cf.title?.url    ? 'presskit-custom-title, sans-serif'    : (toFamily(typography?.titleFont)    || 'system-ui, sans-serif');
+  const bodyFontFamily = cf.body?.url     ? 'presskit-custom-body, sans-serif'     : (toFamily(typography?.bodyFont)     || fontFamily);
+  const subFontFamily  = cf.subtitle?.url ? 'presskit-custom-subtitle, sans-serif' : (toFamily(typography?.subtitleFont) || fontFamily);
+  const labelFontFamily= toFamily(typography?.labelFont) || fontFamily;
+  const customFontFaceCSS = [
+    cf.title?.url    && `@font-face{font-family:'presskit-custom-title';src:url('${cf.title.url}');}`,
+    cf.subtitle?.url && `@font-face{font-family:'presskit-custom-subtitle';src:url('${cf.subtitle.url}');}`,
+    cf.body?.url     && `@font-face{font-family:'presskit-custom-body';src:url('${cf.body.url}');}`,
+  ].filter(Boolean).join('');
   const tc = {
     accent:      uiTheme.accentColor    || '#67e8f9',
     bg:          uiTheme.bgColor        || '#0a0a12',
@@ -454,6 +460,7 @@ export default function HTMLPreview({ presskitData }) {
       className="overflow-y-auto overflow-x-hidden rounded-2xl border border-white/10 bg-zinc-950/90"
       style={{ fontFamily, maxHeight: PAGE_H * scale }}
     >
+      {customFontFaceCSS && <style>{customFontFaceCSS}</style>}
       {pages.map((page, i) => (
         <div
           key={i}

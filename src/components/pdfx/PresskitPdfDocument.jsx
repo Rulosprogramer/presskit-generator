@@ -1,4 +1,4 @@
-import { Document, Image, Link, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
+import { Document, Font, Image, Link, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
 import { theme as pdfxTheme } from '../../lib/pdfx-theme';
 import { isValidPdfImage } from '../../lib/pdfImageResolver';
 import { getPdfTextEffectStyle } from '../../lib/textEffects.js';
@@ -1141,7 +1141,14 @@ const PLATFORM_LABELS = {
   soundcloud: 'SoundCloud',
 };
 
-export default function PresskitPdfDocument({ data, variant = 'professional', colors = {}, textEffect = 'none', subtitleEffect = 'none' }) {
+export default function PresskitPdfDocument({ data, variant = 'professional', colors = {}, textEffect = 'none', subtitleEffect = 'none', customFonts = {} }) {
+  const cf = customFonts || {};
+  if (cf.title?.url)    Font.register({ family: 'presskit-custom-title',    src: cf.title.url });
+  if (cf.subtitle?.url) Font.register({ family: 'presskit-custom-subtitle', src: cf.subtitle.url });
+  if (cf.body?.url)     Font.register({ family: 'presskit-custom-body',     src: cf.body.url });
+  const pdfTitleFont    = cf.title?.url    ? 'presskit-custom-title'    : pdfxTheme.typography.heading.fontFamily;
+  const pdfSubtitleFont = cf.subtitle?.url ? 'presskit-custom-subtitle' : pdfxTheme.typography.heading.fontFamily;
+  const pdfBodyFont     = cf.body?.url     ? 'presskit-custom-body'     : pdfxTheme.typography.body.fontFamily;
   const txtFx = getPdfTextEffectStyle(textEffect);
   const subFx = getPdfTextEffectStyle(subtitleEffect);
   const c = {
@@ -1288,7 +1295,7 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
           {coverImage ? <Image src={getImageSource(coverImage)} style={styles.coverBackground} /> : null}
           <View style={[styles.coverScrim, { backgroundColor: c.overlay }]} />
           <View style={styles.coverTop}>
-            <Text style={[styles.coverArtist, { color: c.title }]}>{safeData.artistName || 'Presskit sin nombre'}</Text>
+            <Text style={[styles.coverArtist, { color: c.title, fontFamily: pdfTitleFont }]}>{safeData.artistName || 'Presskit sin nombre'}</Text>
           </View>
           <View style={styles.coverBottom}>
             <Text style={[styles.coverPresskit, { color: c.title }]}>PRESSKIT</Text>
@@ -1305,8 +1312,8 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
 
           {/* Header: kicker + nombre arriba */}
           <View style={styles.pageTwoHeader}>
-            <Text style={[styles.pageTwoKicker, { color: c.accent }, subFx]}>CONOCE A</Text>
-            <Text style={[styles.pageTwoArtist, { color: c.title }]}>{safeData.artistName || 'Presskit'}</Text>
+            <Text style={[styles.pageTwoKicker, { color: c.accent, fontFamily: pdfSubtitleFont }, subFx]}>CONOCE A</Text>
+            <Text style={[styles.pageTwoArtist, { color: c.title, fontFamily: pdfTitleFont }]}>{safeData.artistName || 'Presskit'}</Text>
           </View>
 
           {/* Bloque central: divider + género + bio */}
@@ -1316,7 +1323,7 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
                 {[safeData.genre, safeData.city].filter(Boolean).join(' • ')}
               </Text>
             ) : null}
-            <Text style={[styles.pageTwoBio, { color: c.text }, txtFx]}>{shortBio}</Text>
+            <Text style={[styles.pageTwoBio, { color: c.text, fontFamily: pdfBodyFont }, txtFx]}>{shortBio}</Text>
           </View>
 
           {/* Video card anclado al fondo */}
@@ -1429,8 +1436,8 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
             <Text style={[styles.pageFiveTitle, { color: c.accent }]}>BIOGRAFÍA DE PRENSA</Text>
           </View>
           <View style={styles.pageFiveTextPanel}>
-            {safeData.artistName ? <Text style={[styles.pageFiveArtistSub, { color: c.title }]}>{safeData.artistName}</Text> : null}
-            <Text style={[styles.pageFiveText, { color: c.text }, txtFx]}>{longBio}</Text>
+            {safeData.artistName ? <Text style={[styles.pageFiveArtistSub, { color: c.title, fontFamily: pdfTitleFont }]}>{safeData.artistName}</Text> : null}
+            <Text style={[styles.pageFiveText, { color: c.text, fontFamily: pdfBodyFont }, txtFx]}>{longBio}</Text>
           </View>
         </View>
       </Page>
@@ -1461,8 +1468,8 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
             <View style={[styles.linksScrim, { backgroundColor: c.overlay }]} />
 
             <View style={styles.linksTopArea}>
-              <Text style={[styles.linksKicker, { color: c.subtitle }, subFx]}>CONECTA CON</Text>
-              <Text style={[styles.linksArtistName, { color: c.title }]}>{safeData.artistName || ''}</Text>
+              <Text style={[styles.linksKicker, { color: c.subtitle, fontFamily: pdfSubtitleFont }, subFx]}>CONECTA CON</Text>
+              <Text style={[styles.linksArtistName, { color: c.title, fontFamily: pdfTitleFont }]}>{safeData.artistName || ''}</Text>
             </View>
 
             <View style={[styles.linksCard, { borderColor: c.border, backgroundColor: hexToRgba(c.bg, 0.75) }]}>

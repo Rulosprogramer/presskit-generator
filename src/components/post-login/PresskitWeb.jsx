@@ -410,13 +410,20 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
       ? 'aspect-[9/16] w-full sm:aspect-auto sm:h-[clamp(19rem,44vw,30rem)]'
       : 'aspect-[9/16] w-full sm:aspect-auto sm:h-[62vh] lg:h-[86vh]';
   const { theme: uiTheme, typography } = useTheme();
+  const cf = presskitData.customFonts || {};
   const pkFonts = {
-    title: typography.titleFont    ? `'${typography.titleFont}', sans-serif`    : undefined,
-    sub:   typography.subtitleFont ? `'${typography.subtitleFont}', sans-serif` : undefined,
-    body:  typography.bodyFont     ? `'${typography.bodyFont}', sans-serif`     : undefined,
-    label: typography.labelFont    ? `'${typography.labelFont}', sans-serif`    : undefined,
+    title: cf.title?.url    ? 'presskit-custom-title, sans-serif'    : (typography.titleFont    ? `'${typography.titleFont}', sans-serif`    : undefined),
+    sub:   cf.subtitle?.url ? 'presskit-custom-subtitle, sans-serif' : (typography.subtitleFont ? `'${typography.subtitleFont}', sans-serif` : undefined),
+    body:  cf.body?.url     ? 'presskit-custom-body, sans-serif'     : (typography.bodyFont     ? `'${typography.bodyFont}', sans-serif`     : undefined),
+    label: typography.labelFont ? `'${typography.labelFont}', sans-serif` : undefined,
   };
+  const customFontFace = [
+    cf.title?.url    && `@font-face{font-family:'presskit-custom-title';src:url('${cf.title.url}');}`,
+    cf.subtitle?.url && `@font-face{font-family:'presskit-custom-subtitle';src:url('${cf.subtitle.url}');}`,
+    cf.body?.url     && `@font-face{font-family:'presskit-custom-body';src:url('${cf.body.url}');}`,
+  ].filter(Boolean).join('');
   const pkCss = [
+    customFontFace,
     pkFonts.title && `[data-pk-web] h2,[data-pk-web] h3{font-family:${pkFonts.title}}`,
   ].filter(Boolean).join('');
   const theme = getTheme(presskitData.theme || 'neon');

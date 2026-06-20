@@ -121,6 +121,8 @@ function Stepform({
   selectedFileNames,
   imageUploadError,
   generatedBios = {},
+  onCustomFontUpload,
+  onRemoveCustomFont,
 }) {
   const [showWhatsapp, setShowWhatsapp] = useState(Boolean(data.whatsappPhone));
   return (
@@ -848,7 +850,11 @@ function Stepform({
         <div id="presskit-step-12" className="scroll-mt-28 rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
           <p className="text-sm font-semibold text-fuchsia-300">12. Identidad Visual</p>
           <div className="mt-5">
-            <Step12GenreIdentity />
+            <Step12GenreIdentity
+              customFonts={data.customFonts}
+              onCustomFontUpload={onCustomFontUpload}
+              onRemoveCustomFont={onRemoveCustomFont}
+            />
           </div>
         </div>
 

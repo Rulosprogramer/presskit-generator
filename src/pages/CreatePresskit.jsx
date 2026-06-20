@@ -128,6 +128,7 @@ const initialPresskitData = {
   publishedUrl: '',
   theme: 'neon',
   pressArticles: [],
+  customFonts: { title: null, subtitle: null, body: null },
 };
 
 const steps = [
@@ -333,6 +334,7 @@ function CreatePresskit({ user, onSignOut }) {
         planTier: localData.planTier || current.planTier,
         theme: localData.theme || current.theme,
         pressArticles: Array.isArray(localData.pressArticles) ? localData.pressArticles.slice(0, 3) : current.pressArticles,
+        customFonts: localData.customFonts || current.customFonts,
       }));
     } catch (error) {
       console.warn('No se pudo recuperar borrador local:', error);
@@ -403,6 +405,7 @@ function CreatePresskit({ user, onSignOut }) {
             planTier: data.planTier || current.planTier,
             theme: data.theme || current.theme || 'neon',
             pressArticles: Array.isArray(data.pressArticles) ? data.pressArticles.slice(0, 3) : current.pressArticles,
+            customFonts: data.customFonts || current.customFonts,
           }));
         }
       } catch (error) {
@@ -463,6 +466,7 @@ function CreatePresskit({ user, onSignOut }) {
         contactLogo: presskitData.contactLogo,
         planTier: presskitData.planTier,
         pressArticles: presskitData.pressArticles,
+        customFonts: presskitData.customFonts || null,
         status: 'draft',
       };
 
@@ -649,6 +653,33 @@ function CreatePresskit({ user, onSignOut }) {
       setPermissionError(getStorageSetupErrorMessage(error));
       console.warn('No se pudo subir imagen de artículo de prensa:', error);
     }
+  };
+
+  const handleCustomFontUpload = async (role, file) => {
+    if (!file || !user?.uid) return;
+    const allowed = ['.ttf', '.otf', '.woff', '.woff2'];
+    const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
+    if (!allowed.includes(ext)) { setImageUploadError('Solo se aceptan archivos .ttf, .otf, .woff o .woff2'); return; }
+    try {
+      await auth.currentUser?.getIdToken(true);
+      const fontRef = ref(storage, `presskits/${user.uid}/fonts/${role}-${Date.now()}-${file.name}`);
+      await uploadBytes(fontRef, file);
+      const url = await getDownloadURL(fontRef);
+      setPresskitData((current) => ({
+        ...current,
+        customFonts: { ...(current.customFonts || {}), [role]: { name: file.name, url } },
+      }));
+    } catch (error) {
+      setPermissionError(getStorageSetupErrorMessage(error));
+      console.warn('No se pudo subir la fuente personalizada:', error);
+    }
+  };
+
+  const handleRemoveCustomFont = (role) => {
+    setPresskitData((current) => ({
+      ...current,
+      customFonts: { ...(current.customFonts || {}), [role]: null },
+    }));
   };
 
   const handleAddMilestone = (category) => {
@@ -1310,6 +1341,8 @@ function CreatePresskit({ user, onSignOut }) {
             onOpenImageLibrary={handleOpenImageLibrary}
             onPressArticleUpload={handlePressArticleUpload}
             onDeletePressArticle={handleDeletePressArticle}
+            onCustomFontUpload={handleCustomFontUpload}
+            onRemoveCustomFont={handleRemoveCustomFont}
             saveLabel={saveLabel}
             isGeneratingBio={isGeneratingBio}
             generatingBioSection={generatingBioSection}

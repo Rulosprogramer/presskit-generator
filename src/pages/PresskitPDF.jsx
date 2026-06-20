@@ -258,6 +258,7 @@ function PresskitPDF({ user, onSignOut, presskitId = '' }) {
         colors={pdfColors}
         textEffect={pdfTextEffect}
         subtitleEffect={pdfSubtitleEffect}
+        customFonts={pdfPresskitData?.customFonts || {}}
         watermark={previewNeedsWatermark}
         watermarkLabel={watermarkLabel}
       />
@@ -293,6 +294,7 @@ function PresskitPDF({ user, onSignOut, presskitId = '' }) {
         colors={pdfColors}
         textEffect={pdfTextEffect}
         subtitleEffect={pdfSubtitleEffect}
+        customFonts={pdfPresskitData?.customFonts || {}}
         watermark={useWatermark}
         watermarkLabel={watermarkLabel}
       />

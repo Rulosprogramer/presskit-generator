@@ -17,7 +17,13 @@ function buildAllFontsUrl() {
   return `https://fonts.googleapis.com/css2?family=${allFamilies.join('&family=')}&display=swap`;
 }
 
-export default function Step12GenreIdentity() {
+const CUSTOM_FONT_ROLES = [
+  { key: 'title',    label: 'Títulos' },
+  { key: 'subtitle', label: 'Subtítulos' },
+  { key: 'body',     label: 'Cuerpo de texto' },
+];
+
+export default function Step12GenreIdentity({ customFonts = {}, onCustomFontUpload, onRemoveCustomFont }) {
   const { typography, setTypographyValue, activeGenre, applyGenreIdentity } = useTheme();
 
   useEffect(() => {
@@ -40,6 +46,48 @@ export default function Step12GenreIdentity() {
         <p className="mt-1 text-sm text-zinc-400">
           Escoge la tipografía con la que te identificas.
         </p>
+      </div>
+
+      {/* Custom font upload */}
+      <div>
+        <p className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Tu tipografía propia (.ttf .otf .woff .woff2)</p>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {CUSTOM_FONT_ROLES.map(({ key, label }) => {
+            const current = customFonts?.[key];
+            return (
+              <div key={key} className="flex flex-col gap-1.5">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">{label}</p>
+                {current ? (
+                  <div className="flex items-center gap-2 rounded-xl border border-emerald-400/30 bg-emerald-400/8 px-3 py-2">
+                    <span className="min-w-0 flex-1 truncate text-xs text-emerald-300">{current.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => onRemoveCustomFont?.(key)}
+                      className="shrink-0 text-[10px] text-zinc-500 transition hover:text-red-400"
+                      title="Eliminar fuente"
+                    >✕</button>
+                  </div>
+                ) : (
+                  <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-white/15 bg-white/3 px-3 py-2.5 text-xs text-zinc-400 transition hover:border-white/30 hover:text-zinc-200">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M4 4l3-3 3 3M2 11h10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    <span>Subir archivo</span>
+                    <input
+                      type="file"
+                      accept=".ttf,.otf,.woff,.woff2"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) onCustomFontUpload?.(key, file);
+                        e.target.value = '';
+                      }}
+                    />
+                  </label>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <p className="mt-2 text-[10px] text-zinc-600">Las fuentes personalizadas se aplican en la web y el PDF. Tienen prioridad sobre las opciones de Google Fonts.</p>
       </div>
 
       {/* Manual font pickers — 2×2 grid */}
