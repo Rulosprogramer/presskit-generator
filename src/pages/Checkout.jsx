@@ -8,7 +8,7 @@ const PREMIUM = {
   bg: 'bg-fuchsia-300/10',
   byBilling: {
     once: {
-      price: '$19.900 COP',
+      price: '$4.99 USD',
       label: 'Una sola descarga',
       features: [
         'Descarga PDF profesional sin marca de agua',
@@ -17,7 +17,7 @@ const PREMIUM = {
       ],
     },
     annual: {
-      price: '$59.900 COP',
+      price: '$14.99 USD',
       label: 'Plan anual',
       features: [
         'Descargas de PDF ilimitadas',
