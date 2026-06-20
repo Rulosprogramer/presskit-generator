@@ -130,7 +130,7 @@ function App() {
           <main>
             <LegalPage kind={isPrivacyPage ? 'privacy' : 'terms'} />
           </main>
-          <Footer />
+          <Footer pathname={pathname} />
         </>
       ) : isAboutPage ? (
         <>
@@ -138,7 +138,7 @@ function App() {
           <main>
             <AboutPage />
           </main>
-          <Footer />
+          <Footer pathname={pathname} />
         </>
       ) : (
         <>
@@ -153,7 +153,7 @@ function App() {
             <CTA />
             <FAQ />
           </main>
-          <Footer />
+          <Footer pathname={pathname} />
         </>
       )}
     </div>
