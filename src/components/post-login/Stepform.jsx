@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ReleaseStep from './ReleaseStep.jsx';
 import ArtistMilestonesStep from './ArtistMilestonesStep.jsx';
 import ThemePickerStep from './ThemePickerStep.jsx';
@@ -69,6 +69,12 @@ const horizontalPhotoSlots = [
   },
 ];
 
+function clampNumber(value, min, max, fallback) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) return fallback;
+  return Math.min(max, Math.max(min, numericValue));
+}
+
 function ImagePreviewThumb({ src, alt, emptyLabel = 'Sin imagen seleccionada' }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/60">
@@ -83,12 +89,171 @@ function ImagePreviewThumb({ src, alt, emptyLabel = 'Sin imagen seleccionada' })
   );
 }
 
+function CoverFrameEditor({ src, alt, positionX, positionY, zoom, onChange, onReset }) {
+  const previewRef = useRef(null);
+  const dragStateRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const normalizedPositionX = clampNumber(positionX, 0, 100, 50);
+  const normalizedPositionY = clampNumber(positionY, 0, 100, 50);
+  const normalizedZoom = clampNumber(zoom, 1, 2.5, 1);
+
+  useEffect(() => {
+    if (!dragStateRef.current) return;
+    dragStateRef.current.positionX = normalizedPositionX;
+    dragStateRef.current.positionY = normalizedPositionY;
+    dragStateRef.current.zoom = normalizedZoom;
+  }, [normalizedPositionX, normalizedPositionY, normalizedZoom]);
+
+  const emitChange = (nextValues) => {
+    onChange?.({
+      positionX: clampNumber(nextValues.positionX, 0, 100, 50),
+      positionY: clampNumber(nextValues.positionY, 0, 100, 50),
+      zoom: clampNumber(nextValues.zoom, 1, 2.5, 1),
+    });
+  };
+
+  const handlePointerDown = (event) => {
+    if (!src || !previewRef.current) return;
+
+    const rect = previewRef.current.getBoundingClientRect();
+    dragStateRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      positionX: normalizedPositionX,
+      positionY: normalizedPositionY,
+      zoom: normalizedZoom,
+      rectWidth: rect.width || 1,
+      rectHeight: rect.height || 1,
+    };
+
+    setIsDragging(true);
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  };
+
+  const handlePointerMove = (event) => {
+    const dragState = dragStateRef.current;
+    if (!dragState) return;
+
+    const sensitivity = 0.35;
+    const deltaX = ((event.clientX - dragState.startX) / dragState.rectWidth) * 100 / Math.max(dragState.zoom, 1) * sensitivity;
+    const deltaY = ((event.clientY - dragState.startY) / dragState.rectHeight) * 100 / Math.max(dragState.zoom, 1) * sensitivity;
+
+    emitChange({
+      positionX: dragState.positionX + deltaX,
+      positionY: dragState.positionY + deltaY,
+      zoom: dragState.zoom,
+    });
+  };
+
+  const stopDragging = () => {
+    dragStateRef.current = null;
+    setIsDragging(false);
+  };
+
+  return (
+    <div className="space-y-3">
+      <div
+        ref={previewRef}
+        className={`relative overflow-hidden rounded-3xl border border-white/12 bg-zinc-950 ${src ? 'touch-none' : ''}`}
+        style={{ aspectRatio: '4 / 5' }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={stopDragging}
+        onPointerCancel={stopDragging}
+        onPointerLeave={stopDragging}
+      >
+        {src ? (
+          <img
+            src={src}
+            alt={alt}
+            draggable={false}
+            className="absolute inset-0 h-full w-full select-none object-cover"
+            style={{
+              objectPosition: `${normalizedPositionX}% ${normalizedPositionY}%`,
+              transform: `scale(${normalizedZoom})`,
+              transformOrigin: 'center center',
+              cursor: isDragging ? 'grabbing' : 'grab',
+              transition: isDragging ? 'none' : 'transform 120ms ease-out',
+            }}
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center px-8 text-center text-sm text-zinc-400">
+            Sube una portada para empezar a encuadrarla.
+          </div>
+        )}
+
+        <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/50 via-black/10 to-transparent" />
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute left-1/2 top-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/50" />
+          <div className="absolute left-1/2 top-1/2 h-px w-16 -translate-x-1/2 -translate-y-1/2 bg-white/40" />
+          <div className="absolute left-1/2 top-1/2 h-16 w-px -translate-x-1/2 -translate-y-1/2 bg-white/40" />
+        </div>
+
+        <div className="absolute left-3 top-3 rounded-full border border-white/15 bg-black/45 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/90 backdrop-blur-sm">
+          Arrastra para reencuadrar
+        </div>
+      </div>
+
+      <div className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4">
+        <label className="block space-y-2">
+          <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-[0.12em] text-zinc-400">
+            <span>Zoom</span>
+            <span>{normalizedZoom.toFixed(2)}x</span>
+          </div>
+          <input
+            type="range"
+            min="1"
+            max="2.5"
+            step="0.01"
+            value={normalizedZoom}
+            onChange={(event) => emitChange({ positionX: normalizedPositionX, positionY: normalizedPositionY, zoom: event.target.value })}
+            className="w-full accent-cyan-300"
+          />
+        </label>
+
+        <div className="grid grid-cols-3 gap-2 text-[11px] text-zinc-300">
+          <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2">
+            X: {Math.round(normalizedPositionX)}%
+          </div>
+          <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2">
+            Y: {Math.round(normalizedPositionY)}%
+          </div>
+          <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2">
+            Zoom: {normalizedZoom.toFixed(2)}x
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => emitChange({ positionX: 50, positionY: 50, zoom: 1 })}
+            className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-zinc-300 transition hover:border-white/30 hover:bg-white/10 hover:text-white"
+          >
+            Centrar
+          </button>
+          <button
+            type="button"
+            onClick={onReset}
+            className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-zinc-300 transition hover:border-white/30 hover:bg-white/10 hover:text-white"
+          >
+            Revertir encuadre
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Stepform({
   data,
   onFieldChange,
   onLinkChange,
   onLinkMetricChange,
   onCoverUpload,
+  onCoverFrameChange,
+  onResetCoverFrame,
   onGalleryUpload,
   onRecognitionImageUpload,
   onBioImageUpload,
@@ -141,31 +306,47 @@ function Stepform({
         <div id="presskit-step-1" className="scroll-mt-28 rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
           <p className="text-sm font-semibold text-fuchsia-300">1. Portada</p>
           <p className="mt-2 text-sm text-zinc-300">
-            Sube tu mejor foto, de estudio o de un show en vivo, recuerda que es lo primero que verán en tu EPK.
+            Sube tu mejor foto, de estudio o de un show en vivo, y encuádrela con drag y zoom como en Instagram.
           </p>
           {imageUploadError && (
             <div className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2 text-xs text-amber-300">
               {imageUploadError}
             </div>
           )}
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <label className="space-y-3 rounded-2xl border border-dashed border-white/15 bg-white/5 p-4">
-              <span className="text-xs uppercase tracking-[0.12em] text-zinc-400">Upload portada</span>
-              <ImagePreviewThumb src={data.images?.[0] || ''} alt="Miniatura de portada" emptyLabel="La portada seleccionada aparecerá aquí" />
-              <input id="cover-upload" type="file" accept="image/jpeg,image/jpg,image/png,image/webp,image/gif" onChange={onCoverUpload} className="w-full cursor-pointer text-sm text-zinc-300 file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-cyan-300 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-zinc-950" />
+          <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(18rem,0.8fr)]">
+            <div className="space-y-3">
+              <CoverFrameEditor
+                src={data.images?.[0] || ''}
+                alt="Portada del presskit"
+                positionX={data.coverImagePositionX}
+                positionY={data.coverImagePositionY}
+                zoom={data.coverImageZoom}
+                onChange={onCoverFrameChange}
+                onReset={onResetCoverFrame}
+              />
               {selectedFileNames?.cover && (
-                <div className="mt-2 flex items-center gap-2 rounded-lg bg-cyan-300/10 px-3 py-2">
+                <div className="flex items-center gap-2 rounded-lg bg-cyan-300/10 px-3 py-2">
                   <span className="text-xs text-cyan-300">✓ {selectedFileNames.cover}</span>
                 </div>
               )}
-            </label>
-            <button
-              type="button"
-              onClick={() => onOpenImageLibrary('cover')}
-              className="rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-zinc-300 transition hover:border-cyan-300/50 hover:bg-white/10 hover:text-white"
-            >
-              📚 Biblioteca de fotos
-            </button>
+            </div>
+
+            <div className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4">
+              <label className="space-y-3">
+                <span className="text-xs uppercase tracking-[0.12em] text-zinc-400">Upload portada</span>
+                <input id="cover-upload" type="file" accept="image/jpeg,image/jpg,image/png,image/webp,image/gif" onChange={onCoverUpload} className="w-full cursor-pointer text-sm text-zinc-300 file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-cyan-300 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-zinc-950" />
+              </label>
+              <button
+                type="button"
+                onClick={() => onOpenImageLibrary('cover')}
+                className="w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-zinc-300 transition hover:border-cyan-300/50 hover:bg-white/10 hover:text-white"
+              >
+                📚 Biblioteca de fotos
+              </button>
+              <p className="text-xs leading-5 text-zinc-400">
+                Arrastra la imagen dentro del marco para reencuadrarla. Usa zoom para acercar o alejar y guarda ese encuadre.
+              </p>
+            </div>
           </div>
         </div>
 
