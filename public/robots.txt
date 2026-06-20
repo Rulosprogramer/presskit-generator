@@ -1,0 +1,29 @@
+# Presskit Generator — robots.txt
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /createPresskit
+Disallow: /checkout
+Disallow: /presskitPDF
+Disallow: /auth
+
+# AI crawlers — explicitly allowed for GEO visibility
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://music-presskit-generator.com/sitemap.xml

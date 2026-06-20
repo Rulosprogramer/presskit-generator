@@ -1,0 +1,21 @@
+# Presskit Generator
+
+> Plataforma web para que artistas musicales independientes creen un EPK (electronic press kit / kit de prensa) profesional en minutos, sin necesidad de un diseñador. Pensada especialmente para la escena de habla hispana.
+
+## Qué es
+
+Presskit Generator convierte la información dispersa de un artista (biografía, fotos de prensa, música, videos, logros, contacto y rider) en un presskit profesional listo para compartir con festivales, medios, managers y sellos discográficos. Genera tanto un PDF descargable como un enlace web público responsive.
+
+## Qué es un EPK / presskit musical
+
+Un EPK (Electronic Press Kit) es un documento digital que reúne todo el material promocional de un artista musical: biografía, fotos de alta resolución, enlaces a streaming, logros, reseñas de prensa y datos de contacto. Es la herramienta estándar de la industria para presentar un proyecto a programadores de festivales, periodistas, bookers y sellos.
+
+## Planes
+
+- The Starter Beat — $4.99 USD por descarga: One-page dinámica, integración de streaming, bio optimizada, descarga PDF profesional y enlace web público por 20 días.
+- The Headliner Pro — $14.99 USD anual: Todo lo del plan básico, EPK online con diseño responsive, descargas PDF ilimitadas, galería high-res y actualizaciones ilimitadas.
+
+## Páginas
+
+- [Inicio](https://music-presskit-generator.com/): Landing principal con propuesta de valor, cómo funciona, beneficios y precios.
+- [Crear cuenta / Iniciar sesión](https://music-presskit-generator.com/auth): Acceso a la plataforma para crear y editar tu presskit.
