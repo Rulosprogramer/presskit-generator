@@ -6,6 +6,7 @@ const navItems = [
   { label: 'Beneficios', href: '#beneficios' },
   { label: 'Ejemplos', href: '#ejemplos' },
   { label: 'Precios', href: '#precios' },
+  { label: 'FAQ', href: '#faq' },
   { label: 'Start Creating', href: '#cta', isHighlight: true },
 ];
 

@@ -8,7 +8,9 @@ import Preview from './components/Preview.jsx'
 import Problem from './components/Problem.jsx'
 import Solution from './components/Solution.jsx'
 import CTA from './components/CTA.jsx'
+import FAQ from './components/FAQ.jsx'
 import Footer from './components/Footer.jsx'
+import LegalPage from './pages/LegalPage.jsx'
 import AuthPage from './components/AuthPage.jsx'
 import Sidebar from './components/post-login/Sidebar.jsx'
 import Topbar from './components/post-login/Topbar.jsx'
@@ -51,6 +53,8 @@ function App() {
   const isPresskitPdfPage = pathname === '/presskitPDF'
   const isPublicPresskitPage = pathname.startsWith('/presskit/')
   const publicPresskitId = isPublicPresskitPage ? pathname.replace('/presskit/', '') : ''
+  const isPrivacyPage = pathname === '/privacidad'
+  const isTermsPage = pathname === '/terminos'
 
   const handleSignOut = async () => {
     await signOut(auth)
@@ -118,6 +122,14 @@ function App() {
         <main>
           <PublicPresskit presskitId={publicPresskitId} />
         </main>
+      ) : isPrivacyPage || isTermsPage ? (
+        <>
+          <Navbar user={user} />
+          <main>
+            <LegalPage kind={isPrivacyPage ? 'privacy' : 'terms'} />
+          </main>
+          <Footer />
+        </>
       ) : (
         <>
           <Navbar user={user} />
@@ -129,6 +141,7 @@ function App() {
             <Problem />
             <Solution />
             <CTA />
+            <FAQ />
           </main>
           <Footer />
         </>

@@ -31,3 +31,11 @@ y
 .env
 .env.*
 !.env.example
+
+# Firebase Admin SDK service account keys — NEVER commit these
+*firebase-adminsdk*.json
+*-serviceaccount*.json
+serviceAccountKey.json
+
+# Embedded tooling repo
+geo-seo-claude/

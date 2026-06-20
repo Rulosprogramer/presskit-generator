@@ -1,8 +1,13 @@
 [
   {
-    "origin": ["http://localhost:5173", "https://musicepkgenerator.com"],
+    "origin": [
+      "http://localhost:5173",
+      "https://musicepkgenerator.com",
+      "https://music-presskit-generator.com",
+      "https://www.music-presskit-generator.com"
+    ],
     "method": ["GET"],
     "maxAgeSeconds": 3600,
-    "responseHeader": ["Content-Type"]
+    "responseHeader": ["Content-Type", "Content-Length", "Content-Disposition"]
   }
 ]
