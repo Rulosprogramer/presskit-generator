@@ -241,6 +241,70 @@ function clampCoverFrameValue(value, min, max, fallback) {
   return Math.min(max, Math.max(min, numericValue));
 }
 
+function isFilledString(value) {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function buildPublishSummary(data) {
+  const artistName = isFilledString(data.artistName);
+  const coverReady = Array.isArray(data.images) && Boolean(data.images[0]);
+  const bioReady = isFilledString(data.bio) || isFilledString(data.twitterBio) || isFilledString(data.longBio);
+  const releasesReady = Array.isArray(data.releases) && data.releases.some((release) => isFilledString(release?.url) || isFilledString(release?.title));
+  const linksReady = data.links && Object.values(data.links).some(isFilledString);
+  const galleryReady = Array.isArray(data.images) && data.images.slice(1, 5).some(Boolean);
+  const pressReady = Array.isArray(data.pressArticles) && data.pressArticles.some(Boolean);
+  const contactReady = isFilledString(data.contactArtistName) || isFilledString(data.contactPhone) || isFilledString(data.whatsappPhone) || isFilledString(data.contactLogo);
+  const milestonesReady = data.artistMilestones && Object.values(data.artistMilestones).some((items) => Array.isArray(items) && items.some(isFilledString));
+
+  return [
+    {
+      label: 'Portada',
+      status: coverReady ? 'completed' : 'warning',
+      message: coverReady ? 'Portada lista para la publicación.' : 'No has completado la portada. ¿Quieres publicar igualmente?',
+    },
+    {
+      label: 'Datos del artista',
+      status: artistName ? 'completed' : 'warning',
+      message: artistName ? 'Nombre del artista registrado.' : 'Falta el nombre del artista. ¿Quieres publicar igualmente?',
+    },
+    {
+      label: 'Biografía',
+      status: bioReady ? 'completed' : 'warning',
+      message: bioReady ? 'Tienes al menos una bio cargada.' : 'No has completado la biografía. ¿Quieres publicar igualmente?',
+    },
+    {
+      label: 'Hitos del artista',
+      status: milestonesReady ? 'completed' : 'warning',
+      message: milestonesReady ? 'Hay hitos cargados.' : 'No has completado los hitos del artista. ¿Quieres publicar igualmente?',
+    },
+    {
+      label: 'Releases',
+      status: releasesReady ? 'completed' : 'warning',
+      message: releasesReady ? 'Tus releases están listos.' : 'No has completado los releases. ¿Quieres publicar igualmente?',
+    },
+    {
+      label: 'Links',
+      status: linksReady ? 'completed' : 'warning',
+      message: linksReady ? 'Hay enlaces agregados.' : 'No has completado los links. ¿Quieres publicar igualmente?',
+    },
+    {
+      label: 'Galería',
+      status: galleryReady ? 'completed' : 'warning',
+      message: galleryReady ? 'Hay fotos de galería cargadas.' : 'No has completado la galería. ¿Quieres publicar igualmente?',
+    },
+    {
+      label: 'Artículos de prensa',
+      status: pressReady ? 'completed' : 'warning',
+      message: pressReady ? 'Hay artículos de prensa cargados.' : 'No has completado los artículos de prensa. ¿Quieres publicar igualmente?',
+    },
+    {
+      label: 'Contacto',
+      status: contactReady ? 'completed' : 'warning',
+      message: contactReady ? 'Datos de contacto disponibles.' : 'No has completado el contacto. ¿Quieres publicar igualmente?',
+    },
+  ];
+}
+
 function CreatePresskit({ user, onSignOut }) {
   const [presskitData, setPresskitData] = useState({
     ...initialPresskitData,
@@ -1483,7 +1547,7 @@ function CreatePresskit({ user, onSignOut }) {
             isOpen={publishOpen}
             onClose={() => setPublishOpen(false)}
             onPublish={handlePublish}
-            data={presskitData}
+            summary={buildPublishSummary(presskitData)}
           />
           <ImageLibraryModal
             userId={user?.uid}

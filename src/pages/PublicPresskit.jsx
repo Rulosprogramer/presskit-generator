@@ -2,6 +2,13 @@ import { useEffect, useState } from 'react';
 import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import PresskitWeb from '../components/post-login/PresskitWeb.jsx';
 import { db } from '../lib/firebase';
+import { translatePresskit } from '../lib/translatePresskit.js';
+
+const LANGS = [
+  { code: 'es', label: 'ES' },
+  { code: 'en', label: 'EN' },
+  { code: 'fr', label: 'FR' },
+];
 
 const initialPresskitData = {
   artistName: '',
@@ -74,6 +81,37 @@ function PublicPresskit({ presskitId = '' }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [expired, setExpired] = useState(false);
+  const [activeLang, setActiveLang] = useState('es');
+  const [translating, setTranslating] = useState(false);
+  const [translateError, setTranslateError] = useState('');
+  const [translationCache, setTranslationCache] = useState({});
+  const [displayData, setDisplayData] = useState(initialPresskitData);
+
+  const handleLangChange = async (langCode) => {
+    if (langCode === activeLang) return;
+    setActiveLang(langCode);
+    setTranslateError('');
+    if (langCode === 'es') {
+      setDisplayData(presskitData);
+      return;
+    }
+    if (translationCache[langCode]) {
+      setDisplayData(translationCache[langCode]);
+      return;
+    }
+    setTranslating(true);
+    try {
+      const translated = await translatePresskit(presskitData, langCode);
+      setTranslationCache(c => ({ ...c, [langCode]: translated }));
+      setDisplayData(translated);
+    } catch {
+      setTranslateError('No se pudo traducir. Intenta de nuevo.');
+      setActiveLang('es');
+      setDisplayData(presskitData);
+    } finally {
+      setTranslating(false);
+    }
+  };
 
   useEffect(() => {
     if (!presskitId) {
@@ -151,6 +189,8 @@ function PublicPresskit({ presskitId = '' }) {
             coverImageZoom: data.coverImageZoom,
             coverImagePositionY: data.coverImagePositionY,
           }));
+          setTranslationCache({});
+          setActiveLang('es');
           setError('');
         } else {
           setError('Este presskit publicado no existe o ya no está disponible.');
@@ -175,6 +215,11 @@ function PublicPresskit({ presskitId = '' }) {
 
     return () => unsubscribe();
   }, [presskitId]);
+
+  // Keep displayData in sync with source when showing ES (no translation active)
+  useEffect(() => {
+    if (activeLang === 'es') setDisplayData(presskitData);
+  }, [presskitData, activeLang]);
 
   if (loading) {
     return <div className="px-6 py-8 text-sm text-zinc-300">Cargando presskit publicado...</div>;
@@ -205,7 +250,40 @@ function PublicPresskit({ presskitId = '' }) {
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-400 px-6 py-8 lg:px-12">
-      <PresskitWeb presskitData={presskitData} mode="full" />
+      {/* Language toggle */}
+      <div className="mb-6 flex items-center justify-end gap-2">
+        {translateError && (
+          <span className="text-xs text-red-400">{translateError}</span>
+        )}
+        <div className="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 p-1 backdrop-blur">
+          {LANGS.map(({ code, label }) => (
+            <button
+              key={code}
+              type="button"
+              onClick={() => handleLangChange(code)}
+              disabled={translating}
+              className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-widest transition-all ${
+                activeLang === code
+                  ? 'bg-white text-zinc-950 shadow'
+                  : 'text-zinc-400 hover:text-white'
+              } disabled:opacity-50`}
+            >
+              {translating && code === activeLang ? '…' : label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {translating && (
+        <div className="mb-4 flex items-center gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/5 px-4 py-2.5 text-xs text-cyan-300">
+          <svg className="h-3 w-3 animate-spin" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="32" strokeDashoffset="12"/>
+          </svg>
+          Traduciendo presskit…
+        </div>
+      )}
+
+      <PresskitWeb presskitData={displayData} mode="full" />
     </main>
   );
 }
