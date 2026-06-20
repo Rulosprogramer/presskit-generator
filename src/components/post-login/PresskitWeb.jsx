@@ -370,6 +370,18 @@ function getGalleryResponsiveSpanClass(index) {
   return pattern[index % pattern.length];
 }
 
+function clampCoverImagePosition(value) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) return 50;
+  return Math.max(20, Math.min(80, numericValue));
+}
+
+function clampCoverFrameValue(value, min, max, fallback) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) return fallback;
+  return Math.min(max, Math.max(min, numericValue));
+}
+
 function createEmptyArtistMilestones() {
   return {
     digital: [],
@@ -393,7 +405,7 @@ function normalizeArtistMilestones(value) {
   }, empty);
 }
 
-function PresskitWeb({ presskitData, mode = 'full' }) {
+function PresskitWeb({ presskitData, mode = 'full', onCoverImagePositionChange }) {
   const [pageIndex, setPageIndex] = useState(0);
   const [isTurning, setIsTurning] = useState(false);
   const [turnDirection, setTurnDirection] = useState(1);
@@ -434,6 +446,14 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
   const PAGE_OVERLAY = uiTheme.overlayColor;
 
   const cover = presskitData.images?.[0] || '';
+  const coverImagePositionX = clampCoverFrameValue(presskitData.coverImagePositionX, 0, 100, 50);
+  const coverImagePositionY = clampCoverFrameValue(presskitData.coverImagePositionY, 0, 100, 50);
+  const coverImageZoom = clampCoverFrameValue(presskitData.coverImageZoom, 1, 2.5, 1);
+  const coverImagePositionLabel = coverImagePositionY <= 33
+    ? 'Más arriba'
+    : coverImagePositionY >= 67
+      ? 'Más abajo'
+      : 'Centrada';
   const gallery = Array.isArray(presskitData.images) ? presskitData.images.slice(1, 5).filter(Boolean) : [];
   const horizontalImages = [presskitData.images?.[5], presskitData.images?.[6]].filter(Boolean);
   const artistName = presskitData.artistName || 'Nombre del artista';
@@ -508,6 +528,14 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
   const telHref = presskitData.contactPhone ? `tel:${`${contactCountryCode}${presskitData.contactPhone}`.replace(/[^\d+]/g, '')}` : '';
   const whatsappHref = presskitData.whatsappPhone ? `https://wa.me/${`${contactCountryCode}${presskitData.whatsappPhone}`.replace(/\D/g, '')}` : '';
   const contactLogo = presskitData.contactLogo || '';
+  const handleCoverDoubleClick = (event) => {
+    if (typeof onCoverImagePositionChange !== 'function' || !cover) return;
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const isTopHalf = event.clientY < rect.top + rect.height / 2;
+
+    onCoverImagePositionChange(isTopHalf ? -1 : 1);
+  };
 
   const webPages = useMemo(() => {
     const pages = [];
@@ -724,15 +752,29 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
 
     if (page.type === 'cover') {
       return (
-        <div className="relative h-full overflow-hidden">
+        <div
+          className={`relative h-full overflow-hidden ${onCoverImagePositionChange ? 'cursor-ns-resize select-none' : ''}`}
+          onDoubleClick={handleCoverDoubleClick}
+          title={onCoverImagePositionChange ? 'Doble clic arriba o abajo para mover la portada' : undefined}
+        >
           {cover ? (
-            <img src={cover} alt={artistName} className="absolute inset-0 h-full w-full object-cover" />
+            <img
+              src={cover}
+              alt={artistName}
+              className="absolute inset-0 h-full w-full object-cover"
+              style={{ objectPosition: `${coverImagePositionX}% ${coverImagePositionY}%`, transform: `scale(${coverImageZoom})`, transformOrigin: 'center center' }}
+            />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-sm" style={{ backgroundColor: uiTheme.cardBg, color: uiTheme.subtitleColor }}>
               Sube una portada para ver tu cover
             </div>
           )}
           <div className="pointer-events-none absolute inset-0" style={{ backgroundColor: PAGE_OVERLAY }} />
+          {onCoverImagePositionChange ? (
+            <div className="absolute left-4 top-4 z-10 rounded-full border border-white/15 bg-black/35 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/90 backdrop-blur-sm">
+              Doble clic arriba/abajo · {coverImagePositionLabel}
+            </div>
+          ) : null}
           <div className="absolute inset-x-0 top-6 flex justify-center">
             <h3 className="text-center text-3xl font-black" style={{ color: uiTheme.titleColor }}>{artistName}</h3>
           </div>

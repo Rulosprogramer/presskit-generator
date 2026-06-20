@@ -1,5 +1,8 @@
-function PublishModal({ isOpen, onClose, onPublish, data }) {
+function PublishModal({ isOpen, onClose, onPublish, summary = [] }) {
   if (!isOpen) return null;
+
+  const completedCount = summary.filter((item) => item.status === 'completed').length;
+  const warningCount = summary.filter((item) => item.status === 'warning').length;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
@@ -7,13 +10,37 @@ function PublishModal({ isOpen, onClose, onPublish, data }) {
         <p className="text-xs uppercase tracking-[0.16em] text-cyan-300">Publicar</p>
         <h2 className="mt-2 text-2xl font-bold text-white">Revisa tu presskit</h2>
         <p className="mt-2 text-sm text-zinc-300">
-          Guardaremos tu información y la dejaremos lista para compartir.
+          Guardaremos tu información y la dejaremos lista para compartir. {warningCount > 0 ? 'Hay pasos incompletos, pero puedes publicar igualmente.' : 'Todo lo esencial está listo para publicar.'}
         </p>
 
-        <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-zinc-200">
-          <p><span className="text-zinc-400">Artista:</span> {data.artistName || 'Sin nombre'}</p>
-          <p className="mt-2"><span className="text-zinc-400">Bio:</span> {data.bio ? 'Completada' : 'Pendiente'}</p>
-          <p className="mt-2"><span className="text-zinc-400">Tema:</span> {data.theme || 'neon'}</p>
+        <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-semibold text-white">Checklist de publicación</p>
+            <p className="text-xs text-zinc-400">{completedCount}/{summary.length} listo</p>
+          </div>
+
+          <div className="mt-4 space-y-2">
+            {summary.map((item) => (
+              <div
+                key={item.label}
+                className={`rounded-xl border px-3 py-2 text-sm ${
+                  item.status === 'completed'
+                    ? 'border-emerald-400/30 bg-emerald-400/10 text-emerald-200'
+                    : 'border-amber-400/30 bg-amber-400/10 text-amber-100'
+                }`}
+              >
+                <div className="flex items-start gap-2">
+                  <span className="mt-0.5 text-xs font-black uppercase tracking-[0.14em]">
+                    {item.status === 'completed' ? '✓' : '!'}
+                  </span>
+                  <div>
+                    <p className="font-semibold">{item.label}</p>
+                    <p className="mt-1 text-xs opacity-90">{item.message}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="mt-6 flex flex-wrap justify-end gap-3">
