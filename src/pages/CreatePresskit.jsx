@@ -1277,7 +1277,8 @@ function CreatePresskit({ user, onSignOut }) {
 
       const now = new Date();
       const slug = generatePressKitSlug(presskitData.artistName);
-      const publishedUrl = `${window.location.origin}/presskit/${slug}`;
+      const productionOrigin = import.meta.env.VITE_APP_URL || 'https://music-presskit-generator.com';
+      const publishedUrl = `${productionOrigin}/presskit/${slug}`;
       if (!createdAtRef.current) {
         createdAtRef.current = now;
       }
