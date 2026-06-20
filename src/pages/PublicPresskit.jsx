@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
+import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import PresskitWeb from '../components/post-login/PresskitWeb.jsx';
 import { db } from '../lib/firebase';
 
@@ -7,6 +7,9 @@ const initialPresskitData = {
   artistName: '',
   genre: '',
   city: '',
+  coverImagePositionX: 50,
+  coverImagePositionY: 50,
+  coverImageZoom: 1,
   performanceLiveLink: '',
   totalStreams: '',
   totalVideoViews: '',
@@ -72,21 +75,20 @@ function PublicPresskit({ presskitId = '' }) {
   const [error, setError] = useState('');
   const [expired, setExpired] = useState(false);
 
-  const presskitRef = useMemo(() => {
-    if (!presskitId) return null;
-    return doc(db, 'presskits', presskitId);
-  }, [presskitId]);
-
   useEffect(() => {
-    if (!presskitRef) {
+    if (!presskitId) {
       setLoading(false);
       setError('No se encontró el enlace publicado.');
       return;
     }
 
+    let unsubscribe = () => {};
     setLoading(true);
-    const unsubscribe = onSnapshot(
-      presskitRef,
+
+    const subscribe = (uid) => {
+      const ref = doc(db, 'presskits', uid);
+      unsubscribe = onSnapshot(
+        ref,
       (snapshot) => {
         if (snapshot.exists()) {
           const data = snapshot.data();
@@ -105,6 +107,7 @@ function PublicPresskit({ presskitId = '' }) {
             artistName: data.artistName || '',
             genre: data.genre || '',
             city: data.city || '',
+            coverImagePositionX: data.coverImagePositionX,
             performanceLiveLink: data.performanceLiveLink || '',
             totalStreams: data.totalStreams || '',
             totalVideoViews: data.totalVideoViews || '',
@@ -145,6 +148,8 @@ function PublicPresskit({ presskitId = '' }) {
             planTier: data.planTier || '',
             pressArticles: Array.isArray(data.pressArticles) ? data.pressArticles : [],
             theme: data.theme || 'neon',
+            coverImageZoom: data.coverImageZoom,
+            coverImagePositionY: data.coverImagePositionY,
           }));
           setError('');
         } else {
@@ -157,9 +162,19 @@ function PublicPresskit({ presskitId = '' }) {
         setLoading(false);
       },
     );
+    };
+
+    // Resolve: primero intenta como slug personalizado, luego como uid (backward compat)
+    getDoc(doc(db, 'presskit_slugs', presskitId)).then((slugSnap) => {
+      if (slugSnap.exists()) {
+        subscribe(slugSnap.data().uid);
+      } else {
+        subscribe(presskitId);
+      }
+    }).catch(() => subscribe(presskitId));
 
     return () => unsubscribe();
-  }, [presskitRef]);
+  }, [presskitId]);
 
   if (loading) {
     return <div className="px-6 py-8 text-sm text-zinc-300">Cargando presskit publicado...</div>;

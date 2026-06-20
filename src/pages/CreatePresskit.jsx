@@ -13,6 +13,17 @@ import ImageLibraryModal from '../components/post-login/ImageLibraryModal.jsx';
 import BiographyAIModal from '../components/BiographyAIModal.jsx';
 import MilestoneAIModal from '../components/MilestoneAIModal.jsx';
 
+function generatePressKitSlug(artistName) {
+  const base = (artistName || 'artist')
+    .toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '') // remove accents
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .slice(0, 40);
+  return `music-presskit-${base || 'artist'}`;
+}
+
 function createEmptyArtistMilestones() {
   return {
     digital: [],
@@ -1201,7 +1212,8 @@ function CreatePresskit({ user, onSignOut }) {
       await auth.currentUser.getIdToken();
 
       const now = new Date();
-      const publishedUrl = `${window.location.origin}/presskit/${user.uid}`;
+      const slug = generatePressKitSlug(presskitData.artistName);
+      const publishedUrl = `${window.location.origin}/presskit/${slug}`;
       if (!createdAtRef.current) {
         createdAtRef.current = now;
       }
@@ -1244,6 +1256,7 @@ function CreatePresskit({ user, onSignOut }) {
           contactLogo: presskitData.contactLogo,
           planTier: presskitData.planTier,
           publishedUrl,
+          publishedSlug: slug,
           createdAt: createdAtRef.current,
           updatedAt: now,
           status: 'published',
@@ -1251,6 +1264,9 @@ function CreatePresskit({ user, onSignOut }) {
         },
         { merge: true },
       );
+
+      // Índice público slug → uid para resolución de URLs personalizadas
+      await setDoc(doc(db, 'presskit_slugs', slug), { uid: user.uid }, { merge: true });
 
       setPublishOpen(false);
       setPermissionError('');

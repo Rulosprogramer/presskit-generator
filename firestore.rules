@@ -44,6 +44,12 @@ service cloud.firestore {
         && premiumFlags(request.resource.data).pay == premiumFlags(resource.data).pay;
     }
 
+    // Lookup público: slug → uid para URLs personalizadas de presskit
+    match /presskit_slugs/{slug} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
     match /presskits/{userId} {
       allow read, delete: if isOwner(userId);
 
