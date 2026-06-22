@@ -68,6 +68,28 @@ function AboutPage() {
         </div>
       </section>
 
+      <section className="mt-16">
+        <h2 className="text-2xl font-bold text-white">Quién está detrás</h2>
+        <div className="mt-6 flex flex-col gap-5 rounded-2xl border border-white/10 bg-white/5 p-6 sm:flex-row sm:items-center">
+          <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-fuchsia-500/30 to-cyan-400/30 text-2xl font-black text-white">
+            AME
+          </div>
+          <div>
+            <p className="text-lg font-semibold text-white">Al Mejor Estilo Music</p>
+            <p className="mt-2 text-sm leading-relaxed text-zinc-300">
+              Presskit Generator es un proyecto de <strong>Al Mejor Estilo Music</strong>, un equipo
+              inmerso en la escena musical independiente de habla hispana. Desde el contacto directo con
+              artistas, productores y managers nació esta herramienta para profesionalizar la forma en que
+              los proyectos emergentes se presentan a la industria.
+            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-cyan-300">
+              <a href="https://www.instagram.com/almejorestilomusic" target="_blank" rel="noopener noreferrer me" className="transition hover:text-cyan-200">Instagram @almejorestilomusic</a>
+              <a href="https://www.tiktok.com/@almejorestilomusic" target="_blank" rel="noopener noreferrer me" className="transition hover:text-cyan-200">TikTok @almejorestilomusic</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="mt-16 rounded-3xl border border-white/15 bg-gradient-to-r from-fuchsia-500/15 to-cyan-400/15 p-8 text-center backdrop-blur lg:p-12">
         <h2 className="text-2xl font-bold text-white sm:text-3xl">¿Hablamos?</h2>
         <p className="mx-auto mt-3 max-w-xl text-zinc-200">
