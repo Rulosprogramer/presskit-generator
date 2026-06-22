@@ -1,4 +1,6 @@
-const CONTACT_EMAIL = 'soporte@music-presskit-generator.com';
+const CONTACT_EMAIL = 'almejorestilomusic@gmail.com';
+const CONTACT_PHONE_DISPLAY = '+57 322 709 3940';
+const CONTACT_PHONE_WA = '573227093940';
 
 const values = [
   {
@@ -124,10 +126,12 @@ function AboutPage() {
             {CONTACT_EMAIL}
           </a>
           <a
-            href="/auth"
+            href={`https://wa.me/${CONTACT_PHONE_WA}`}
+            target="_blank"
+            rel="noopener noreferrer"
             className="rounded-xl border border-white/30 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
           >
-            Crear mi presskit
+            WhatsApp {CONTACT_PHONE_DISPLAY}
           </a>
         </div>
         <div className="mt-6 flex items-center justify-center gap-5 text-sm text-zinc-300">

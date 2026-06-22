@@ -27,6 +27,11 @@ function Footer({ pathname = '/' }) {
           </div>
         </div>
 
+        <div className="mx-auto mt-4 flex w-full max-w-4xl flex-wrap items-center justify-center gap-x-6 gap-y-2 text-center text-sm text-[#d7dde6]">
+          <a href="mailto:almejorestilomusic@gmail.com" className="transition hover:text-white">almejorestilomusic@gmail.com</a>
+          <a href="https://wa.me/573227093940" target="_blank" rel="noopener noreferrer" className="transition hover:text-white">+57 322 709 3940</a>
+        </div>
+
         <div className="mx-auto flex w-full max-w-4xl flex-col items-center gap-5 pt-5 text-center">
           <div className="flex flex-wrap items-center justify-center gap-6 text-[#9aa8bb]">
             <a

@@ -68,7 +68,7 @@ const pages = {
         <p><strong>Miguel Ángel Lozano Lozano</strong> — fundador y productor musical — creó Presskit Generator. Es fundador de <strong>Al Mejor Estilo Music</strong>, integrante de <strong>Banda Siete</strong> y productor musical; su experiencia sobre los escenarios y en el estudio dio origen a esta herramienta. Puedes seguirlo en <a href="https://www.instagram.com/rulosmusica" rel="me">Instagram @rulosmusica</a>.</p>
         <p>El proyecto nace de <strong>Al Mejor Estilo Music</strong>, inmerso en la escena musical independiente de habla hispana. Síguenos en <a href="https://www.instagram.com/almejorestilomusic" rel="me">Instagram</a> y <a href="https://www.tiktok.com/@almejorestilomusic" rel="me">TikTok</a>.</p>
         <h2>Contacto</h2>
-        <p>¿Dudas o colaboraciones? Escríbenos a <a href="mailto:soporte@music-presskit-generator.com">soporte@music-presskit-generator.com</a>.</p>
+        <p>¿Dudas o colaboraciones? Escríbenos a <a href="mailto:almejorestilomusic@gmail.com">almejorestilomusic@gmail.com</a>.</p>
         <p>
           <a href="/">Inicio</a> ·
           <a href="/#precios">Precios</a> ·
@@ -86,13 +86,13 @@ const pages = {
     body: `
       <main style="${SHELL_STYLE}">
         <h1>Política de Privacidad</h1>
-        <p>Presskit Generator es responsable del tratamiento de los datos personales que recopilamos a través de music-presskit-generator.com. Para cualquier consulta escríbenos a <a href="mailto:soporte@music-presskit-generator.com">soporte@music-presskit-generator.com</a>.</p>
+        <p>Presskit Generator es responsable del tratamiento de los datos personales que recopilamos a través de music-presskit-generator.com. Para cualquier consulta escríbenos a <a href="mailto:almejorestilomusic@gmail.com">almejorestilomusic@gmail.com</a>.</p>
         <h2>Datos que recopilamos</h2>
         <p>Datos de cuenta (nombre, correo), el contenido que cargas para tu presskit y datos de pago procesados de forma segura por Mercado Pago (no almacenamos los datos de tu tarjeta).</p>
         <h2>Cómo usamos tus datos</h2>
         <p>Para crear y alojar tu presskit, generar el PDF y el enlace público, procesar pagos, brindar soporte y mejorar el servicio. No vendemos tus datos personales a terceros.</p>
         <h2>Tus derechos</h2>
-        <p>Puedes acceder, corregir o eliminar tus datos y tu cuenta en cualquier momento escribiéndonos a soporte@music-presskit-generator.com.</p>
+        <p>Puedes acceder, corregir o eliminar tus datos y tu cuenta en cualquier momento escribiéndonos a almejorestilomusic@gmail.com.</p>
         <p><a href="/">Inicio</a> · <a href="/terminos">Términos de Servicio</a> · <a href="/about">Nosotros</a></p>
       </main>`,
   },

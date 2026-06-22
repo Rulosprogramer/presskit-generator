@@ -1,4 +1,4 @@
-const CONTACT_EMAIL = 'soporte@music-presskit-generator.com';
+const CONTACT_EMAIL = 'almejorestilomusic@gmail.com';
 
 const privacy = {
   title: 'Política de Privacidad',
