@@ -20,6 +20,7 @@ import CreatePresskit from './pages/CreatePresskit.jsx'
 import PublicPresskit from './pages/PublicPresskit.jsx'
 import Checkout from './pages/Checkout.jsx'
 import { auth } from './lib/firebase'
+import { applyRouteMeta } from './lib/seoMeta'
 import ThemePicker from './components/ThemePicker.jsx'
 
 const PresskitPDF = lazy(() => import('./pages/PresskitPDF.jsx'))
@@ -33,6 +34,11 @@ function App() {
     window.addEventListener('popstate', onPopState)
     return () => window.removeEventListener('popstate', onPopState)
   }, [])
+
+  // Ajusta canonical, título y meta tags según la ruta (evita duplicados).
+  useEffect(() => {
+    applyRouteMeta(pathname)
+  }, [pathname])
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
