@@ -69,6 +69,29 @@ function FAQ() {
           );
         })}
       </div>
+
+      <div className="mx-auto mt-8 max-w-3xl text-center text-xs text-zinc-500">
+        <p>
+          Fuentes sobre el press kit como herramienta de la industria:{' '}
+          <a
+            href="https://es.wikipedia.org/wiki/Dosier_de_prensa"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline transition hover:text-zinc-300"
+          >
+            «Dosier de prensa» (Wikipedia)
+          </a>{' '}
+          ·{' '}
+          <a
+            href="https://en.wikipedia.org/wiki/Press_kit"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline transition hover:text-zinc-300"
+          >
+            «Press kit» (Wikipedia)
+          </a>
+        </p>
+      </div>
     </section>
   );
 }
