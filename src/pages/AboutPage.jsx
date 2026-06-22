@@ -70,17 +70,38 @@ function AboutPage() {
 
       <section className="mt-16">
         <h2 className="text-2xl font-bold text-white">Quién está detrás</h2>
-        <div className="mt-6 flex flex-col gap-5 rounded-2xl border border-white/10 bg-white/5 p-6 sm:flex-row sm:items-center">
+
+        <div className="mt-6 flex flex-col gap-5 rounded-2xl border border-white/10 bg-white/5 p-6 sm:flex-row sm:items-start">
           <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-fuchsia-500/30 to-cyan-400/30 text-2xl font-black text-white">
+            MA
+          </div>
+          <div>
+            <p className="text-lg font-semibold text-white">Miguel Ángel Lozano Lozano</p>
+            <p className="text-sm font-medium text-cyan-300">Fundador · Productor musical</p>
+            <p className="mt-3 text-sm leading-relaxed text-zinc-300">
+              Miguel Ángel es fundador de <strong>Al Mejor Estilo Music</strong>, integrante de la
+              banda <strong>Banda Siete</strong> y productor musical. Su experiencia real sobre los
+              escenarios y dentro del estudio lo llevó a crear Presskit Generator: una herramienta para
+              que los artistas independientes se presenten a la industria con el nivel profesional que
+              su música merece.
+            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-cyan-300">
+              <a href="https://www.instagram.com/rulosmusica" target="_blank" rel="noopener noreferrer me" className="transition hover:text-cyan-200">Instagram @rulosmusica</a>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-col gap-5 rounded-2xl border border-white/10 bg-white/5 p-6 sm:flex-row sm:items-center">
+          <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400/30 to-fuchsia-500/30 text-2xl font-black text-white">
             AME
           </div>
           <div>
             <p className="text-lg font-semibold text-white">Al Mejor Estilo Music</p>
             <p className="mt-2 text-sm leading-relaxed text-zinc-300">
-              Presskit Generator es un proyecto de <strong>Al Mejor Estilo Music</strong>, un equipo
-              inmerso en la escena musical independiente de habla hispana. Desde el contacto directo con
-              artistas, productores y managers nació esta herramienta para profesionalizar la forma en que
-              los proyectos emergentes se presentan a la industria.
+              El proyecto nace de <strong>Al Mejor Estilo Music</strong>, inmerso en la escena musical
+              independiente de habla hispana. Desde el contacto directo con artistas, productores y
+              managers construimos una herramienta para profesionalizar cómo los proyectos emergentes se
+              presentan a la industria.
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-cyan-300">
               <a href="https://www.instagram.com/almejorestilomusic" target="_blank" rel="noopener noreferrer me" className="transition hover:text-cyan-200">Instagram @almejorestilomusic</a>

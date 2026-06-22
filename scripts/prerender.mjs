@@ -65,7 +65,8 @@ const pages = {
           <li><strong>Tu información, siempre tuya:</strong> no vendemos tus datos; tu presskit es tuyo.</li>
         </ul>
         <h2>Quién está detrás</h2>
-        <p>Presskit Generator es un proyecto de <strong>Al Mejor Estilo Music</strong>, un equipo inmerso en la escena musical independiente de habla hispana. Desde el contacto directo con artistas, productores y managers nació esta herramienta para profesionalizar cómo los proyectos emergentes se presentan a la industria. Síguenos en <a href="https://www.instagram.com/almejorestilomusic" rel="me">Instagram</a> y <a href="https://www.tiktok.com/@almejorestilomusic" rel="me">TikTok</a>.</p>
+        <p><strong>Miguel Ángel Lozano Lozano</strong> — fundador y productor musical — creó Presskit Generator. Es fundador de <strong>Al Mejor Estilo Music</strong>, integrante de <strong>Banda Siete</strong> y productor musical; su experiencia sobre los escenarios y en el estudio dio origen a esta herramienta. Puedes seguirlo en <a href="https://www.instagram.com/rulosmusica" rel="me">Instagram @rulosmusica</a>.</p>
+        <p>El proyecto nace de <strong>Al Mejor Estilo Music</strong>, inmerso en la escena musical independiente de habla hispana. Síguenos en <a href="https://www.instagram.com/almejorestilomusic" rel="me">Instagram</a> y <a href="https://www.tiktok.com/@almejorestilomusic" rel="me">TikTok</a>.</p>
         <h2>Contacto</h2>
         <p>¿Dudas o colaboraciones? Escríbenos a <a href="mailto:soporte@music-presskit-generator.com">soporte@music-presskit-generator.com</a>.</p>
         <p>
