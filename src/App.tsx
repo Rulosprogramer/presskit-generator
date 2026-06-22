@@ -9,6 +9,7 @@ import Problem from './components/Problem.jsx'
 import Solution from './components/Solution.jsx'
 import CTA from './components/CTA.jsx'
 import FAQ from './components/FAQ.jsx'
+import PublishedCounter from './components/PublishedCounter.jsx'
 import Footer from './components/Footer.jsx'
 import LegalPage from './pages/LegalPage.jsx'
 import AboutPage from './pages/AboutPage.jsx'
@@ -152,6 +153,7 @@ function App() {
           <main>
             <Hero />
             <HowItWorks />
+            <PublishedCounter />
             <Benefits />
             <Preview />
             <Problem />
