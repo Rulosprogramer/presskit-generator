@@ -58,7 +58,7 @@ function Footer({ pathname = '/' }) {
             </a>
           </div>
 
-          <p className="text-xs text-[#9aa8bb]">© {year} Presskit Generator</p>
+          <p className="text-xs text-[#9aa8bb]">© {year} Music PressKit Generator</p>
         </div>
       </div>
     </footer>

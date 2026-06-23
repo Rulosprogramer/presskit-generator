@@ -89,7 +89,7 @@ function Navbar({ user, pathname = '/' }) {
         <a href={isLanding ? '#inicio' : '/'} className="inline-flex items-center gap-3 text-white">
           <img src={logo} alt="Presskit Generator" className="h-16 w-auto" />
           <span className="hidden text-lg font-extrabold tracking-tight sm:inline">
-            presskit-generator
+            Music PressKit Generator
           </span>
         </a>
 

@@ -1,6 +1,6 @@
-# Presskit Generator
+# Music PressKit Generator
 
-> Plataforma web para que artistas musicales independientes creen un EPK (electronic press kit / kit de prensa) profesional en minutos, sin necesidad de un diseñador. Pensada especialmente para la escena de habla hispana.
+> Plataforma para crear EPKs profesionales para artistas, bandas, agrupaciones musicales y músicos independientes. Crea un electronic press kit (kit de prensa) en minutos, sin necesidad de un diseñador. Pensada especialmente para la escena de habla hispana.
 
 ## Qué es
 
