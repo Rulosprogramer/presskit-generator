@@ -2,6 +2,7 @@ import { Document, Font, Image, Link, Page, StyleSheet, Text, View } from '@reac
 import { theme as pdfxTheme } from '../../lib/pdfx-theme';
 import { isValidPdfImage } from '../../lib/pdfImageResolver';
 import { getPdfTextEffectStyle } from '../../lib/textEffects.js';
+import { abbreviateMetric } from '../../lib/formatMetric.js';
 
 const FONT_SCALE = 0.88;
 
@@ -1180,8 +1181,8 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
     safeData.recognitions || 'Añade reconocimientos, escenarios, playlists, becas, festivales o formación para completar esta sección.',
     360,
   );
-  const totalStreams = safeData.totalStreams || 'Sin dato';
-  const totalVideoViews = safeData.totalVideoViews || 'Sin dato';
+  const totalStreams = abbreviateMetric(safeData.totalStreams) || 'Sin dato';
+  const totalVideoViews = abbreviateMetric(safeData.totalVideoViews) || 'Sin dato';
   const bio140Image = safeData.twitterBioImage || '';
   const bio140 = truncateText(safeData.twitterBio || 'Sin bio de 140 caracteres.', 190);
   const longBio = safeData.longBio || safeData.bio || 'Sin biografía completa.';
@@ -1408,7 +1409,7 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
             <Text style={[styles.pageThreeMetricValue, { color: c.title }]}>{totalStreams}</Text>
           </View>
           <View style={[styles.pageThreeMetric, { borderColor: hexToRgba(c.accent, 0.25), backgroundColor: hexToRgba(c.accent, 0.08) }]}>
-            <Text style={[styles.pageThreeMetricLabel, { color: c.accent }]}>Total video views</Text>
+            <Text style={[styles.pageThreeMetricLabel, { color: c.accent }]}>Total video{'\n'}views</Text>
             <Text style={[styles.pageThreeMetricValue, { color: c.title }]}>{totalVideoViews}</Text>
           </View>
         </View>

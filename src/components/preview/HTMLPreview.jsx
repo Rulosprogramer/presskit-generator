@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTheme } from '../../context/ThemeContext.tsx';
 import { getTextEffectStyle } from '../../lib/textEffects.js';
+import { abbreviateMetric } from '../../lib/formatMetric.js';
 
 const PAGE_W = 595;
 const PAGE_H = 842;
@@ -165,10 +166,10 @@ function buildPages(d, tc = {}) {
         </div>
       </div>
       <div style={{ height: 122, borderTop: `1px solid ${BORDER}`, display: 'flex', flexDirection: 'row', gap: 16, padding: '20px 24px 24px', flexShrink: 0 }}>
-        {[['Total streams', d.totalStreams], ['Total video views', d.totalVideoViews]].map(([label, value]) => (
+        {[['Total streams', d.totalStreams], ['Total video\nviews', d.totalVideoViews]].map(([label, value]) => (
           <div key={label} style={{ flex: 1, borderRadius: 18, border: `1px solid ${accentRgba(0.18)}`, background: accentRgba(0.08), padding: '0 16px', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ color: ACCENT, fontSize: 14, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em', fontFamily: LABEL_FONT }}>{label}</div>
-            <div style={{ color: WHITE, fontSize: 28, fontWeight: 900, lineHeight: 1, fontFamily: FONT }}>{value || 'Sin dato'}</div>
+            <div style={{ color: ACCENT, fontSize: 14, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em', fontFamily: LABEL_FONT, whiteSpace: 'pre-line' }}>{label}</div>
+            <div style={{ color: WHITE, fontSize: 28, fontWeight: 900, lineHeight: 1, fontFamily: FONT }}>{abbreviateMetric(value) || 'Sin dato'}</div>
           </div>
         ))}
       </div>
