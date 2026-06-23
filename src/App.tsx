@@ -10,6 +10,7 @@ import Solution from './components/Solution.jsx'
 import CTA from './components/CTA.jsx'
 import FAQ from './components/FAQ.jsx'
 import PublishedCounter from './components/PublishedCounter.jsx'
+import UseCases from './components/UseCases.jsx'
 import Footer from './components/Footer.jsx'
 import LegalPage from './pages/LegalPage.jsx'
 import AboutPage from './pages/AboutPage.jsx'
@@ -155,6 +156,7 @@ function App() {
             <HowItWorks />
             <PublishedCounter />
             <Benefits />
+            <UseCases />
             <Preview />
             <Problem />
             <Solution />
