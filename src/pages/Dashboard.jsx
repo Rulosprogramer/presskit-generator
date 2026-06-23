@@ -57,10 +57,10 @@ function Dashboard({ user }) {
 
     if (isPremium) {
       if (action === 'download') {
-        window.location.assign('/presskitPDF');
+        window.open('/presskitPDF', '_blank');
       } else if (action === 'view') {
         const url = presskit?.publishedUrl || `/presskit/${presskit?.id}`;
-        window.location.assign(url);
+        window.open(url, '_blank');
       }
       return;
     }

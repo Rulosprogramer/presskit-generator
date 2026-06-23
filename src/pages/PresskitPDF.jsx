@@ -267,6 +267,10 @@ function PresskitPDF({ user, onSignOut, presskitId = '' }) {
   );
 
   const openDownloadModal = () => {
+    if (hasCleanDownloadAccess) {
+      handleConfirmDownload();
+      return;
+    }
     setIsDownloadModalOpen(true);
   };
 
