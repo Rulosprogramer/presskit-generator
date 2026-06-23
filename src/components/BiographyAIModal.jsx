@@ -11,9 +11,9 @@ function BiographyAIModal({ isOpen, onClose, onUseBio, section, artistData, curr
   const messagesEndRef = useRef(null);
 
   const sectionLabels = {
-    twitterBio: 'Bio para Twitter (140 caracteres)',
+    twitterBio: 'Bio para redes (140 caracteres)',
     shortBio: 'Bio corta (1 párrafo)',
-    longBio: 'Bio completa (3-4 párrafos)',
+    longBio: 'Biografía oficial (3-4 párrafos)',
     releaseCta: 'Frase final para la pagina de releases',
   };
 

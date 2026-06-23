@@ -525,7 +525,7 @@ function Stepform({
         <div id="presskit-step-4" className="scroll-mt-28 rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
           <p className="text-sm font-semibold text-fuchsia-300">4. Biografía</p>
           <p className="mt-2 text-sm text-zinc-300">
-            Ofrece una bio rápida para redes, una versión corta para festivales y una historia completa para prensa o entrevistas.
+            Tres versiones, cada una con un uso distinto: la de redes para presentarte en una línea, la corta para bookers y festivales, y la oficial para prensa. Puedes completar solo las que necesites.
           </p>
           <div className="mt-4 grid gap-4">
             <label className="space-y-2">
@@ -544,15 +544,18 @@ function Stepform({
             </label>
 
             <label className="space-y-2">
-              <span className="text-xs uppercase tracking-[0.12em] text-zinc-400">Bio (140 caracteres)</span>
+              <span className="text-xs uppercase tracking-[0.12em] text-zinc-400">Bio para redes (140 caracteres)</span>
+              <span className="block text-[11px] font-normal normal-case leading-snug tracking-normal text-zinc-500">
+                La que va en tus perfiles de redes (Instagram, TikTok, X). En una sola frase, alguien que no te conoce debe identificar qué haces.
+              </span>
               <div className="space-y-2">
-                <ImagePreviewThumb src={data.twitterBioImage || ''} alt="Miniatura de bio de 140 caracteres" emptyLabel="La imagen de esta bio aparecerá aquí" />
+                <ImagePreviewThumb src={data.twitterBioImage || ''} alt="Miniatura de bio para redes" emptyLabel="La imagen de esta bio aparecerá aquí" />
                 <textarea
                   id="twitter-bio"
                   value={data.twitterBio || ''}
                   onChange={(event) => onFieldChange('twitterBio', event.target.value)}
                   rows={3}
-                  placeholder="Para presentaciones rápidas."
+                  placeholder="Ej: Productor y cantante de música urbana, fusiono ritmos latinos con sonidos electrónicos."
                   className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-zinc-100 outline-none transition focus:border-cyan-300"
                 />
                 <input
@@ -575,6 +578,9 @@ function Stepform({
 
             <label className="space-y-2">
               <span className="text-xs uppercase tracking-[0.12em] text-zinc-400">Bio Corta (1 párrafo)</span>
+              <span className="block text-[11px] font-normal normal-case leading-snug tracking-normal text-zinc-500">
+                La que más leerán bookers, festivales y programadores. En un párrafo: quién eres, tu sonido y tus logros más fuertes.
+              </span>
               <div className="space-y-2">
                 <ImagePreviewThumb src={data.bioImage || ''} alt="Miniatura de bio corta" emptyLabel="La imagen de bio corta aparecerá aquí" />
                 <textarea
@@ -582,7 +588,7 @@ function Stepform({
                   value={data.bio}
                   onChange={(event) => onFieldChange('bio', event.target.value)}
                   rows={5}
-                  placeholder="Ideal para redes sociales y perfiles de festivales."
+                  placeholder="Resume tu propuesta para quien decide tu booking o programación."
                   className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-zinc-100 outline-none transition focus:border-cyan-300"
                 />
                 <input
@@ -604,15 +610,18 @@ function Stepform({
             </label>
 
             <label className="space-y-2">
-              <span className="text-xs uppercase tracking-[0.12em] text-zinc-400">Bio Completa (3-4 párrafos)</span>
+              <span className="text-xs uppercase tracking-[0.12em] text-zinc-400">Biografía Oficial (3-4 párrafos · opcional)</span>
+              <span className="block text-[11px] font-normal normal-case leading-snug tracking-normal text-zinc-500">
+                Tu biografía oficial para boletines y notas de prensa — la versión más importante para la cobertura de medios y entrevistas. Puedes incluirla o dejarla en blanco si aún no la tienes.
+              </span>
               <div className="space-y-2">
-                <ImagePreviewThumb src={data.longBioImage || ''} alt="Miniatura de bio completa" emptyLabel="La imagen de bio completa aparecerá aquí" />
+                <ImagePreviewThumb src={data.longBioImage || ''} alt="Miniatura de biografía oficial" emptyLabel="La imagen de la biografía oficial aparecerá aquí" />
                 <textarea
                   id="long-bio"
                   value={data.longBio || ''}
                   onChange={(event) => onFieldChange('longBio', event.target.value)}
                   rows={9}
-                  placeholder="La historia detallada para entrevistas o notas de prensa."
+                  placeholder="La historia detallada y oficial, lista para que un medio la publique tal cual."
                   className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-zinc-100 outline-none transition focus:border-cyan-300"
                 />
                 <input
