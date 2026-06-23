@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import HTMLFlipBook from 'react-pageflip';
+import { isPromoActive, promoDaysLeft } from '../lib/promo.js';
 
 function Hero() {
   const bookRef = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
+  const promo = isPromoActive();
+  const daysLeft = promoDaysLeft();
 
   // En celular el libro debe pasar de a 1 página (modo retrato), en desktop spread de 2.
   useEffect(() => {
@@ -46,6 +49,15 @@ function Hero() {
           <span className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-200">
             Presskit Generator para Artistas
           </span>
+
+          {promo && (
+            <div className="mt-4">
+              <span className="inline-flex flex-wrap items-center justify-center gap-2 rounded-full border border-fuchsia-400/40 bg-fuchsia-400/15 px-4 py-2 text-sm font-bold text-fuchsia-200">
+                <span className="rounded-full bg-fuchsia-400 px-2 py-0.5 text-xs font-black text-zinc-950">-50%</span>
+                Promo de lanzamiento · {daysLeft} {daysLeft === 1 ? 'día' : 'días'} restantes
+              </span>
+            </div>
+          )}
 
           <h1 className="mt-6 text-4xl font-black leading-tight sm:text-5xl lg:text-6xl">
             Plataforma para crear EPKs profesionales

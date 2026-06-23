@@ -1,5 +1,8 @@
 import { useMemo, useState } from 'react';
 import { FaCreditCard, FaMoneyBillWave, FaPaypal } from 'react-icons/fa';
+import { isPromoActive, promoPrice } from '../lib/promo.js';
+
+const BASE_PRICE = { once: 4.99, annual: 14.99 };
 
 const PREMIUM = {
   name: 'Acceso Premium',
@@ -131,7 +134,17 @@ function Checkout({ user, onSignOut }) {
                 <h2 className="text-2xl font-bold text-white">{planInfo.name}</h2>
                 <p className="mt-1 text-sm text-zinc-300">{billingInfo.title}</p>
               </div>
-              <p className={`text-5xl font-black ${planInfo.accent}`}>{currentTier.price}</p>
+              <div className="text-right">
+                {isPromoActive() ? (
+                  <>
+                    <p className={`text-5xl font-black ${planInfo.accent}`}>${promoPrice(BASE_PRICE[billing]).toFixed(2)} USD</p>
+                    <p className="text-sm font-semibold text-zinc-500 line-through">${BASE_PRICE[billing].toFixed(2)} USD</p>
+                    <span className="mt-1 inline-block rounded-full bg-fuchsia-400 px-2 py-0.5 text-xs font-black text-zinc-950">-50% promo</span>
+                  </>
+                ) : (
+                  <p className={`text-5xl font-black ${planInfo.accent}`}>{currentTier.price}</p>
+                )}
+              </div>
             </div>
 
             <ul className="mt-6 space-y-3 text-sm text-zinc-200">

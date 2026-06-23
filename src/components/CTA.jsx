@@ -1,4 +1,14 @@
+import { isPromoActive, promoPrice, promoDaysLeft } from '../lib/promo.js';
+
+const PRICE_ONCE = 4.99;
+const PRICE_ANNUAL = 14.99;
+
 function CTA() {
+  const promo = isPromoActive();
+  const daysLeft = promoDaysLeft();
+  const onceNow = promoPrice(PRICE_ONCE).toFixed(2);
+  const annualNow = promoPrice(PRICE_ANNUAL).toFixed(2);
+
   return (
     <>
       <section id="precios" className="mx-auto w-full max-w-[1600px] px-6 py-16 lg:px-12 lg:py-20">
@@ -9,12 +19,25 @@ function CTA() {
           <h2 className="mt-4 text-3xl font-bold text-white sm:text-4xl">
             Planes flexibles para cada etapa de tu proyecto
           </h2>
+          {promo && (
+            <div className="mx-auto mt-5 inline-flex flex-wrap items-center justify-center gap-2 rounded-full border border-fuchsia-400/40 bg-fuchsia-400/10 px-4 py-2 text-sm font-semibold text-fuchsia-200">
+              <span className="rounded-full bg-fuchsia-400 px-2 py-0.5 text-xs font-black text-zinc-950">-50%</span>
+              Promo de lanzamiento · {daysLeft} {daysLeft === 1 ? 'día' : 'días'} restantes
+            </div>
+          )}
         </div>
 
         <div className="mt-10 grid gap-6 md:grid-cols-2">
           <article className="rounded-2xl border border-white/10 bg-white/5 p-8">
             <h3 className="text-2xl font-bold text-white">The Starter Beat</h3>
-            <p className="mt-3 text-6xl font-black text-cyan-300">$4.99</p>
+            {promo ? (
+              <div className="mt-3 flex items-end gap-3">
+                <p className="text-6xl font-black text-cyan-300">${onceNow}</p>
+                <p className="mb-2 text-2xl font-bold text-zinc-500 line-through">${PRICE_ONCE.toFixed(2)}</p>
+              </div>
+            ) : (
+              <p className="mt-3 text-6xl font-black text-cyan-300">${PRICE_ONCE.toFixed(2)}</p>
+            )}
             <p className="mt-2 text-sm text-zinc-400">USD por descarga, una vez por cada actualización</p>
 
             <p className="mt-6 text-lg font-semibold italic text-fuchsia-300">
@@ -61,7 +84,14 @@ function CTA() {
             </div>
 
             <h3 className="text-2xl font-bold text-white">The Headliner Pro</h3>
-            <p className="mt-3 text-6xl font-black text-fuchsia-300">$14.99</p>
+            {promo ? (
+              <div className="mt-3 flex items-end gap-3">
+                <p className="text-6xl font-black text-fuchsia-300">${annualNow}</p>
+                <p className="mb-2 text-2xl font-bold text-zinc-500 line-through">${PRICE_ANNUAL.toFixed(2)}</p>
+              </div>
+            ) : (
+              <p className="mt-3 text-6xl font-black text-fuchsia-300">${PRICE_ANNUAL.toFixed(2)}</p>
+            )}
             <p className="mt-2 text-sm text-zinc-400">USD, plan anual</p>
 
             <p className="mt-6 text-lg font-semibold italic text-cyan-300">

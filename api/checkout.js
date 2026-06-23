@@ -8,6 +8,15 @@ const CURRENCY = process.env.MP_CURRENCY || 'USD';
 const PRICE_ONCE = Number(process.env.MP_PRICE_ONCE || '4.99');
 const PRICE_ANNUAL = Number(process.env.MP_PRICE_ANNUAL || '14.99');
 
+// Promo de lanzamiento: 50% por 30 días. Debe coincidir con src/lib/promo.js.
+const PROMO_END = new Date(process.env.PROMO_END || '2026-07-23T23:59:59-05:00');
+const PROMO_DISCOUNT = 0.5;
+
+function applyPromo(base) {
+  if (new Date() >= PROMO_END) return base;
+  return Math.floor(base * (1 - PROMO_DISCOUNT) * 100) / 100; // 4.99 -> 2.49
+}
+
 function getBaseUrl(req) {
   if (process.env.APP_URL) return process.env.APP_URL.replace(/\/$/, '');
   const proto = req.headers['x-forwarded-proto'] || 'https';
@@ -52,7 +61,7 @@ export default async function handler(req, res) {
           auto_recurring: {
             frequency: 12,
             frequency_type: 'months',
-            transaction_amount: PRICE_ANNUAL,
+            transaction_amount: applyPromo(PRICE_ANNUAL),
             currency_id: CURRENCY,
           },
           status: 'pending',
@@ -73,7 +82,7 @@ export default async function handler(req, res) {
             title: 'Presskit Premium — Descarga única',
             description: 'Descarga PDF sin marca de agua + enlace web público por 20 días',
             quantity: 1,
-            unit_price: PRICE_ONCE,
+            unit_price: applyPromo(PRICE_ONCE),
             currency_id: CURRENCY,
           },
         ],
