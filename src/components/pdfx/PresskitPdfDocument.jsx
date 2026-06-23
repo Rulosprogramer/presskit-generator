@@ -1169,9 +1169,10 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
   const safeImages = (safeData.images || []).filter(isHttpUrl);
   const coverImage = safeImages[0] || '';
   const coverApplyToPDF = Boolean(safeData.coverApplyToPDF);
+  const PDF_COVER_FRAME_ASPECT = 595 / 842; // página A4 vertical
   const coverImageStyle = coverApplyToPDF
-    ? coverFrameImageStyle(normalizeCoverFrame(safeData))
-    : coverFrameImageStyle({ scale: 1, offsetX: 0, offsetY: 0 });
+    ? coverFrameImageStyle({ ...normalizeCoverFrame(safeData), frameAspect: PDF_COVER_FRAME_ASPECT })
+    : coverFrameImageStyle({ scale: 1, offsetX: 0, offsetY: 0, imageAspect: Number(safeData.coverImageAspect) || 0, frameAspect: PDF_COVER_FRAME_ASPECT });
   const performanceLiveLink = safeData.performanceLiveLink || '';
   const performanceLiveThumbnail = getYoutubeThumbnailUrl(performanceLiveLink);
   const recognitionImage = safeData.recognitionImage || '';

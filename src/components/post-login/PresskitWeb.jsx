@@ -403,8 +403,26 @@ function PresskitWeb({ presskitData, mode = 'full', onCoverImagePositionChange }
   const [lightboxArtistName, setLightboxArtistName] = useState('');
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const jumpIntervalRef = useRef(null);
+  const coverFrameRef = useRef(null);
+  const [coverFrameAspect, setCoverFrameAspect] = useState(0.8);
   const isCompact = mode === 'compact';
   const isEmbedded = mode === 'embedded';
+
+  // Mide el aspecto real del marco de portada para que scale=1 cubra exacto.
+  useEffect(() => {
+    const el = coverFrameRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return undefined;
+    const update = () => {
+      const w = el.clientWidth;
+      const h = el.clientHeight;
+      if (w > 0 && h > 0) setCoverFrameAspect(w / h);
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  });
+
   const pageViewportClass = isCompact
     ? 'aspect-[9/16] w-full sm:aspect-auto sm:h-96'
     : isEmbedded
@@ -436,7 +454,7 @@ function PresskitWeb({ presskitData, mode = 'full', onCoverImagePositionChange }
 
   const cover = presskitData.images?.[0] || '';
   const coverFrame = normalizeCoverFrame(presskitData);
-  const coverImageStyle = coverFrameImageStyle(coverFrame);
+  const coverImageStyle = coverFrameImageStyle({ ...coverFrame, frameAspect: coverFrameAspect });
   const coverImagePositionLabel = coverFrame.offsetY <= -0.12
     ? 'Más arriba'
     : coverFrame.offsetY >= 0.12
@@ -741,6 +759,7 @@ function PresskitWeb({ presskitData, mode = 'full', onCoverImagePositionChange }
     if (page.type === 'cover') {
       return (
         <div
+          ref={coverFrameRef}
           className={`relative h-full overflow-hidden ${onCoverImagePositionChange ? 'cursor-ns-resize select-none' : ''}`}
           onDoubleClick={handleCoverDoubleClick}
           title={onCoverImagePositionChange ? 'Doble clic arriba o abajo para mover la portada' : undefined}

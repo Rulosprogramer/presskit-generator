@@ -84,8 +84,8 @@ function buildPages(d, tc = {}) {
 
   // Encuadre de portada: aplica scale/offset solo si el usuario lo marcó para el PDF.
   const coverStyle = d.coverApplyToPDF
-    ? coverFrameImageStyle(normalizeCoverFrame(d))
-    : coverFrameImageStyle({ scale: 1, offsetX: 0, offsetY: 0 });
+    ? coverFrameImageStyle({ ...normalizeCoverFrame(d), frameAspect: PAGE_W / PAGE_H })
+    : coverFrameImageStyle({ scale: 1, offsetX: 0, offsetY: 0, imageAspect: Number(d.coverImageAspect) || 0, frameAspect: PAGE_W / PAGE_H });
 
   // ── 1. Cover ──────────────────────────────────────────────────────────────
   pages.push(

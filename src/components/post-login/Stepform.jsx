@@ -98,37 +98,37 @@ function ImagePreviewThumb({ src, alt, emptyLabel = 'Sin imagen seleccionada' })
 
 const COVER_FRAME_ASPECT = 4 / 5; // ancho / alto del marco
 
-function CoverFrameEditor({ src, alt, scale, offsetX, offsetY, onChange, onReset, appliedToPDF, onTogglePDF }) {
+export function CoverFrameEditor({ src, alt, scale, offsetX, offsetY, imageAspect, onChange, onReset, appliedToPDF, onTogglePDF }) {
   const previewRef = useRef(null);
   const dragStateRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [coverScale, setCoverScale] = useState(1);
-  const lastAutoCoverSrc = useRef('');
+  const [imgAspect, setImgAspect] = useState(Number(imageAspect) || 0);
 
   const s = clampNumber(scale, COVER_SCALE_MIN, COVER_SCALE_MAX, 1);
-  const ox = clampNumber(offsetX, -COVER_SCALE_MAX, COVER_SCALE_MAX, 0);
-  const oy = clampNumber(offsetY, -COVER_SCALE_MAX, COVER_SCALE_MAX, 0);
+  const ox = clampNumber(offsetX, -1, 1, 0);
+  const oy = clampNumber(offsetY, -1, 1, 0);
+  // base = escala de cobertura; "ver foto completa" corresponde a scale = 1/base.
+  const base = imgAspect > 0 ? coverScaleFor(imgAspect, COVER_FRAME_ASPECT) : 1;
 
   const emitChange = (next) => {
     const nextScale = clampNumber(next.scale, COVER_SCALE_MIN, COVER_SCALE_MAX, 1);
     onChange?.({
       scale: nextScale,
-      offsetX: clampOffset(clampNumber(next.offsetX, -COVER_SCALE_MAX, COVER_SCALE_MAX, 0), nextScale),
-      offsetY: clampOffset(clampNumber(next.offsetY, -COVER_SCALE_MAX, COVER_SCALE_MAX, 0), nextScale),
+      offsetX: clampOffset(clampNumber(next.offsetX, -1, 1, 0), nextScale),
+      offsetY: clampOffset(clampNumber(next.offsetY, -1, 1, 0), nextScale),
+      imageAspect: next.imageAspect ?? imgAspect,
     });
   };
 
-  // Al cargar una imagen nueva, calculamos el scale que la hace "cubrir" el marco
-  // y lo aplicamos como encuadre inicial (solo la primera vez por imagen).
+  // Al cargar la imagen medimos su aspecto y lo persistimos para que todos los
+  // renderers cubran el marco igual. El scale por defecto (1) ya = cubrir.
   const handleImageLoad = (event) => {
     const { naturalWidth, naturalHeight } = event.target;
     if (!naturalWidth || !naturalHeight) return;
-    const cover = coverScaleFor(naturalWidth / naturalHeight, COVER_FRAME_ASPECT);
-    setCoverScale(cover);
-    const untouched = clampNumber(scale, COVER_SCALE_MIN, COVER_SCALE_MAX, 1) === 1 && !offsetX && !offsetY;
-    if (untouched && lastAutoCoverSrc.current !== src) {
-      lastAutoCoverSrc.current = src;
-      emitChange({ scale: cover, offsetX: 0, offsetY: 0 });
+    const aspect = naturalWidth / naturalHeight;
+    setImgAspect(aspect);
+    if (Math.abs(aspect - (Number(imageAspect) || 0)) > 0.001) {
+      emitChange({ scale: s, offsetX: ox, offsetY: oy, imageAspect: aspect });
     }
   };
 
@@ -186,7 +186,7 @@ function CoverFrameEditor({ src, alt, scale, offsetX, offsetY, onChange, onReset
             onLoad={handleImageLoad}
             className="select-none"
             style={{
-              ...coverFrameImageStyle({ scale: s, offsetX: ox, offsetY: oy }),
+              ...coverFrameImageStyle({ scale: s, offsetX: ox, offsetY: oy, imageAspect: imgAspect, frameAspect: COVER_FRAME_ASPECT }),
               cursor: isDragging ? 'grabbing' : 'grab',
               transition: isDragging ? 'none' : 'left 80ms ease-out, top 80ms ease-out, width 80ms ease-out, height 80ms ease-out',
             }}
@@ -251,14 +251,14 @@ function CoverFrameEditor({ src, alt, scale, offsetX, offsetY, onChange, onReset
           </button>
           <button
             type="button"
-            onClick={() => emitChange({ scale: coverScale, offsetX: 0, offsetY: 0 })}
+            onClick={() => emitChange({ scale: 1, offsetX: 0, offsetY: 0 })}
             className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-zinc-300 transition hover:border-white/30 hover:bg-white/10 hover:text-white"
           >
             Cubrir marco
           </button>
           <button
             type="button"
-            onClick={() => emitChange({ scale: COVER_SCALE_MIN, offsetX: 0, offsetY: 0 })}
+            onClick={() => emitChange({ scale: clampNumber(1 / base, COVER_SCALE_MIN, COVER_SCALE_MAX, 1), offsetX: 0, offsetY: 0 })}
             className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-zinc-300 transition hover:border-white/30 hover:bg-white/10 hover:text-white"
           >
             Ver foto completa
@@ -367,6 +367,7 @@ function Stepform({
                 scale={data.coverImageScale}
                 offsetX={data.coverImageOffsetX}
                 offsetY={data.coverImageOffsetY}
+                imageAspect={data.coverImageAspect}
                 onChange={onCoverFrameChange}
                 onReset={onResetCoverFrame}
                 appliedToPDF={data.coverApplyToPDF}

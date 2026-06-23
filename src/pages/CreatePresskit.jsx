@@ -78,6 +78,7 @@ const defaultCoverFrame = {
   coverImageScale: 1,
   coverImageOffsetX: 0,
   coverImageOffsetY: 0,
+  coverImageAspect: 0,
 };
 
 function setGalleryImageForSlot(images, slot, imageUrl) {
@@ -386,6 +387,7 @@ function CreatePresskit({ user, onSignOut }) {
         coverImageScale: localData.coverImageScale ?? current.coverImageScale,
         coverImageOffsetX: localData.coverImageOffsetX ?? current.coverImageOffsetX,
         coverImageOffsetY: localData.coverImageOffsetY ?? current.coverImageOffsetY,
+        coverImageAspect: localData.coverImageAspect ?? current.coverImageAspect,
         coverApplyToPDF: typeof localData.coverApplyToPDF === 'boolean' ? localData.coverApplyToPDF : current.coverApplyToPDF,
         performanceLiveLink: localData.performanceLiveLink || current.performanceLiveLink,
         totalStreams: localData.totalStreams || current.totalStreams,
@@ -461,6 +463,7 @@ function CreatePresskit({ user, onSignOut }) {
             coverImageScale: data.coverImageScale ?? current.coverImageScale,
             coverImageOffsetX: data.coverImageOffsetX ?? current.coverImageOffsetX,
             coverImageOffsetY: data.coverImageOffsetY ?? current.coverImageOffsetY,
+            coverImageAspect: data.coverImageAspect ?? current.coverImageAspect,
             coverApplyToPDF: typeof data.coverApplyToPDF === 'boolean' ? data.coverApplyToPDF : current.coverApplyToPDF,
             performanceLiveLink: data.performanceLiveLink || current.performanceLiveLink,
             totalStreams: data.totalStreams || current.totalStreams,
@@ -553,6 +556,7 @@ function CreatePresskit({ user, onSignOut }) {
         coverImageScale: presskitData.coverImageScale,
         coverImageOffsetX: presskitData.coverImageOffsetX,
         coverImageOffsetY: presskitData.coverImageOffsetY,
+          coverImageAspect: presskitData.coverImageAspect,
         coverApplyToPDF: presskitData.coverApplyToPDF ?? false,
         images: presskitData.images,
         links: presskitData.links,
@@ -640,6 +644,7 @@ function CreatePresskit({ user, onSignOut }) {
               coverImageScale: presskitData.coverImageScale,
               coverImageOffsetX: presskitData.coverImageOffsetX,
               coverImageOffsetY: presskitData.coverImageOffsetY,
+          coverImageAspect: presskitData.coverImageAspect,
               coverApplyToPDF: presskitData.coverApplyToPDF ?? false,
             };
             window.localStorage.setItem(getLocalDraftKey(user.uid), JSON.stringify(minimalDraft));
@@ -681,9 +686,10 @@ function CreatePresskit({ user, onSignOut }) {
   const handleCoverFrameChange = (nextFrame) => {
     setPresskitData((current) => ({
       ...current,
-      coverImageScale: clampCoverFrameValue(nextFrame?.scale, 1, 4, current.coverImageScale ?? 1),
-      coverImageOffsetX: clampCoverFrameValue(nextFrame?.offsetX, -4, 4, current.coverImageOffsetX ?? 0),
-      coverImageOffsetY: clampCoverFrameValue(nextFrame?.offsetY, -4, 4, current.coverImageOffsetY ?? 0),
+      coverImageScale: clampCoverFrameValue(nextFrame?.scale, 0.3, 3, current.coverImageScale ?? 1),
+      coverImageOffsetX: clampCoverFrameValue(nextFrame?.offsetX, -1, 1, current.coverImageOffsetX ?? 0),
+      coverImageOffsetY: clampCoverFrameValue(nextFrame?.offsetY, -1, 1, current.coverImageOffsetY ?? 0),
+      coverImageAspect: clampCoverFrameValue(nextFrame?.imageAspect, 0, 100, current.coverImageAspect ?? 0),
     }));
   };
 
@@ -1318,6 +1324,7 @@ function CreatePresskit({ user, onSignOut }) {
           coverImageScale: presskitData.coverImageScale,
           coverImageOffsetX: presskitData.coverImageOffsetX,
           coverImageOffsetY: presskitData.coverImageOffsetY,
+          coverImageAspect: presskitData.coverImageAspect,
           images: presskitData.images,
           links: presskitData.links,
           linkMetrics: presskitData.linkMetrics,
@@ -1394,6 +1401,7 @@ function CreatePresskit({ user, onSignOut }) {
       coverImageScale: presskitData.coverImageScale,
       coverImageOffsetX: presskitData.coverImageOffsetX,
       coverImageOffsetY: presskitData.coverImageOffsetY,
+          coverImageAspect: presskitData.coverImageAspect,
       images: presskitData.images,
       links: presskitData.links,
       linkMetrics: presskitData.linkMetrics,

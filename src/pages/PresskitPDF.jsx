@@ -113,6 +113,7 @@ function PresskitPDF({ user, onSignOut, presskitId = '' }) {
             coverImageScale: data.coverImageScale,
             coverImageOffsetX: data.coverImageOffsetX,
             coverImageOffsetY: data.coverImageOffsetY,
+            coverImageAspect: data.coverImageAspect,
             coverApplyToPDF: Boolean(data.coverApplyToPDF),
             totalStreams: data.totalStreams || '',
             totalVideoViews: data.totalVideoViews || '',
