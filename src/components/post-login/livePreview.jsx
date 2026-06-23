@@ -1,7 +1,7 @@
 import PresskitWeb from './PresskitWeb.jsx';
 import HTMLPreview from '../preview/HTMLPreview.jsx';
 
-function LivePreview({ data, onCoverImagePositionChange }) {
+function LivePreview({ data }) {
   return (
     <section className="space-y-6 rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur">
       <p className="rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm text-zinc-300">
@@ -15,7 +15,6 @@ function LivePreview({ data, onCoverImagePositionChange }) {
             <PresskitWeb
               presskitData={data}
               mode="embedded"
-              onCoverImagePositionChange={onCoverImagePositionChange}
             />
           </div>
         </div>

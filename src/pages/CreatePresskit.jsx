@@ -700,18 +700,6 @@ function CreatePresskit({ user, onSignOut }) {
     }));
   };
 
-  // Doble clic en la portada del preview web: ajusta el encuadre vertical.
-  const handleCoverImagePositionChange = (direction) => {
-    setPresskitData((current) => {
-      const base = Number(current.coverImageOffsetY);
-      const nextOffsetY = Math.max(-1, Math.min(1, (Number.isFinite(base) ? base : 0) + (direction > 0 ? -0.08 : 0.08)));
-      return {
-        ...current,
-        coverImageOffsetY: nextOffsetY,
-      };
-    });
-  };
-
   const handleAddRelease = (releaseData) => {
     setPresskitData((current) => ({
       ...current,
@@ -1576,7 +1564,7 @@ function CreatePresskit({ user, onSignOut }) {
             </button>
           </div>
 
-          <LivePreview data={presskitData} onCoverImagePositionChange={handleCoverImagePositionChange} />
+          <LivePreview data={presskitData} />
           <PublishModal
             isOpen={publishOpen}
             onClose={() => setPublishOpen(false)}
