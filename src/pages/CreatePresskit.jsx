@@ -75,9 +75,9 @@ const gallerySlotToIndex = {
 };
 
 const defaultCoverFrame = {
-  coverImagePositionX: 50,
-  coverImagePositionY: 50,
-  coverImageZoom: 1,
+  coverImageScale: 1,
+  coverImageOffsetX: 0,
+  coverImageOffsetY: 0,
 };
 
 function setGalleryImageForSlot(images, slot, imageUrl) {
@@ -383,6 +383,10 @@ function CreatePresskit({ user, onSignOut }) {
         artistName: localData.artistName || current.artistName,
         genre: localData.genre || current.genre,
         city: localData.city || current.city,
+        coverImageScale: localData.coverImageScale ?? current.coverImageScale,
+        coverImageOffsetX: localData.coverImageOffsetX ?? current.coverImageOffsetX,
+        coverImageOffsetY: localData.coverImageOffsetY ?? current.coverImageOffsetY,
+        coverApplyToPDF: typeof localData.coverApplyToPDF === 'boolean' ? localData.coverApplyToPDF : current.coverApplyToPDF,
         performanceLiveLink: localData.performanceLiveLink || current.performanceLiveLink,
         totalStreams: localData.totalStreams || current.totalStreams,
         totalVideoViews: localData.totalVideoViews || current.totalVideoViews,
@@ -454,6 +458,10 @@ function CreatePresskit({ user, onSignOut }) {
             artistName: data.artistName || current.artistName,
             genre: data.genre || current.genre,
             city: data.city || current.city,
+            coverImageScale: data.coverImageScale ?? current.coverImageScale,
+            coverImageOffsetX: data.coverImageOffsetX ?? current.coverImageOffsetX,
+            coverImageOffsetY: data.coverImageOffsetY ?? current.coverImageOffsetY,
+            coverApplyToPDF: typeof data.coverApplyToPDF === 'boolean' ? data.coverApplyToPDF : current.coverApplyToPDF,
             performanceLiveLink: data.performanceLiveLink || current.performanceLiveLink,
             totalStreams: data.totalStreams || current.totalStreams,
             totalVideoViews: data.totalVideoViews || current.totalVideoViews,
@@ -542,9 +550,9 @@ function CreatePresskit({ user, onSignOut }) {
         theme: presskitData.theme,
         genre: presskitData.genre,
         city: presskitData.city,
-        coverImagePositionX: presskitData.coverImagePositionX,
-        coverImagePositionY: presskitData.coverImagePositionY,
-        coverImageZoom: presskitData.coverImageZoom,
+        coverImageScale: presskitData.coverImageScale,
+        coverImageOffsetX: presskitData.coverImageOffsetX,
+        coverImageOffsetY: presskitData.coverImageOffsetY,
         coverApplyToPDF: presskitData.coverApplyToPDF ?? false,
         images: presskitData.images,
         links: presskitData.links,
@@ -629,9 +637,9 @@ function CreatePresskit({ user, onSignOut }) {
               ...presskitData,
               images: [],
               recognitionImage: '',
-              coverImagePositionX: presskitData.coverImagePositionX,
-              coverImagePositionY: presskitData.coverImagePositionY,
-              coverImageZoom: presskitData.coverImageZoom,
+              coverImageScale: presskitData.coverImageScale,
+              coverImageOffsetX: presskitData.coverImageOffsetX,
+              coverImageOffsetY: presskitData.coverImageOffsetY,
               coverApplyToPDF: presskitData.coverApplyToPDF ?? false,
             };
             window.localStorage.setItem(getLocalDraftKey(user.uid), JSON.stringify(minimalDraft));
@@ -673,9 +681,9 @@ function CreatePresskit({ user, onSignOut }) {
   const handleCoverFrameChange = (nextFrame) => {
     setPresskitData((current) => ({
       ...current,
-      coverImagePositionX: clampCoverFrameValue(nextFrame?.positionX, 0, 100, current.coverImagePositionX ?? 50),
-      coverImagePositionY: clampCoverFrameValue(nextFrame?.positionY, 0, 100, current.coverImagePositionY ?? 50),
-      coverImageZoom: clampCoverFrameValue(nextFrame?.zoom, 0.5, 2.5, current.coverImageZoom ?? 1),
+      coverImageScale: clampCoverFrameValue(nextFrame?.scale, 1, 4, current.coverImageScale ?? 1),
+      coverImageOffsetX: clampCoverFrameValue(nextFrame?.offsetX, -4, 4, current.coverImageOffsetX ?? 0),
+      coverImageOffsetY: clampCoverFrameValue(nextFrame?.offsetY, -4, 4, current.coverImageOffsetY ?? 0),
     }));
   };
 
@@ -686,15 +694,14 @@ function CreatePresskit({ user, onSignOut }) {
     }));
   };
 
+  // Doble clic en la portada del preview web: ajusta el encuadre vertical.
   const handleCoverImagePositionChange = (direction) => {
     setPresskitData((current) => {
-      const currentPosition = Number(current.coverImagePositionY);
-      const basePosition = Number.isFinite(currentPosition) ? currentPosition : 50;
-      const nextPosition = Math.max(20, Math.min(80, basePosition + (direction > 0 ? 8 : -8)));
-
+      const base = Number(current.coverImageOffsetY);
+      const nextOffsetY = Math.max(-1, Math.min(1, (Number.isFinite(base) ? base : 0) + (direction > 0 ? -0.08 : 0.08)));
       return {
         ...current,
-        coverImagePositionY: nextPosition,
+        coverImageOffsetY: nextOffsetY,
       };
     });
   };
@@ -1308,9 +1315,9 @@ function CreatePresskit({ user, onSignOut }) {
           theme: presskitData.theme,
           genre: presskitData.genre,
           city: presskitData.city,
-          coverImagePositionX: presskitData.coverImagePositionX,
-          coverImagePositionY: presskitData.coverImagePositionY,
-          coverImageZoom: presskitData.coverImageZoom,
+          coverImageScale: presskitData.coverImageScale,
+          coverImageOffsetX: presskitData.coverImageOffsetX,
+          coverImageOffsetY: presskitData.coverImageOffsetY,
           images: presskitData.images,
           links: presskitData.links,
           linkMetrics: presskitData.linkMetrics,
@@ -1384,9 +1391,9 @@ function CreatePresskit({ user, onSignOut }) {
       theme: presskitData.theme,
       genre: presskitData.genre,
       city: presskitData.city,
-      coverImagePositionX: presskitData.coverImagePositionX,
-      coverImagePositionY: presskitData.coverImagePositionY,
-      coverImageZoom: presskitData.coverImageZoom,
+      coverImageScale: presskitData.coverImageScale,
+      coverImageOffsetX: presskitData.coverImageOffsetX,
+      coverImageOffsetY: presskitData.coverImageOffsetY,
       images: presskitData.images,
       links: presskitData.links,
       linkMetrics: presskitData.linkMetrics,

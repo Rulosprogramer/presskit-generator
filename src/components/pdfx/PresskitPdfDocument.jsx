@@ -3,6 +3,7 @@ import { theme as pdfxTheme } from '../../lib/pdfx-theme';
 import { isValidPdfImage } from '../../lib/pdfImageResolver';
 import { getPdfTextEffectStyle } from '../../lib/textEffects.js';
 import { abbreviateMetric } from '../../lib/formatMetric.js';
+import { normalizeCoverFrame, coverFrameImageStyle } from '../../lib/coverFrame.js';
 
 const FONT_SCALE = 0.88;
 
@@ -1168,9 +1169,9 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
   const safeImages = (safeData.images || []).filter(isHttpUrl);
   const coverImage = safeImages[0] || '';
   const coverApplyToPDF = Boolean(safeData.coverApplyToPDF);
-  const coverPosX = coverApplyToPDF ? (Number(safeData.coverImagePositionX) || 50) : 50;
-  const coverPosY = coverApplyToPDF ? (Number(safeData.coverImagePositionY) || 50) : 50;
-  const coverZoom = coverApplyToPDF ? Math.max(0.5, Number(safeData.coverImageZoom) || 1) : 1;
+  const coverImageStyle = coverApplyToPDF
+    ? coverFrameImageStyle(normalizeCoverFrame(safeData))
+    : coverFrameImageStyle({ scale: 1, offsetX: 0, offsetY: 0 });
   const performanceLiveLink = safeData.performanceLiveLink || '';
   const performanceLiveThumbnail = getYoutubeThumbnailUrl(performanceLiveLink);
   const recognitionImage = safeData.recognitionImage || '';
@@ -1298,27 +1299,7 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
       <Page size={pdfxTheme.page.size} style={[styles.coverPage, { backgroundColor: c.bg }]} wrap={false}>
         <View style={styles.coverFrame}>
           {coverImage ? (
-            coverZoom > 1 ? (
-              <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' }}>
-                <Image
-                  src={getImageSource(coverImage)}
-                  style={{
-                    position: 'absolute',
-                    top: `${-(coverZoom - 1) / 2 * 100}%`,
-                    left: `${-(coverZoom - 1) / 2 * 100}%`,
-                    width: `${coverZoom * 100}%`,
-                    height: `${coverZoom * 100}%`,
-                    objectFit: 'cover',
-                    objectPosition: `${coverPosX}% ${coverPosY}%`,
-                  }}
-                />
-              </View>
-            ) : (
-              <Image
-                src={getImageSource(coverImage)}
-                style={{ ...styles.coverBackground, objectPosition: `${coverPosX}% ${coverPosY}%` }}
-              />
-            )
+            <Image src={getImageSource(coverImage)} style={coverImageStyle} />
           ) : null}
           <View style={[styles.coverScrim, { backgroundColor: c.overlay }]} />
           <View style={styles.coverTop}>

@@ -278,6 +278,7 @@ function ContactLogo({ image, artistName }) {
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getTheme } from '../../lib/themeColors.js';
 import { getTextEffectStyle } from '../../lib/textEffects.js';
+import { normalizeCoverFrame, coverFrameImageStyle } from '../../lib/coverFrame.js';
 import { useTheme } from '../../context/ThemeContext.tsx';
 import {
   SiApplemusic,
@@ -370,18 +371,6 @@ function getGalleryResponsiveSpanClass(index) {
   return pattern[index % pattern.length];
 }
 
-function clampCoverImagePosition(value) {
-  const numericValue = Number(value);
-  if (!Number.isFinite(numericValue)) return 50;
-  return Math.max(20, Math.min(80, numericValue));
-}
-
-function clampCoverFrameValue(value, min, max, fallback) {
-  const numericValue = Number(value);
-  if (!Number.isFinite(numericValue)) return fallback;
-  return Math.min(max, Math.max(min, numericValue));
-}
-
 function createEmptyArtistMilestones() {
   return {
     digital: [],
@@ -446,12 +435,11 @@ function PresskitWeb({ presskitData, mode = 'full', onCoverImagePositionChange }
   const PAGE_OVERLAY = uiTheme.overlayColor;
 
   const cover = presskitData.images?.[0] || '';
-  const coverImagePositionX = clampCoverFrameValue(presskitData.coverImagePositionX, 0, 100, 50);
-  const coverImagePositionY = clampCoverFrameValue(presskitData.coverImagePositionY, 0, 100, 50);
-  const coverImageZoom = clampCoverFrameValue(presskitData.coverImageZoom, 1, 2.5, 1);
-  const coverImagePositionLabel = coverImagePositionY <= 33
+  const coverFrame = normalizeCoverFrame(presskitData);
+  const coverImageStyle = coverFrameImageStyle(coverFrame);
+  const coverImagePositionLabel = coverFrame.offsetY <= -0.12
     ? 'Más arriba'
-    : coverImagePositionY >= 67
+    : coverFrame.offsetY >= 0.12
       ? 'Más abajo'
       : 'Centrada';
   const gallery = Array.isArray(presskitData.images) ? presskitData.images.slice(1, 5).filter(Boolean) : [];
@@ -761,8 +749,8 @@ function PresskitWeb({ presskitData, mode = 'full', onCoverImagePositionChange }
             <img
               src={cover}
               alt={artistName}
-              className="absolute inset-0 h-full w-full object-cover"
-              style={{ objectPosition: `${coverImagePositionX}% ${coverImagePositionY}%`, transform: `scale(${coverImageZoom})`, transformOrigin: 'center center' }}
+              className="select-none"
+              style={coverImageStyle}
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-sm" style={{ backgroundColor: uiTheme.cardBg, color: uiTheme.subtitleColor }}>

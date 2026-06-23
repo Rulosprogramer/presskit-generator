@@ -1,4 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
+import {
+  coverFrameImageStyle,
+  coverScaleFor,
+  clampOffset,
+  COVER_SCALE_MIN,
+  COVER_SCALE_MAX,
+} from '../../lib/coverFrame.js';
 import ReleaseStep from './ReleaseStep.jsx';
 import ArtistMilestonesStep from './ArtistMilestonesStep.jsx';
 import ThemePickerStep from './ThemePickerStep.jsx';
@@ -89,61 +96,68 @@ function ImagePreviewThumb({ src, alt, emptyLabel = 'Sin imagen seleccionada' })
   );
 }
 
-function CoverFrameEditor({ src, alt, positionX, positionY, zoom, onChange, onReset, appliedToPDF, onTogglePDF }) {
+const COVER_FRAME_ASPECT = 4 / 5; // ancho / alto del marco
+
+function CoverFrameEditor({ src, alt, scale, offsetX, offsetY, onChange, onReset, appliedToPDF, onTogglePDF }) {
   const previewRef = useRef(null);
   const dragStateRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [coverScale, setCoverScale] = useState(1);
+  const lastAutoCoverSrc = useRef('');
 
-  const normalizedPositionX = clampNumber(positionX, 0, 100, 50);
-  const normalizedPositionY = clampNumber(positionY, 0, 100, 50);
-  const normalizedZoom = clampNumber(zoom, 0.5, 2.5, 1);
+  const s = clampNumber(scale, COVER_SCALE_MIN, COVER_SCALE_MAX, 1);
+  const ox = clampNumber(offsetX, -COVER_SCALE_MAX, COVER_SCALE_MAX, 0);
+  const oy = clampNumber(offsetY, -COVER_SCALE_MAX, COVER_SCALE_MAX, 0);
 
-  useEffect(() => {
-    if (!dragStateRef.current) return;
-    dragStateRef.current.positionX = normalizedPositionX;
-    dragStateRef.current.positionY = normalizedPositionY;
-    dragStateRef.current.zoom = normalizedZoom;
-  }, [normalizedPositionX, normalizedPositionY, normalizedZoom]);
-
-  const emitChange = (nextValues) => {
+  const emitChange = (next) => {
+    const nextScale = clampNumber(next.scale, COVER_SCALE_MIN, COVER_SCALE_MAX, 1);
     onChange?.({
-      positionX: clampNumber(nextValues.positionX, 0, 100, 50),
-      positionY: clampNumber(nextValues.positionY, 0, 100, 50),
-      zoom: clampNumber(nextValues.zoom, 0.5, 2.5, 1),
+      scale: nextScale,
+      offsetX: clampOffset(clampNumber(next.offsetX, -COVER_SCALE_MAX, COVER_SCALE_MAX, 0), nextScale),
+      offsetY: clampOffset(clampNumber(next.offsetY, -COVER_SCALE_MAX, COVER_SCALE_MAX, 0), nextScale),
     });
+  };
+
+  // Al cargar una imagen nueva, calculamos el scale que la hace "cubrir" el marco
+  // y lo aplicamos como encuadre inicial (solo la primera vez por imagen).
+  const handleImageLoad = (event) => {
+    const { naturalWidth, naturalHeight } = event.target;
+    if (!naturalWidth || !naturalHeight) return;
+    const cover = coverScaleFor(naturalWidth / naturalHeight, COVER_FRAME_ASPECT);
+    setCoverScale(cover);
+    const untouched = clampNumber(scale, COVER_SCALE_MIN, COVER_SCALE_MAX, 1) === 1 && !offsetX && !offsetY;
+    if (untouched && lastAutoCoverSrc.current !== src) {
+      lastAutoCoverSrc.current = src;
+      emitChange({ scale: cover, offsetX: 0, offsetY: 0 });
+    }
   };
 
   const handlePointerDown = (event) => {
     if (!src || !previewRef.current) return;
-
     const rect = previewRef.current.getBoundingClientRect();
     dragStateRef.current = {
-      pointerId: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
-      positionX: normalizedPositionX,
-      positionY: normalizedPositionY,
-      zoom: normalizedZoom,
+      offsetX: ox,
+      offsetY: oy,
+      scale: s,
       rectWidth: rect.width || 1,
       rectHeight: rect.height || 1,
     };
-
     setIsDragging(true);
     event.currentTarget.setPointerCapture?.(event.pointerId);
   };
 
   const handlePointerMove = (event) => {
-    const dragState = dragStateRef.current;
-    if (!dragState) return;
-
-    const sensitivity = 0.35;
-    const deltaX = ((event.clientX - dragState.startX) / dragState.rectWidth) * 100 / Math.max(dragState.zoom, 1) * sensitivity;
-    const deltaY = ((event.clientY - dragState.startY) / dragState.rectHeight) * 100 / Math.max(dragState.zoom, 1) * sensitivity;
-
+    const drag = dragStateRef.current;
+    if (!drag) return;
+    // El delta del puntero (en px) se traduce a fracción del marco -> paneo real.
+    const deltaX = (event.clientX - drag.startX) / drag.rectWidth;
+    const deltaY = (event.clientY - drag.startY) / drag.rectHeight;
     emitChange({
-      positionX: dragState.positionX + deltaX,
-      positionY: dragState.positionY + deltaY,
-      zoom: dragState.zoom,
+      scale: drag.scale,
+      offsetX: drag.offsetX + deltaX,
+      offsetY: drag.offsetY + deltaY,
     });
   };
 
@@ -169,13 +183,12 @@ function CoverFrameEditor({ src, alt, positionX, positionY, zoom, onChange, onRe
             src={src}
             alt={alt}
             draggable={false}
-            className="absolute inset-0 h-full w-full select-none object-cover"
+            onLoad={handleImageLoad}
+            className="select-none"
             style={{
-              objectPosition: `${normalizedPositionX}% ${normalizedPositionY}%`,
-              transform: `scale(${normalizedZoom})`,
-              transformOrigin: 'center center',
+              ...coverFrameImageStyle({ scale: s, offsetX: ox, offsetY: oy }),
               cursor: isDragging ? 'grabbing' : 'grab',
-              transition: isDragging ? 'none' : 'transform 120ms ease-out',
+              transition: isDragging ? 'none' : 'left 80ms ease-out, top 80ms ease-out, width 80ms ease-out, height 80ms ease-out',
             }}
           />
         ) : (
@@ -200,45 +213,55 @@ function CoverFrameEditor({ src, alt, positionX, positionY, zoom, onChange, onRe
         <label className="block space-y-2">
           <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-[0.12em] text-zinc-400">
             <span>Zoom</span>
-            <span>{normalizedZoom.toFixed(2)}x</span>
+            <span>{s.toFixed(2)}x</span>
           </div>
           <input
             type="range"
-            min="0.5"
-            max="2.5"
+            min={COVER_SCALE_MIN}
+            max={COVER_SCALE_MAX}
             step="0.01"
-            value={normalizedZoom}
-            onChange={(event) => emitChange({ positionX: normalizedPositionX, positionY: normalizedPositionY, zoom: event.target.value })}
+            value={s}
+            onChange={(event) => emitChange({ scale: event.target.value, offsetX: ox, offsetY: oy })}
             className="w-full accent-cyan-300"
           />
+          <p className="text-[11px] leading-snug text-zinc-500">
+            Aleja (←) para revelar más de la foto original · acerca (→) para encuadrar más de cerca.
+          </p>
         </label>
 
         <div className="grid grid-cols-3 gap-2 text-[11px] text-zinc-300">
           <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2">
-            X: {Math.round(normalizedPositionX)}%
+            X: {Math.round(ox * 100)}%
           </div>
           <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2">
-            Y: {Math.round(normalizedPositionY)}%
+            Y: {Math.round(oy * 100)}%
           </div>
           <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2">
-            Zoom: {normalizedZoom.toFixed(2)}x
+            Zoom: {s.toFixed(2)}x
           </div>
         </div>
 
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={() => emitChange({ positionX: 50, positionY: 50, zoom: 1 })}
+            onClick={() => emitChange({ scale: s, offsetX: 0, offsetY: 0 })}
             className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-zinc-300 transition hover:border-white/30 hover:bg-white/10 hover:text-white"
           >
             Centrar
           </button>
           <button
             type="button"
-            onClick={() => emitChange({ positionX: normalizedPositionX, positionY: normalizedPositionY, zoom: 1 })}
+            onClick={() => emitChange({ scale: coverScale, offsetX: 0, offsetY: 0 })}
             className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-zinc-300 transition hover:border-white/30 hover:bg-white/10 hover:text-white"
           >
-            Sin zoom
+            Cubrir marco
+          </button>
+          <button
+            type="button"
+            onClick={() => emitChange({ scale: COVER_SCALE_MIN, offsetX: 0, offsetY: 0 })}
+            className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-zinc-300 transition hover:border-white/30 hover:bg-white/10 hover:text-white"
+          >
+            Ver foto completa
           </button>
           <button
             type="button"
@@ -341,9 +364,9 @@ function Stepform({
               <CoverFrameEditor
                 src={data.images?.[0] || ''}
                 alt="Portada del presskit"
-                positionX={data.coverImagePositionX}
-                positionY={data.coverImagePositionY}
-                zoom={data.coverImageZoom}
+                scale={data.coverImageScale}
+                offsetX={data.coverImageOffsetX}
+                offsetY={data.coverImageOffsetY}
                 onChange={onCoverFrameChange}
                 onReset={onResetCoverFrame}
                 appliedToPDF={data.coverApplyToPDF}

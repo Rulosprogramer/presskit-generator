@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTheme } from '../../context/ThemeContext.tsx';
 import { getTextEffectStyle } from '../../lib/textEffects.js';
 import { abbreviateMetric } from '../../lib/formatMetric.js';
+import { normalizeCoverFrame, coverFrameImageStyle } from '../../lib/coverFrame.js';
 
 const PAGE_W = 595;
 const PAGE_H = 842;
@@ -81,16 +82,17 @@ function buildPages(d, tc = {}) {
 
   const pages = [];
 
-  const coverPosX = d.coverApplyToPDF ? (Number(d.coverImagePositionX) || 50) : 50;
-  const coverPosY = d.coverApplyToPDF ? (Number(d.coverImagePositionY) || 50) : 50;
-  const coverZoom = d.coverApplyToPDF ? Math.max(0.5, Number(d.coverImageZoom) || 1) : 1;
+  // Encuadre de portada: aplica scale/offset solo si el usuario lo marcó para el PDF.
+  const coverStyle = d.coverApplyToPDF
+    ? coverFrameImageStyle(normalizeCoverFrame(d))
+    : coverFrameImageStyle({ scale: 1, offsetX: 0, offsetY: 0 });
 
   // ── 1. Cover ──────────────────────────────────────────────────────────────
   pages.push(
     <div key="cover" style={{ width: PAGE_W, height: PAGE_H, position: 'relative', backgroundColor: BG, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between' }}>
       {coverImg ? (
         <>
-          <img src={coverImg} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${coverPosX}% ${coverPosY}%`, transform: `scale(${coverZoom})`, transformOrigin: 'center center' }} />
+          <img src={coverImg} alt="" style={coverStyle} />
           <div style={{ position: 'absolute', inset: 0, background: OVERLAY }} />
         </>
       ) : <BgImage src={coverImg} scrim={OVERLAY} />}

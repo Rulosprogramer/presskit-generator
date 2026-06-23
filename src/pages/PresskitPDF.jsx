@@ -110,6 +110,10 @@ function PresskitPDF({ user, onSignOut, presskitId = '' }) {
             artistName: data.artistName || '',
             genre: data.genre || '',
             city: data.city || '',
+            coverImageScale: data.coverImageScale,
+            coverImageOffsetX: data.coverImageOffsetX,
+            coverImageOffsetY: data.coverImageOffsetY,
+            coverApplyToPDF: Boolean(data.coverApplyToPDF),
             totalStreams: data.totalStreams || '',
             totalVideoViews: data.totalVideoViews || '',
             recognitions: data.recognitions || '',
@@ -247,7 +251,7 @@ function PresskitPDF({ user, onSignOut, presskitId = '' }) {
   // que no cambian el contenido (p. ej. focus/blur al hacer clic en el iframe).
   const docKey = JSON.stringify(pdfPresskitData || {});
   const colorsKey = JSON.stringify(pdfColors) + pdfTextEffect + pdfSubtitleEffect;
-  const blobKey = 'v19-metric-abbrev-' + docKey + pdfVariant + (previewNeedsWatermark ? '-wm' : '-clean') + colorsKey;
+  const blobKey = 'v20-crop-editor-' + docKey + pdfVariant + (previewNeedsWatermark ? '-wm' : '-clean') + colorsKey;
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const pdfDocNode = useMemo(
