@@ -1511,13 +1511,20 @@ function CreatePresskit({ user, onSignOut }) {
             <button
               type="button"
               onClick={async () => {
+                // Abrimos la pestaña al instante del clic para evitar el bloqueador de pop-ups.
+                const tab = window.open('', '_blank');
                 try {
                   const uid = await saveDraftForPreview();
-                  if (!uid) return;
+                  if (!uid) {
+                    tab?.close();
+                    return;
+                  }
                   setTimeout(() => {
-                    window.location.href = `/presskit/${uid}`;
+                    if (tab) tab.location.href = `/presskit/${uid}`;
+                    else window.open(`/presskit/${uid}`, '_blank');
                   }, 200);
                 } catch (error) {
+                  tab?.close();
                   console.error('Error al guardar para previsualizar EPK:', error);
                   setSaveState('error');
                 }
@@ -1530,13 +1537,20 @@ function CreatePresskit({ user, onSignOut }) {
             <button
               type="button"
               onClick={async () => {
+                // Abrimos la pestaña al instante del clic para evitar el bloqueador de pop-ups.
+                const tab = window.open('', '_blank');
                 try {
                   const uid = await saveDraftForPreview();
-                  if (!uid) return;
+                  if (!uid) {
+                    tab?.close();
+                    return;
+                  }
                   setTimeout(() => {
-                    window.location.href = '/presskitPDF';
+                    if (tab) tab.location.href = '/presskitPDF';
+                    else window.open('/presskitPDF', '_blank');
                   }, 200);
                 } catch (error) {
+                  tab?.close();
                   console.error('Error al guardar para previsualizar PDF:', error);
                   setSaveState('error');
                 }
