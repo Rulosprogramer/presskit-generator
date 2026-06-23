@@ -104,8 +104,12 @@ function PublicPresskit({ presskitId = '' }) {
       const translated = await translatePresskit(presskitData, langCode);
       setTranslationCache(c => ({ ...c, [langCode]: translated }));
       setDisplayData(translated);
-    } catch {
-      setTranslateError('No se pudo traducir. Intenta de nuevo.');
+    } catch (err) {
+      console.warn('Error traduciendo presskit:', err);
+      const msg = err?.message?.includes('VITE_GEMINI_API_KEY')
+        ? 'Traductor no configurado (falta API key).'
+        : 'No se pudo traducir. Intenta de nuevo.';
+      setTranslateError(msg);
       setActiveLang('es');
       setDisplayData(presskitData);
     } finally {

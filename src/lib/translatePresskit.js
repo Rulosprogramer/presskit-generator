@@ -104,13 +104,17 @@ ${JSON.stringify(payload, null, 2)}`;
   let attempts = 0;
   while (attempts < 3) {
     try {
-      const result = await model.generateContent(prompt);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+      const result = await model.generateContent(prompt, { signal: controller.signal });
+      clearTimeout(timeoutId);
       const text = result.response.text().trim();
       const clean = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
       const translated = JSON.parse(clean);
       return applyTranslated(data, translated);
     } catch (err) {
       attempts++;
+      console.warn(`translatePresskit (intento ${attempts}/3):`, err?.message || err);
       if (attempts >= 3) throw err;
       await new Promise(r => setTimeout(r, 1000 * attempts));
     }
