@@ -24,6 +24,8 @@ import Checkout from './pages/Checkout.jsx'
 import { auth } from './lib/firebase'
 import { applyRouteMeta } from './lib/seoMeta'
 import ThemePicker from './components/ThemePicker.jsx'
+import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 
 const PresskitPDF = lazy(() => import('./pages/PresskitPDF.jsx'))
 
@@ -166,6 +168,8 @@ function App() {
           <Footer pathname={pathname} />
         </>
       )}
+      <Analytics />
+      <SpeedInsights />
     </div>
   )
 }
