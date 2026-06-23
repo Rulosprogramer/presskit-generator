@@ -12,25 +12,25 @@ function Preview() {
 
       <div className="mt-10 grid gap-8 lg:grid-cols-3">
         <a
-          href="/examples/indie-pop-pro.html"
+          href="/presskit/music-presskit-banda-siete"
           target="_blank"
           rel="noreferrer"
           className="group relative block overflow-hidden rounded-2xl border border-white/20 bg-white/8 p-6 backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:border-cyan-300/70 hover:shadow-[0_0_48px_rgba(34,211,238,0.35)]"
         >
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-pink-500/20 via-purple-500/10 to-cyan-500/20 opacity-80" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-amber-500/20 via-orange-500/10 to-red-500/20 opacity-80" />
           <div className="relative z-10">
-            <p className="text-sm font-semibold text-fuchsia-300">Indie Pop</p>
-            <h3 className="mt-2 text-2xl font-bold text-white">Neon Aura</h3>
+            <p className="text-sm font-semibold text-amber-300">Banda</p>
+            <h3 className="mt-2 text-2xl font-bold text-white">Banda Siete</h3>
             <div className="mt-4 h-44 overflow-hidden rounded-lg border border-white/20">
               <img
-                src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1000&h=700&fit=crop"
-                alt="Portada de presskit indie"
+                src="https://images.unsplash.com/photo-1574169208507-84376144848b?w=1000&h=700&fit=crop"
+                alt="Portada de Banda Siete"
                 className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
               />
             </div>
-            <div className="mt-4 rounded-lg border border-cyan-300/30 bg-white/10 p-3">
-              <p className="text-xs font-semibold text-cyan-300">VA: Micro animaciones y gradientes</p>
-              <p className="mt-1 text-xs text-zinc-300">Portada dinámica y transiciones suaves para destacar el lanzamiento.</p>
+            <div className="mt-4 rounded-lg border border-amber-300/30 bg-white/10 p-3">
+              <p className="text-xs font-semibold text-amber-300">EPK real en vivo</p>
+              <p className="mt-1 text-xs text-zinc-300">Presskit profesional con biografía, música, logros y datos de contacto.</p>
             </div>
           </div>
         </a>
