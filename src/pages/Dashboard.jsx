@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { isPremiumWhitelisted } from '../lib/premiumAccess.js';
 import PlanPurchaseModal from '../components/post-login/PlanPurchaseModal.jsx';
 
 function Dashboard({ user }) {
@@ -49,6 +50,21 @@ function Dashboard({ user }) {
   };
 
   const openPurchaseModal = (presskit, action) => {
+    const isPremium = isPremiumWhitelisted(user?.email)
+      || presskit?.downloadUnlocked
+      || presskit?.subscriptionActive
+      || presskit?.paymentStatus === 'paid';
+
+    if (isPremium) {
+      if (action === 'download') {
+        window.location.assign('/presskitPDF');
+      } else if (action === 'view') {
+        const url = presskit?.publishedUrl || `/presskit/${presskit?.id}`;
+        window.location.assign(url);
+      }
+      return;
+    }
+
     setPurchaseAction(action);
     setPurchaseModalOpen(true);
   };
@@ -69,12 +85,12 @@ function Dashboard({ user }) {
     setPurchaseAction('');
   };
 
-  const handleEssentialPurchase = async () => {
-    window.location.assign(`/checkout?plan=essential&action=${encodeURIComponent(purchaseAction || 'buy')}`);
+  const handleOncePurchase = async () => {
+    window.location.assign(`/checkout?plan=essential&billing=once&action=${encodeURIComponent(purchaseAction || 'buy')}`);
   };
 
-  const handleProfessionalPurchase = async () => {
-    window.location.assign(`/checkout?plan=professional&action=${encodeURIComponent(purchaseAction || 'buy')}`);
+  const handleAnnualPurchase = async () => {
+    window.location.assign(`/checkout?plan=professional&billing=annual&action=${encodeURIComponent(purchaseAction || 'buy')}`);
   };
 
   const hasPresskits = presskits.length > 0;
@@ -218,8 +234,8 @@ function Dashboard({ user }) {
         isOpen={purchaseModalOpen}
         actionLabel={purchaseAction === 'share' ? 'compartir el enlace' : purchaseAction === 'view' ? 'ver tu presskit' : 'descargar el PDF'}
         onClose={closePurchaseModal}
-        onSelectEssential={handleEssentialPurchase}
-        onSelectProfessional={handleProfessionalPurchase}
+        onSelectOnce={handleOncePurchase}
+        onSelectAnnual={handleAnnualPurchase}
       />
     </section>
   );

@@ -17,7 +17,7 @@ interface RouteMeta {
 
 const ROUTES: Record<string, RouteMeta> = {
   '/': {
-    title: 'Crea EPKs profesionales para artistas, bandas y músicos',
+    title: 'EPK para artistas y bandas en Latinoamérica | Crea tu Press Kit Musical Profesional',
     description: DEFAULT_DESC,
     canonical: `${ORIGIN}/`,
     index: true,
