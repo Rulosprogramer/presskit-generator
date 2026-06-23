@@ -48,8 +48,8 @@ function Hero() {
           </span>
 
           <h1 className="mt-6 text-4xl font-black leading-tight sm:text-5xl lg:text-6xl">
-            Tu presskit musical
-            <span className="block text-fuchsia-300">listo en minutos</span>
+            Plataforma para crear EPKs profesionales
+            <span className="block text-fuchsia-300">para artistas, bandas, agrupaciones musicales y músicos</span>
           </h1>
 
           <p className="mx-auto mt-6 max-w-3xl text-base leading-relaxed text-zinc-300 sm:text-lg">
