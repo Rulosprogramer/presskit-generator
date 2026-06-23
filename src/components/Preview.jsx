@@ -23,7 +23,7 @@ function Preview() {
             <h3 className="mt-2 text-2xl font-bold text-white">Banda Siete</h3>
             <div className="mt-4 h-44 overflow-hidden rounded-lg border border-white/20">
               <img
-                src="https://images.unsplash.com/photo-1574169208507-84376144848b?w=1000&h=700&fit=crop"
+                src="https://firebasestorage.googleapis.com/v0/b/presskit-generator.firebasestorage.app/o/presskits%2FvWAcwYBf1QVykmHwhqDRjtbxhcZ2%2Fgallery%2Fhero%2F1781718119897-14-_1_.jpg?alt=media&token=dbfbfd56-88b7-4b05-b422-fd242496b5b8"
                 alt="Portada de Banda Siete"
                 className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
               />
