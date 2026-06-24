@@ -783,7 +783,7 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
           </div>
 
             <div className="mt-4 grid min-h-0 flex-1 gap-3 lg:grid-cols-[38%_62%]">
-            <div className="min-h-0 overflow-hidden rounded-2xl" style={{ backgroundColor: uiTheme.cardBg, border: `1px solid ${uiTheme.borderColor}` }}>
+            <div className="h-48 min-h-0 shrink-0 overflow-hidden rounded-2xl lg:h-full" style={{ backgroundColor: uiTheme.cardBg, border: `1px solid ${uiTheme.borderColor}` }}>
               {bioImage ? (
                 <img src={bioImage} alt={`Bio corta de ${artistName}`} className="h-full w-full object-cover" />
               ) : (
@@ -791,14 +791,14 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
               )}
             </div>
             <div
-              className="min-h-0 overflow-y-auto rounded-2xl p-3 sm:p-4 flex flex-col h-full"
+              className="min-h-0 rounded-2xl p-3 sm:p-4 flex flex-col lg:h-full lg:overflow-y-auto"
               style={{ backgroundColor: uiTheme.cardBg, border: `1px solid ${uiTheme.borderColor}` }}
             >
               <div className="flex flex-col gap-2">
                 <div className="text-xs sm:text-sm" style={{ color: uiTheme.subtitleColor, ...(pkFonts.sub && { fontFamily: pkFonts.sub }), ...subtitleEffectStyle }}>{genre} · {city}</div>
               </div>
 
-              <div className="mt-3 flex-1 min-h-0 overflow-y-auto">
+              <div className="mt-3 min-h-0 lg:flex-1 lg:overflow-y-auto">
                 <p className="text-xs leading-5 sm:text-sm sm:leading-6" style={{ color: uiTheme.textColor, ...(pkFonts.body && { fontFamily: pkFonts.body }), ...textEffectStyle }}>{shortBio || 'Completa la biografia para mostrar informacion del artista en esta pagina.'}</p>
               </div>
 
@@ -1393,7 +1393,7 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
             {'<'}
           </button>
 
-          <div className={`relative ${(isCompact || currentPage?.type === 'gallery' || currentPage?.type === 'gallery-horizontal') ? 'overflow-y-auto overflow-x-hidden' : 'overflow-hidden'} ${pageViewportClass}`}>
+          <div className={`relative ${(isCompact || currentPage?.type === 'gallery' || currentPage?.type === 'gallery-horizontal' || currentPage?.type === 'artist') ? 'overflow-y-auto overflow-x-hidden' : 'overflow-hidden'} ${pageViewportClass}`}>
             <div
               className="h-full transition-all duration-500 ease-in-out"
               style={{
