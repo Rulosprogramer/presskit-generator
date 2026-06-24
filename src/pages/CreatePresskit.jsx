@@ -1473,10 +1473,10 @@ function CreatePresskit({ user, onSignOut }) {
 
           {isMobile && (
             <style>{`
-              .mobile-step-view > div > div > div[id^="presskit-step-"] {
+              .mobile-step-view > section > div > div[id^="presskit-step-"] {
                 display: none;
               }
-              .mobile-step-view > div > div > div[id="presskit-step-${activeStep}"] {
+              .mobile-step-view > section > div > div[id="presskit-step-${activeStep}"] {
                 display: block;
               }
             `}</style>
