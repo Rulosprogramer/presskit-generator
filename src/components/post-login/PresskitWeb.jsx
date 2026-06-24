@@ -776,13 +776,13 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
 
     if (page.type === 'artist') {
       return (
-        <div className="flex h-full flex-col p-4 sm:p-5">
+        <div className="flex flex-col p-4 sm:p-5 lg:h-full">
           <div className="shrink-0 text-center">
             <p className="text-[11px] uppercase tracking-[0.18em] sm:text-xs" style={{ color: uiTheme.subtitleColor, ...(pkFonts.sub && { fontFamily: pkFonts.sub }), ...subtitleEffectStyle }}>Conoce A</p>
             <h3 className="mt-2 text-[clamp(1.55rem,3.2vw,2.25rem)] font-black" style={{ color: uiTheme.titleColor, ...(pkFonts.title && { fontFamily: pkFonts.title }) }}>{artistName}</h3>
           </div>
 
-            <div className="mt-4 grid min-h-0 flex-1 gap-3 lg:grid-cols-[38%_62%]">
+            <div className="mt-4 grid gap-3 lg:min-h-0 lg:flex-1 lg:grid-cols-[38%_62%]">
             <div className="h-48 min-h-0 shrink-0 overflow-hidden rounded-2xl lg:h-full" style={{ backgroundColor: uiTheme.cardBg, border: `1px solid ${uiTheme.borderColor}` }}>
               {bioImage ? (
                 <img src={bioImage} alt={`Bio corta de ${artistName}`} className="h-full w-full object-cover" />
@@ -798,7 +798,7 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
                 <div className="text-xs sm:text-sm" style={{ color: uiTheme.subtitleColor, ...(pkFonts.sub && { fontFamily: pkFonts.sub }), ...subtitleEffectStyle }}>{genre} · {city}</div>
               </div>
 
-              <div className="mt-3 min-h-0 lg:flex-1 lg:overflow-y-auto">
+              <div className="mt-3 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
                 <p className="text-xs leading-5 sm:text-sm sm:leading-6" style={{ color: uiTheme.textColor, ...(pkFonts.body && { fontFamily: pkFonts.body }), ...textEffectStyle }}>{shortBio || 'Completa la biografia para mostrar informacion del artista en esta pagina.'}</p>
               </div>
 
@@ -808,10 +808,10 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
                     href={performanceLiveLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full flex-none flex flex-col overflow-hidden rounded-xl transition"
+                    className="w-full flex-none flex flex-row lg:flex-col overflow-hidden rounded-xl transition"
                     style={{ border: `1px solid ${uiTheme.borderColor}` }}
                   >
-                    <div className="relative w-full aspect-video overflow-hidden">
+                    <div className="relative w-24 shrink-0 aspect-square lg:w-full lg:aspect-video overflow-hidden">
                       {performanceLiveThumbnail ? (
                         <img src={performanceLiveThumbnail} alt="Performance en vivo" className="w-full h-full object-cover" />
                       ) : (
@@ -819,11 +819,11 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
                       )}
                     </div>
 
-                    <div className="p-3" style={{ backgroundColor: uiTheme.overlayColor }}>
+                    <div className="min-w-0 flex-1 p-3" style={{ backgroundColor: uiTheme.overlayColor }}>
                       <p className="text-[11px] uppercase tracking-[0.14em]" style={{ color: uiTheme.subtitleColor, ...(pkFonts.sub && { fontFamily: pkFonts.sub }) }}>Live Performance</p>
                       <p className="mt-1 text-sm font-semibold" style={{ color: uiTheme.subtitleColor, ...(pkFonts.sub && { fontFamily: pkFonts.sub }) }}>Mira mi performance en vivo</p>
                       <p className="mt-1 text-[11px]" style={{ color: uiTheme.textColor, ...(pkFonts.body && { fontFamily: pkFonts.body }) }}>Ver en YouTube</p>
-                      <p className="mt-2 text-xs whitespace-pre-line" style={{ color: uiTheme.textColor, ...(pkFonts.body && { fontFamily: pkFonts.body }) }}>{presskitData.performanceDescription || ''}</p>
+                      <p className="mt-2 hidden text-xs whitespace-pre-line lg:block" style={{ color: uiTheme.textColor, ...(pkFonts.body && { fontFamily: pkFonts.body }) }}>{presskitData.performanceDescription || ''}</p>
                     </div>
                   </a>
                 </div>
