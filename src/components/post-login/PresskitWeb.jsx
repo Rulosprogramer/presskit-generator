@@ -481,6 +481,7 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
     ...(artistMilestones.press || []),
     ...(artistMilestones.collaborations || []),
   ].slice(0, 12);
+  const hasHitos = milestoneItems.some((item) => String(item || '').trim());
   const milestoneTextSizeClass = isEmbedded
     ? 'text-[clamp(0.68rem,0.9vw,0.88rem)] leading-[clamp(1rem,1.35vw,1.3rem)]'
     : 'text-[clamp(0.82rem,1.15vw,1.05rem)] leading-[clamp(1.15rem,1.6vw,1.55rem)]';
@@ -885,7 +886,9 @@ function PresskitWeb({ presskitData, mode = 'full' }) {
               <div className="relative z-10 flex h-full flex-col overflow-y-auto p-5 sm:p-6">
                 {/* Header: kicker + nombre */}
                 <div className="shrink-0 text-center">
-                  <p className="text-xs font-bold uppercase tracking-[0.22em]" style={{ color: uiTheme.subtitleColor, ...(pkFonts.label && { fontFamily: pkFonts.label }), ...subtitleEffectStyle }}>LOGROS DE</p>
+                  {hasHitos && (
+                    <p className="text-xs font-bold uppercase tracking-[0.22em]" style={{ color: uiTheme.subtitleColor, ...(pkFonts.label && { fontFamily: pkFonts.label }), ...subtitleEffectStyle }}>LOGROS DE</p>
+                  )}
                   <h3 className="mt-1 text-2xl font-black sm:text-3xl" style={{ color: uiTheme.titleColor, ...(pkFonts.title && { fontFamily: pkFonts.title }) }}>{artistName}</h3>
                 </div>
 

@@ -252,7 +252,7 @@ function PresskitPDF({ user, onSignOut, presskitId = '' }) {
   // que no cambian el contenido (p. ej. focus/blur al hacer clic en el iframe).
   const docKey = JSON.stringify(pdfPresskitData || {});
   const colorsKey = JSON.stringify(pdfColors) + pdfTextEffect + pdfSubtitleEffect;
-  const blobKey = 'v21-logros-kicker-' + docKey + pdfVariant + (previewNeedsWatermark ? '-wm' : '-clean') + colorsKey;
+  const blobKey = 'v22-logros-conditional-' + docKey + pdfVariant + (previewNeedsWatermark ? '-wm' : '-clean') + colorsKey;
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const pdfDocNode = useMemo(
