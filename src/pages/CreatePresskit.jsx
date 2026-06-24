@@ -1551,67 +1551,6 @@ function CreatePresskit({ user, onSignOut }) {
               {permissionError}
             </div>
           ) : null}
-        </div>
-
-        <div
-          ref={previewDockRef}
-          className="sticky top-2 max-h-[calc(100vh-1rem)] space-y-6 overflow-y-auto pr-1 h-fit transition-transform duration-300 ease-out will-change-transform"
-          style={{ transform: 'translateY(calc(var(--preview-dock-offset, 0px) * -1))' }}
-        >
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={async () => {
-                // Abrimos la pestaña al instante del clic para evitar el bloqueador de pop-ups.
-                const tab = window.open('', '_blank');
-                try {
-                  const uid = await saveDraftForPreview();
-                  if (!uid) {
-                    tab?.close();
-                    return;
-                  }
-                  setTimeout(() => {
-                    if (tab) tab.location.href = `/presskit/${uid}`;
-                    else window.open(`/presskit/${uid}`, '_blank');
-                  }, 200);
-                } catch (error) {
-                  tab?.close();
-                  console.error('Error al guardar para previsualizar EPK:', error);
-                  setSaveState('error');
-                }
-              }}
-              className="inline-flex items-center gap-2 rounded-xl border border-cyan-300/40 bg-cyan-300/10 px-4 py-2 text-sm font-semibold text-cyan-300 transition hover:bg-cyan-300/20"
-            >
-              Previsualizar EPK
-            </button>
-
-            <button
-              type="button"
-              onClick={async () => {
-                // Abrimos la pestaña al instante del clic para evitar el bloqueador de pop-ups.
-                const tab = window.open('', '_blank');
-                try {
-                  const uid = await saveDraftForPreview();
-                  if (!uid) {
-                    tab?.close();
-                    return;
-                  }
-                  setTimeout(() => {
-                    if (tab) tab.location.href = '/presskitPDF';
-                    else window.open('/presskitPDF', '_blank');
-                  }, 200);
-                } catch (error) {
-                  tab?.close();
-                  console.error('Error al guardar para previsualizar PDF:', error);
-                  setSaveState('error');
-                }
-              }}
-              className="inline-flex items-center gap-2 rounded-xl border border-fuchsia-300/40 bg-fuchsia-300/10 px-4 py-2 text-sm font-semibold text-fuchsia-300 transition hover:bg-fuchsia-300/20"
-            >
-              Previsualizar PDF
-            </button>
-          </div>
-
           {isMobile ? (
             <details className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur">
               <summary className="cursor-pointer px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-cyan-300 select-none">
@@ -1621,50 +1560,112 @@ function CreatePresskit({ user, onSignOut }) {
                 <LivePreview data={presskitData} />
               </div>
             </details>
-          ) : (
-            <LivePreview data={presskitData} />
-          )}
-          <PublishModal
-            isOpen={publishOpen}
-            onClose={() => setPublishOpen(false)}
-            onPublish={handlePublish}
-            summary={buildPublishSummary(presskitData)}
-          />
-          <ImageLibraryModal
-            userId={user?.uid}
-            isOpen={libraryModalOpen}
-            onClose={() => setLibraryModalOpen(false)}
-            onSelectImage={handleSelectFromLibrary}
-            imageType={currentImageType}
-          />
-          {aiModalOpen && aiModalSection && (
-            <BiographyAIModal
-              isOpen={aiModalOpen}
-              section={aiModalSection}
-              artistData={presskitData}
-              currentValue={presskitData[aiModalSection === 'twitterBio' ? 'twitterBio' : aiModalSection === 'shortBio' ? 'bio' : aiModalSection === 'releaseCta' ? 'releasesCtaText' : 'longBio']}
-              onUseBio={handleUseBio}
-              onClose={() => {
-                setAiModalOpen(false);
-                setAiModalSection(null);
-              }}
-            />
-          )}
-          {milestoneModalOpen && milestoneModalIndex >= 0 ? (
-            <MilestoneAIModal
-              isOpen={milestoneModalOpen}
-              category={milestoneModalCategory}
-              artistData={presskitData}
-              currentValue={presskitData.artistMilestones?.[milestoneModalCategory]?.[milestoneModalIndex] || ''}
-              onUseMilestone={handleUseMilestone}
-              onClose={() => {
-                setMilestoneModalOpen(false);
-                setMilestoneModalIndex(-1);
-              }}
-            />
           ) : null}
         </div>
+        </div>
+
+        {!isMobile ? (
+          <div
+            ref={previewDockRef}
+            className="sticky top-2 max-h-[calc(100vh-1rem)] space-y-6 overflow-y-auto pr-1 h-fit transition-transform duration-300 ease-out will-change-transform"
+            style={{ transform: 'translateY(calc(var(--preview-dock-offset, 0px) * -1))' }}
+          >
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={async () => {
+                  const tab = window.open('', '_blank');
+                  try {
+                    const uid = await saveDraftForPreview();
+                    if (!uid) {
+                      tab?.close();
+                      return;
+                    }
+                    setTimeout(() => {
+                      if (tab) tab.location.href = `/presskit/${uid}`;
+                      else window.open(`/presskit/${uid}`, '_blank');
+                    }, 200);
+                  } catch (error) {
+                    tab?.close();
+                    console.error('Error al guardar para previsualizar EPK:', error);
+                    setSaveState('error');
+                  }
+                }}
+                className="inline-flex items-center gap-2 rounded-xl border border-cyan-300/40 bg-cyan-300/10 px-4 py-2 text-sm font-semibold text-cyan-300 transition hover:bg-cyan-300/20"
+              >
+                Previsualizar EPK
+              </button>
+
+              <button
+                type="button"
+                onClick={async () => {
+                  const tab = window.open('', '_blank');
+                  try {
+                    const uid = await saveDraftForPreview();
+                    if (!uid) {
+                      tab?.close();
+                      return;
+                    }
+                    setTimeout(() => {
+                      if (tab) tab.location.href = '/presskitPDF';
+                      else window.open('/presskitPDF', '_blank');
+                    }, 200);
+                  } catch (error) {
+                    tab?.close();
+                    console.error('Error al guardar para previsualizar PDF:', error);
+                    setSaveState('error');
+                  }
+                }}
+                className="inline-flex items-center gap-2 rounded-xl border border-fuchsia-300/40 bg-fuchsia-300/10 px-4 py-2 text-sm font-semibold text-fuchsia-300 transition hover:bg-fuchsia-300/20"
+              >
+                Previsualizar PDF
+              </button>
+            </div>
+
+            <LivePreview data={presskitData} />
+          </div>
+        ) : null}
       </div>
+
+      <PublishModal
+        isOpen={publishOpen}
+        onClose={() => setPublishOpen(false)}
+        onPublish={handlePublish}
+        summary={buildPublishSummary(presskitData)}
+      />
+      <ImageLibraryModal
+        userId={user?.uid}
+        isOpen={libraryModalOpen}
+        onClose={() => setLibraryModalOpen(false)}
+        onSelectImage={handleSelectFromLibrary}
+        imageType={currentImageType}
+      />
+      {aiModalOpen && aiModalSection && (
+        <BiographyAIModal
+          isOpen={aiModalOpen}
+          section={aiModalSection}
+          artistData={presskitData}
+          currentValue={presskitData[aiModalSection === 'twitterBio' ? 'twitterBio' : aiModalSection === 'shortBio' ? 'bio' : aiModalSection === 'releaseCta' ? 'releasesCtaText' : 'longBio']}
+          onUseBio={handleUseBio}
+          onClose={() => {
+            setAiModalOpen(false);
+            setAiModalSection(null);
+          }}
+        />
+      )}
+      {milestoneModalOpen && milestoneModalIndex >= 0 ? (
+        <MilestoneAIModal
+          isOpen={milestoneModalOpen}
+          category={milestoneModalCategory}
+          artistData={presskitData}
+          currentValue={presskitData.artistMilestones?.[milestoneModalCategory]?.[milestoneModalIndex] || ''}
+          onUseMilestone={handleUseMilestone}
+          onClose={() => {
+            setMilestoneModalOpen(false);
+            setMilestoneModalIndex(-1);
+          }}
+        />
+      ) : null}
     </section>
   );
 }
