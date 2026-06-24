@@ -337,6 +337,16 @@ function CreatePresskit({ user, onSignOut }) {
   const lastSavedSignatureRef = useRef('');
   const isSavingRef = useRef(false);
   const previewDockRef = useRef(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+
+  const goToPrevStep = () => setActiveStep((s) => Math.max(1, s - 1));
+  const goToNextStep = () => setActiveStep((s) => Math.min(steps.length, s + 1));
 
   const handleSidebarStepClick = (stepNumber) => {
     setActiveStep(stepNumber);
@@ -1423,37 +1433,75 @@ function CreatePresskit({ user, onSignOut }) {
         </button>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[280px_minmax(0,1.25fr)_minmax(360px,0.9fr)]">
-        <aside className="sticky top-6 self-start max-h-[calc(100vh-3rem)] overflow-y-auto rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur">
-          <p className="text-xs uppercase tracking-[0.16em] text-cyan-300">Pasos</p>
-          <h2 className="mt-2 text-xl font-bold text-white">Constructor de presskit</h2>
-          <div className="mt-6 space-y-2">
-            {steps.map((step, index) => {
-              const stepNumber = index + 1;
-              const isActive = activeStep === stepNumber;
-              return (
-                <button
-                  key={step}
-                  type="button"
-                  onClick={() => handleSidebarStepClick(stepNumber)}
-                  className={`flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left transition ${
-                    isActive
-                      ? 'border-cyan-300/40 bg-cyan-300/10 text-white shadow-[0_0_30px_rgba(34,211,238,0.15)]'
-                      : 'border-white/10 bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white'
-                  }`}
-                >
-                  <span className={`inline-flex h-8 w-8 items-center justify-center rounded-full text-sm font-black ${isActive ? 'bg-cyan-300 text-zinc-950' : 'bg-white/10 text-white'}`}>
-                    {stepNumber}
-                  </span>
-                  <span className="text-sm font-semibold">{step}</span>
-                </button>
-              );
-            })}
-          </div>
-        </aside>
+      <div className={`grid gap-6 ${isMobile ? '' : 'xl:grid-cols-[280px_minmax(0,1.25fr)_minmax(360px,0.9fr)]'}`}>
+        {!isMobile && (
+          <aside className="sticky top-6 self-start max-h-[calc(100vh-3rem)] overflow-y-auto rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur">
+            <p className="text-xs uppercase tracking-[0.16em] text-cyan-300">Pasos</p>
+            <h2 className="mt-2 text-xl font-bold text-white">Constructor de presskit</h2>
+            <div className="mt-6 space-y-2">
+              {steps.map((step, index) => {
+                const stepNumber = index + 1;
+                const isActive = activeStep === stepNumber;
+                return (
+                  <button
+                    key={step}
+                    type="button"
+                    onClick={() => handleSidebarStepClick(stepNumber)}
+                    className={`flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left transition ${
+                      isActive
+                        ? 'border-cyan-300/40 bg-cyan-300/10 text-white shadow-[0_0_30px_rgba(34,211,238,0.15)]'
+                        : 'border-white/10 bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    <span className={`inline-flex h-8 w-8 items-center justify-center rounded-full text-sm font-black ${isActive ? 'bg-cyan-300 text-zinc-950' : 'bg-white/10 text-white'}`}>
+                      {stepNumber}
+                    </span>
+                    <span className="text-sm font-semibold">{step}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </aside>
+        )}
 
         <div className="space-y-6">
-          <Stepform
+          {isMobile && (
+            <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur">
+              <button
+                type="button"
+                onClick={goToPrevStep}
+                disabled={activeStep === 1}
+                className="rounded-lg border border-white/15 px-3 py-1.5 text-xs font-semibold text-zinc-300 transition hover:bg-white/10 disabled:opacity-30 disabled:pointer-events-none"
+              >
+                ← Anterior
+              </button>
+              <span className="text-xs font-semibold text-zinc-300">
+                Paso <span className="text-cyan-300">{activeStep}</span>/{steps.length} · <span className="text-white">{steps[activeStep - 1]}</span>
+              </span>
+              <button
+                type="button"
+                onClick={goToNextStep}
+                disabled={activeStep === steps.length}
+                className="rounded-lg border border-cyan-300/40 px-3 py-1.5 text-xs font-semibold text-cyan-300 transition hover:bg-cyan-300/10 disabled:opacity-30 disabled:pointer-events-none"
+              >
+                Siguiente →
+              </button>
+            </div>
+          )}
+
+          {isMobile && (
+            <style>{`
+              .mobile-step-view > div > div > div[id^="presskit-step-"] {
+                display: none;
+              }
+              .mobile-step-view > div > div > div[id="presskit-step-${activeStep}"] {
+                display: block;
+              }
+            `}</style>
+          )}
+
+          <div className={isMobile ? 'mobile-step-view' : ''}>
+            <Stepform
             data={presskitData}
             onFieldChange={updateField}
             onLinkChange={updateLink}
@@ -1564,7 +1612,18 @@ function CreatePresskit({ user, onSignOut }) {
             </button>
           </div>
 
-          <LivePreview data={presskitData} />
+          {isMobile ? (
+            <details className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur">
+              <summary className="cursor-pointer px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-cyan-300 select-none">
+                Vista previa
+              </summary>
+              <div className="max-h-[50vh] overflow-y-auto border-t border-white/10 p-3">
+                <LivePreview data={presskitData} />
+              </div>
+            </details>
+          ) : (
+            <LivePreview data={presskitData} />
+          )}
           <PublishModal
             isOpen={publishOpen}
             onClose={() => setPublishOpen(false)}
