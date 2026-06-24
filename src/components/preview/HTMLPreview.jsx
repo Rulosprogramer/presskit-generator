@@ -113,7 +113,7 @@ function buildPages(d, tc = {}) {
     <div key="bio-intro" style={{ width: PAGE_W, height: PAGE_H, position: 'relative', backgroundColor: BG, overflow: 'hidden' }}>
       <BgImage src={bioImg} scrim={OVERLAY} />
       <div style={{ position: 'absolute', top: 28, left: 40, right: 40, zIndex: 1, textAlign: 'center' }}>
-        <div style={{ color: SUBTITLE, fontSize: 12, letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 700, fontFamily: FONT, ...SUB_FX }}>CONOCE A</div>
+        <div style={{ color: SUBTITLE, fontSize: 12, letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 700, fontFamily: FONT, ...SUB_FX }}>LOGROS DE</div>
         <div style={{ fontSize: 40, fontWeight: 900, color: WHITE, lineHeight: 1.05, marginTop: 6, fontFamily: FONT }}>{d.artistName || ''}</div>
       </div>
       <div style={{ position: 'absolute', inset: 0, zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: perfLink ? '0 40px 170px' : '0 40px 60px' }}>

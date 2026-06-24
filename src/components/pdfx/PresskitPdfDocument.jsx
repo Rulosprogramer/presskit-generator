@@ -1321,7 +1321,7 @@ export default function PresskitPdfDocument({ data, variant = 'professional', co
 
           {/* Header: kicker + nombre arriba */}
           <View style={styles.pageTwoHeader}>
-            <Text style={[styles.pageTwoKicker, { color: c.accent, fontFamily: pdfSubtitleFont }, subFx]}>CONOCE A</Text>
+            <Text style={[styles.pageTwoKicker, { color: c.accent, fontFamily: pdfSubtitleFont }, subFx]}>LOGROS DE</Text>
             <Text style={[styles.pageTwoArtist, { color: c.title, fontFamily: pdfTitleFont }]}>{safeData.artistName || 'Presskit'}</Text>
           </View>
 
