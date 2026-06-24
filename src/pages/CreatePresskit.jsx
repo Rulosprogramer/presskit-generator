@@ -1466,26 +1466,8 @@ function CreatePresskit({ user, onSignOut }) {
 
         <div className="space-y-6">
           {isMobile && (
-            <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur">
-              <button
-                type="button"
-                onClick={goToPrevStep}
-                disabled={activeStep === 1}
-                className="rounded-lg border border-white/15 px-3 py-1.5 text-xs font-semibold text-zinc-300 transition hover:bg-white/10 disabled:opacity-30 disabled:pointer-events-none"
-              >
-                ← Anterior
-              </button>
-              <span className="text-xs font-semibold text-zinc-300">
-                Paso <span className="text-cyan-300">{activeStep}</span>/{steps.length} · <span className="text-white">{steps[activeStep - 1]}</span>
-              </span>
-              <button
-                type="button"
-                onClick={goToNextStep}
-                disabled={activeStep === steps.length}
-                className="rounded-lg border border-cyan-300/40 px-3 py-1.5 text-xs font-semibold text-cyan-300 transition hover:bg-cyan-300/10 disabled:opacity-30 disabled:pointer-events-none"
-              >
-                Siguiente →
-              </button>
+            <div className="max-h-[35vh] min-h-[200px] overflow-y-auto rounded-2xl border border-white/10 bg-white/5 p-3">
+              <LivePreview data={presskitData} />
             </div>
           )}
 
@@ -1551,16 +1533,81 @@ function CreatePresskit({ user, onSignOut }) {
               {permissionError}
             </div>
           ) : null}
-          {isMobile ? (
-            <details className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur">
-              <summary className="cursor-pointer px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-cyan-300 select-none">
-                Vista previa
-              </summary>
-              <div className="max-h-[50vh] overflow-y-auto border-t border-white/10 p-3">
-                <LivePreview data={presskitData} />
+          {isMobile && (
+            <>
+              <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur">
+                {activeStep > 1 ? (
+                  <button
+                    type="button"
+                    onClick={goToPrevStep}
+                    className="rounded-lg border border-white/15 px-3 py-1.5 text-xs font-semibold text-zinc-300 transition hover:bg-white/10"
+                  >
+                    ← Atrás
+                  </button>
+                ) : (
+                  <div />
+                )}
+                <span className="text-xs font-semibold text-zinc-300">
+                  Paso <span className="text-cyan-300">{activeStep}</span>/{steps.length}
+                </span>
+                {activeStep < steps.length ? (
+                  <button
+                    type="button"
+                    onClick={goToNextStep}
+                    className="rounded-lg border border-cyan-300/40 px-3 py-1.5 text-xs font-semibold text-cyan-300 transition hover:bg-cyan-300/10"
+                  >
+                    Siguiente →
+                  </button>
+                ) : (
+                  <div />
+                )}
               </div>
-            </details>
-          ) : null}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const tab = window.open('', '_blank');
+                    try {
+                      const uid = await saveDraftForPreview();
+                      if (!uid) { tab?.close(); return; }
+                      setTimeout(() => {
+                        if (tab) tab.location.href = `/presskit/${uid}`;
+                        else window.open(`/presskit/${uid}`, '_blank');
+                      }, 200);
+                    } catch (error) {
+                      tab?.close();
+                      console.error('Error al guardar para previsualizar EPK:', error);
+                      setSaveState('error');
+                    }
+                  }}
+                  className="flex-1 rounded-xl border border-cyan-300/40 bg-cyan-300/10 px-3 py-2 text-xs font-semibold text-cyan-300 transition hover:bg-cyan-300/20"
+                >
+                  Previsualizar EPK
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const tab = window.open('', '_blank');
+                    try {
+                      const uid = await saveDraftForPreview();
+                      if (!uid) { tab?.close(); return; }
+                      setTimeout(() => {
+                        if (tab) tab.location.href = '/presskitPDF';
+                        else window.open('/presskitPDF', '_blank');
+                      }, 200);
+                    } catch (error) {
+                      tab?.close();
+                      console.error('Error al guardar para previsualizar PDF:', error);
+                      setSaveState('error');
+                    }
+                  }}
+                  className="flex-1 rounded-xl border border-fuchsia-300/40 bg-fuchsia-300/10 px-3 py-2 text-xs font-semibold text-fuchsia-300 transition hover:bg-fuchsia-300/20"
+                >
+                  Previsualizar PDF
+                </button>
+              </div>
+            </>
+          )}
         </div>
         </div>
 
