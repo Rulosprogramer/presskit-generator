@@ -177,22 +177,24 @@ function ReleaseStep({
             return (
               <div
                 key={index}
-                className={`flex gap-3 rounded-xl border p-3 transition ${isEditing ? 'border-cyan-300/50 bg-cyan-300/5' : 'border-white/10 bg-white/5'}`}
+                className={`flex flex-col sm:flex-row gap-3 rounded-xl border p-3 transition ${isEditing ? 'border-cyan-300/50 bg-cyan-300/5' : 'border-white/10 bg-white/5'}`}
               >
-                {thumbnail ? (
-                  <img src={thumbnail} alt={release.title} className="h-16 w-24 rounded-lg object-cover shrink-0" />
-                ) : (
-                  <div className="h-16 w-24 rounded-lg bg-zinc-700 flex items-center justify-center shrink-0">
-                    <span className="text-[10px] text-zinc-400">Sin thumbnail</span>
+                <div className="flex gap-3 flex-1 min-w-0">
+                  {thumbnail ? (
+                    <img src={thumbnail} alt={release.title} className="h-16 w-24 rounded-lg object-cover shrink-0" />
+                  ) : (
+                    <div className="h-16 w-24 rounded-lg bg-zinc-700 flex items-center justify-center shrink-0">
+                      <span className="text-[10px] text-zinc-400">Sin thumbnail</span>
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-white truncate">{release.title}</p>
+                    {release.author && <p className="text-xs text-zinc-400 truncate mt-0.5">{release.author}</p>}
+                    {release.description && <p className="text-xs text-zinc-500 mt-1 line-clamp-1">{release.description}</p>}
+                    <p className="text-[10px] text-zinc-600 mt-1 truncate">{release.url}</p>
                   </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-white truncate">{release.title}</p>
-                  {release.author && <p className="text-xs text-zinc-400 truncate mt-0.5">{release.author}</p>}
-                  {release.description && <p className="text-xs text-zinc-500 mt-1 line-clamp-1">{release.description}</p>}
-                  <p className="text-[10px] text-zinc-600 mt-1 truncate">{release.url}</p>
                 </div>
-                <div className="flex flex-col justify-center gap-1 shrink-0">
+                <div className="flex sm:flex-col justify-end gap-1 shrink-0">
                   <button
                     type="button"
                     onClick={() => onMoveRelease?.(index, -1)}
@@ -211,8 +213,6 @@ function ReleaseStep({
                   >
                     ▼
                   </button>
-                </div>
-                <div className="flex flex-col gap-1 shrink-0">
                   <button
                     type="button"
                     onClick={() => handleEdit(index)}
