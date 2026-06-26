@@ -205,6 +205,26 @@
     }
     </script>
 
+    <!-- Google Consent Mode v2: estado por defecto ANTES de cargar GA -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('consent', 'default', {
+        analytics_storage: 'denied',
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        wait_for_update: 500
+      });
+    </script>
+
+    <!-- Google Analytics (carga en modo restringido hasta recibir consentimiento) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QCVWPR2ZQC"></script>
+    <script>
+      gtag('js', new Date());
+      gtag('config', 'G-QCVWPR2ZQC');
+    </script>
+
     <!-- Google Fonts para tipografías dinámicas -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

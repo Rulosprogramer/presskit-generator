@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getConsent, setConsent, loadGA } from '../lib/analytics';
+import { getConsent, setConsent, grantConsent, revokeConsent } from '../lib/analytics';
 
 function CookieBanner() {
   const [visible, setVisible] = useState(() => getConsent() === null);
@@ -8,12 +8,13 @@ function CookieBanner() {
 
   const accept = () => {
     setConsent('accepted');
-    loadGA();
+    grantConsent();
     setVisible(false);
   };
 
   const decline = () => {
     setConsent('declined');
+    revokeConsent();
     setVisible(false);
   };
 

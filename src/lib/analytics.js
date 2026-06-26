@@ -1,4 +1,3 @@
-const GA_ID = 'G-QCVWPR2ZQC';
 const CONSENT_KEY = 'cookie_consent';
 
 export function getConsent() {
@@ -9,17 +8,29 @@ export function setConsent(value) {
   localStorage.setItem(CONSENT_KEY, value);
 }
 
-export function loadGA() {
-  if (document.getElementById('ga-script')) return;
-  const s = document.createElement('script');
-  s.id = 'ga-script';
-  s.async = true;
-  s.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
-  document.head.appendChild(s);
+// Llama a esto al arrancar la app si el usuario ya había aceptado antes
+export function applyStoredConsent() {
+  const consent = getConsent();
+  if (consent === 'accepted') grantConsent();
+  // Si rechazó o es null, el default 'denied' del index.html ya aplica
+}
 
-  window.dataLayer = window.dataLayer || [];
-  function gtag() { window.dataLayer.push(arguments); }
-  window.gtag = gtag;
-  gtag('js', new Date());
-  gtag('config', GA_ID);
+export function grantConsent() {
+  if (typeof window.gtag !== 'function') return;
+  window.gtag('consent', 'update', {
+    analytics_storage: 'granted',
+    ad_storage: 'denied',       // no hacemos publicidad
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
+  });
+}
+
+export function revokeConsent() {
+  if (typeof window.gtag !== 'function') return;
+  window.gtag('consent', 'update', {
+    analytics_storage: 'denied',
+    ad_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
+  });
 }
