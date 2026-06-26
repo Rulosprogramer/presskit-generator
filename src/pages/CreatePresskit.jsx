@@ -1279,7 +1279,7 @@ function CreatePresskit({ user, onSignOut }) {
     }
   };
 
-  const handlePublish = async () => {
+  const handlePublish = async (allowShowcase = false) => {
     if (!draftRef) return;
 
     try {
@@ -1341,6 +1341,7 @@ function CreatePresskit({ user, onSignOut }) {
           updatedAt: now,
           status: 'published',
           publishedAt: now,
+          allowShowcase: allowShowcase === true,
         },
         { merge: true },
       );
@@ -1606,6 +1607,13 @@ function CreatePresskit({ user, onSignOut }) {
                   Previsualizar PDF
                 </button>
               </div>
+              <button
+                type="button"
+                onClick={() => setPublishOpen(true)}
+                className="w-full rounded-xl bg-fuchsia-400 py-3 text-sm font-bold text-zinc-950 transition hover:bg-fuchsia-300 active:scale-95"
+              >
+                Publicar presskit
+              </button>
             </>
           )}
         </div>

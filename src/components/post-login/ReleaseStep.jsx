@@ -74,11 +74,11 @@ function ReleaseStep({
   return (
     <div className="rounded-2xl border border-white/10 bg-zinc-900/50 p-4">
       <div className="flex items-center justify-between gap-3 mb-4">
-        <div>
+        <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-fuchsia-300">6. Video Releases</p>
           <p className="text-xs text-zinc-400 mt-1">Añade tus videos de YouTube — hasta 8 releases</p>
         </div>
-        <span className="text-xs bg-white/10 px-2 py-1 rounded-full text-zinc-300">{releases.length}/8</span>
+        <span className="shrink-0 text-xs bg-white/10 px-2 py-1 rounded-full text-zinc-300">{releases.length}/8</span>
       </div>
 
       {/* Formulario */}
@@ -116,10 +116,11 @@ function ReleaseStep({
           />
           <div>
             <input
-              type="url"
+              type="text"
+              inputMode="url"
               value={form.url}
               onChange={set('url')}
-              placeholder="https://youtube.com/watch?v=... *"
+              placeholder="https://youtube.com/watch?v=..."
               className={inputClass('url')}
             />
             {errors.url && <p className="mt-1 text-xs text-red-400">{errors.url}</p>}
@@ -177,56 +178,51 @@ function ReleaseStep({
             return (
               <div
                 key={index}
-                className={`flex flex-col sm:flex-row gap-3 rounded-xl border p-3 transition ${isEditing ? 'border-cyan-300/50 bg-cyan-300/5' : 'border-white/10 bg-white/5'}`}
+                className={`rounded-xl border p-3 transition ${isEditing ? 'border-cyan-300/50 bg-cyan-300/5' : 'border-white/10 bg-white/5'}`}
               >
-                <div className="flex gap-3 flex-1 min-w-0">
-                  {thumbnail ? (
-                    <img src={thumbnail} alt={release.title} className="h-16 w-24 rounded-lg object-cover shrink-0" />
-                  ) : (
-                    <div className="h-16 w-24 rounded-lg bg-zinc-700 flex items-center justify-center shrink-0">
-                      <span className="text-[10px] text-zinc-400">Sin thumbnail</span>
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-white truncate">{release.title}</p>
-                    {release.author && <p className="text-xs text-zinc-400 truncate mt-0.5">{release.author}</p>}
-                    {release.description && <p className="text-xs text-zinc-500 mt-1 line-clamp-1">{release.description}</p>}
-                    <p className="text-[10px] text-zinc-600 mt-1 truncate">{release.url}</p>
+                {/* Thumbnail ancho completo */}
+                {thumbnail ? (
+                  <img
+                    src={thumbnail}
+                    alt={release.title}
+                    className="w-full h-24 object-cover rounded-lg mb-2"
+                  />
+                ) : (
+                  <div className="w-full h-16 rounded-lg bg-zinc-700/60 flex items-center justify-center mb-2">
+                    <span className="text-xs text-zinc-400">Sin thumbnail</span>
                   </div>
-                </div>
-                <div className="flex sm:flex-col justify-end gap-1 shrink-0">
+                )}
+                {/* Texto en bloque vertical */}
+                <p className="text-sm font-semibold text-white leading-snug">{release.title}</p>
+                {release.author && <p className="text-xs text-zinc-400 mt-0.5">{release.author}</p>}
+                {release.description && <p className="text-xs text-zinc-500 mt-1 line-clamp-2">{release.description}</p>}
+                <p className="text-[10px] text-zinc-600 mt-1 break-all">{release.url}</p>
+                {/* Botones en fila compacta */}
+                <div className="flex items-center justify-end gap-1 mt-2">
                   <button
                     type="button"
                     onClick={() => onMoveRelease?.(index, -1)}
                     disabled={index === 0 || editingIndex !== null}
                     title="Subir"
-                    className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-xs text-zinc-300 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
-                  >
-                    ▲
-                  </button>
+                    className="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-zinc-300 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
+                  >▲</button>
                   <button
                     type="button"
                     onClick={() => onMoveRelease?.(index, 1)}
                     disabled={index === releases.length - 1 || editingIndex !== null}
                     title="Bajar"
-                    className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-xs text-zinc-300 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
-                  >
-                    ▼
-                  </button>
+                    className="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-zinc-300 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
+                  >▼</button>
                   <button
                     type="button"
                     onClick={() => handleEdit(index)}
-                    className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition ${isEditing ? 'border-cyan-300/50 bg-cyan-300/10 text-cyan-300' : 'border-blue-500/30 bg-blue-500/10 text-blue-300 hover:bg-blue-500/20'}`}
-                  >
-                    {isEditing ? 'Editando' : 'Editar'}
-                  </button>
+                    className={`rounded-md border px-3 py-1 text-xs font-medium transition ${isEditing ? 'border-cyan-300/50 bg-cyan-300/10 text-cyan-300' : 'border-blue-500/30 bg-blue-500/10 text-blue-300 hover:bg-blue-500/20'}`}
+                  >{isEditing ? 'Editando' : 'Editar'}</button>
                   <button
                     type="button"
                     onClick={() => { if (window.confirm(`¿Eliminar "${release.title}"?`)) onDeleteRelease(index); }}
-                    className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-300 hover:bg-red-500/20 transition"
-                  >
-                    Eliminar
-                  </button>
+                    className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-medium text-red-300 hover:bg-red-500/20 transition"
+                  >Eliminar</button>
                 </div>
               </div>
             );

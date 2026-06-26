@@ -1,11 +1,15 @@
+import { useState } from 'react';
+
 function PublishModal({ isOpen, onClose, onPublish, summary = [] }) {
+  const [allowShowcase, setAllowShowcase] = useState(false);
+
   if (!isOpen) return null;
 
   const completedCount = summary.filter((item) => item.status === 'completed').length;
   const warningCount = summary.filter((item) => item.status === 'warning').length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 px-4 py-8 backdrop-blur-sm">
       <div className="w-full max-w-lg rounded-3xl border border-white/15 bg-zinc-950 p-6 shadow-2xl">
         <p className="text-xs uppercase tracking-[0.16em] text-cyan-300">Publicar</p>
         <h2 className="mt-2 text-2xl font-bold text-white">Revisa tu presskit</h2>
@@ -43,6 +47,22 @@ function PublishModal({ isOpen, onClose, onPublish, summary = [] }) {
           </div>
         </div>
 
+        {/* Consentimiento showcase */}
+        <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:bg-white/8">
+          <input
+            type="checkbox"
+            checked={allowShowcase}
+            onChange={(e) => setAllowShowcase(e.target.checked)}
+            className="mt-0.5 h-4 w-4 shrink-0 accent-fuchsia-400"
+          />
+          <div>
+            <p className="text-sm font-semibold text-white">Aparecer como ejemplo en la plataforma</p>
+            <p className="mt-1 text-xs text-zinc-400">
+              Autorizo que mi presskit publicado se muestre de forma rotativa en la sección de ejemplos del homepage, como inspiración para otros artistas. Puedes retirar este permiso en cualquier momento despublicando tu presskit.
+            </p>
+          </div>
+        </label>
+
         <div className="mt-6 flex flex-wrap justify-end gap-3">
           <button
             type="button"
@@ -53,7 +73,7 @@ function PublishModal({ isOpen, onClose, onPublish, summary = [] }) {
           </button>
           <button
             type="button"
-            onClick={onPublish}
+            onClick={() => onPublish(allowShowcase)}
             className="rounded-xl bg-fuchsia-400 px-4 py-3 text-sm font-bold text-zinc-950 transition hover:bg-fuchsia-300"
           >
             Publicar ahora
