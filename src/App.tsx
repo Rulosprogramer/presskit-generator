@@ -26,12 +26,20 @@ import { applyRouteMeta } from './lib/seoMeta'
 import ThemePicker from './components/ThemePicker.jsx'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
+import CookieBanner from './components/CookieBanner.jsx'
+// @ts-ignore
+import { getConsent, loadGA } from './lib/analytics.js'
 
 const PresskitPDF = lazy(() => import('./pages/PresskitPDF.jsx'))
 
 function App() {
   const [pathname, setPathname] = useState(window.location.pathname)
   const [user, setUser] = useState<any>(null)
+
+  // Carga GA si el usuario ya había aceptado antes
+  useEffect(() => {
+    if (getConsent() === 'accepted') loadGA()
+  }, [])
 
   useEffect(() => {
     const onPopState = () => setPathname(window.location.pathname)
@@ -168,6 +176,7 @@ function App() {
           <Footer pathname={pathname} />
         </>
       )}
+      <CookieBanner />
       <Analytics />
       <SpeedInsights />
     </div>
