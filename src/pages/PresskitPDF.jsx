@@ -3,6 +3,8 @@ import { BlobProvider, pdf } from '@react-pdf/renderer';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { resolvePdfPresskitData } from '../lib/pdfImageResolver';
+// @ts-ignore
+import { trackEvent } from '../lib/analytics.js';
 import { useTheme } from '../context/ThemeContext.tsx';
 import PresskitPdfDocument from '../components/pdfx/PresskitPdfDocument.jsx';
 import Topbar from '../components/post-login/Topbar.jsx';
@@ -319,6 +321,7 @@ function PresskitPDF({ user, onSignOut, presskitId = '' }) {
       link.click();
       link.remove();
       URL.revokeObjectURL(downloadUrl);
+      trackEvent('pdf_downloaded', { watermark: useWatermark, variant: pdfVariant });
       closeDownloadModal();
     } catch (err) {
       setError('No se pudo generar la descarga del PDF.');

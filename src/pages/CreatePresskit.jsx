@@ -4,6 +4,7 @@ import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { auth, db, storage } from '../lib/firebase';
 import { normalizePresskitStorageUrls } from '../lib/pdfImageResolver';
 import { generateBioSectionWithAI } from '../lib/aiBio';
+import { trackEvent } from '../lib/analytics';
 import { fileExistsInLibrary, addImageToLibrary } from '../lib/imageLibrary';
 import Topbar from '../components/post-login/Topbar.jsx';
 import Stepform from '../components/post-login/Stepform.jsx';
@@ -606,7 +607,8 @@ function CreatePresskit({ user, onSignOut }) {
         }
 
         const now = new Date();
-        if (!createdAtRef.current) {
+        const isFirstSave = !createdAtRef.current;
+        if (isFirstSave) {
           createdAtRef.current = now;
         }
 
@@ -621,6 +623,11 @@ function CreatePresskit({ user, onSignOut }) {
         );
 
         lastSavedSignatureRef.current = signature;
+        if (isFirstSave) {
+          trackEvent('epk_created', { artist_name: normalizedSavePayload.artistName });
+        } else {
+          trackEvent('epk_updated', { artist_name: normalizedSavePayload.artistName });
+        }
         setSaveState('saved');
         setPermissionError('');
         window.setTimeout(() => setSaveState('idle'), 1400);
@@ -668,12 +675,27 @@ function CreatePresskit({ user, onSignOut }) {
     return () => window.clearTimeout(timeout);
   }, [presskitData, user?.uid]);
 
+  const CONTACT_FIELDS = new Set(['contactArtistName', 'managerName', 'contactPhone', 'whatsappPhone']);
+
   const updateField = (field, value) => {
     const normalizedValue = field === 'contactPhone' ? String(value).replace(/\D/g, '') : value;
+    if (field === 'theme') trackEvent('theme_changed', { theme: value });
+    if (field === 'typeface') trackEvent('font_changed', { font: value });
+    if (CONTACT_FIELDS.has(field) && value && !presskitData[field]) {
+      trackEvent('contact_completed', { field });
+    }
     setPresskitData((current) => ({ ...current, [field]: normalizedValue }));
   };
 
+  const MUSIC_LINKS = new Set(['spotify', 'appleMusic', 'soundcloud', 'youtube']);
+  const SOCIAL_LINKS = new Set(['instagram', 'tiktok', 'facebook']);
+
   const updateLink = (field, value) => {
+    const prev = presskitData.links?.[field] || '';
+    if (value && !prev) {
+      if (MUSIC_LINKS.has(field)) trackEvent('music_link_added', { platform: field });
+      else if (SOCIAL_LINKS.has(field)) trackEvent('social_link_added', { platform: field });
+    }
     setPresskitData((current) => ({
       ...current,
       links: {
@@ -776,6 +798,7 @@ function CreatePresskit({ user, onSignOut }) {
       const imageUrl = await uploadImageFile({ file, userId: user.uid, folder: 'press-articles' });
       await addImageToLibrary({ userId: user.uid, imageUrl, fileName: file.name, type: 'press-article' });
 
+      trackEvent('press_article_added', { index });
       setPresskitData((current) => {
         const next = Array.isArray(current.pressArticles) ? [...current.pressArticles] : [];
         next[index] = imageUrl;
@@ -930,6 +953,9 @@ function CreatePresskit({ user, onSignOut }) {
 
       const imageUrl = await uploadImageFile({ file, userId: user.uid, folder: `gallery/${gallerySlot}` });
       await addImageToLibrary({ userId: user.uid, imageUrl, fileName: file.name, type: `gallery-${gallerySlot}` });
+
+      if (gallerySlot === 'hero') trackEvent('hero_uploaded');
+      else trackEvent('gallery_uploaded', { slot: gallerySlot });
 
       setPresskitData((current) => ({
         ...current,
@@ -1150,6 +1176,7 @@ function CreatePresskit({ user, onSignOut }) {
         ...current,
         [targetField]: generatedText || current[targetField],
       }));
+      trackEvent('ai_bio_generated', { section });
       setActiveStep(4);
     } catch (error) {
       console.warn('No se pudo generar la biografia con IA:', error);
@@ -1176,6 +1203,7 @@ function CreatePresskit({ user, onSignOut }) {
 
   const handleUseMilestone = (text) => {
     if (milestoneModalIndex < 0) return;
+    trackEvent('ai_milestone_generated', { category: milestoneModalCategory });
 
     setPresskitData((current) => {
       const currentMilestones = ensureArtistMilestonesShape(current.artistMilestones);
@@ -1349,6 +1377,7 @@ function CreatePresskit({ user, onSignOut }) {
       // Índice público slug → uid para resolución de URLs personalizadas
       await setDoc(doc(db, 'presskit_slugs', slug), { uid: user.uid }, { merge: true });
 
+      trackEvent('epk_published', { artist_name: presskitData.artistName, allow_showcase: allowShowcase });
       setPublishOpen(false);
       setPermissionError('');
       window.location.assign('/dashboard');
@@ -1567,6 +1596,7 @@ function CreatePresskit({ user, onSignOut }) {
                 <button
                   type="button"
                   onClick={async () => {
+                    trackEvent('web_preview_opened');
                     const tab = window.open('', '_blank');
                     try {
                       const uid = await saveDraftForPreview();
@@ -1588,6 +1618,7 @@ function CreatePresskit({ user, onSignOut }) {
                 <button
                   type="button"
                   onClick={async () => {
+                    trackEvent('pdf_preview_opened');
                     const tab = window.open('', '_blank');
                     try {
                       const uid = await saveDraftForPreview();
@@ -1629,6 +1660,7 @@ function CreatePresskit({ user, onSignOut }) {
               <button
                 type="button"
                 onClick={async () => {
+                  trackEvent('web_preview_opened');
                   const tab = window.open('', '_blank');
                   try {
                     const uid = await saveDraftForPreview();
@@ -1654,6 +1686,7 @@ function CreatePresskit({ user, onSignOut }) {
               <button
                 type="button"
                 onClick={async () => {
+                  trackEvent('pdf_preview_opened');
                   const tab = window.open('', '_blank');
                   try {
                     const uid = await saveDraftForPreview();

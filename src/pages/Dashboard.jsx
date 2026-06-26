@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { isPremiumWhitelisted } from '../lib/premiumAccess.js';
+// @ts-ignore
+import { trackEvent } from '../lib/analytics.js';
 import PlanPurchaseModal from '../components/post-login/PlanPurchaseModal.jsx';
 
 function Dashboard({ user }) {
@@ -73,6 +75,7 @@ function Dashboard({ user }) {
     const url = presskit?.publishedUrl || `${window.location.origin}/presskit/${presskit?.id}`;
     try {
       await navigator.clipboard.writeText(url);
+      trackEvent('epk_shared', { method: 'copy_link' });
       alert('✓ Enlace copiado al portapapeles');
     } catch (err) {
       console.error('Error al copiar:', err);
